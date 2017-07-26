@@ -94,7 +94,7 @@ public class TileHeatExchangeStart extends TileBC_Neptune implements ITickable, 
 
     @Override
     public void update() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             // TODO: Client stuffs
             return;
         }

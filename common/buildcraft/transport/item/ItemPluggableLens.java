@@ -6,8 +6,6 @@
 
 package buildcraft.transport.item;
 
-import javax.annotation.Nonnull;
-
 import gnu.trove.map.hash.TIntObjectHashMap;
 
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
@@ -19,10 +17,13 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.NonNullList;
 
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+
+import java.util.List;
+
+import javax.annotation.Nullable;
 
 import buildcraft.api.transport.IItemPluggable;
 import buildcraft.api.transport.pipe.IFlowItems;
@@ -49,13 +50,13 @@ public class ItemPluggableLens extends ItemBC_Neptune implements IItemPluggable 
     public static LensData getData(ItemStack stack) {
         return new LensData(stack);
     }
-
-    @Nonnull
+    
+    @Nullable
     public ItemStack getStack(EnumDyeColor colour, boolean isFilter) {
         return getStack(new LensData(colour, isFilter));
     }
-
-    @Nonnull
+    
+    @Nullable
     public ItemStack getStack(LensData variant) {
         ItemStack stack = new ItemStack(this);
         variant.writeToStack(stack);
@@ -63,7 +64,7 @@ public class ItemPluggableLens extends ItemBC_Neptune implements IItemPluggable 
     }
 
     @Override
-    public PipePluggable onPlace(@Nonnull ItemStack stack, IPipeHolder holder, EnumFacing side, EntityPlayer player, EnumHand hand) {
+    public PipePluggable onPlace(@Nullable ItemStack stack, IPipeHolder holder, EnumFacing side, EntityPlayer player, EnumHand hand) {
         IPipe pipe = holder.getPipe();
         if (pipe == null || !(pipe.getFlow() instanceof IFlowItems)) {
             return null;
@@ -84,7 +85,7 @@ public class ItemPluggableLens extends ItemBC_Neptune implements IItemPluggable 
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void getSubItems(Item item, CreativeTabs tab, NonNullList<ItemStack> subItems) {
+    public void getSubItems(Item item, CreativeTabs tab, List<ItemStack> subItems) {
         for (int i = 0; i < 34; i++) {
             subItems.add(new ItemStack(item, 1, i));
         }

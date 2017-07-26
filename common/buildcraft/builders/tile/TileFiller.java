@@ -83,11 +83,11 @@ public class TileFiller extends TileBC_Neptune implements ITickable, IDebuggable
     @Override
     public void onPlacedBy(EntityLivingBase placer, ItemStack stack) {
         super.onPlacedBy(placer, stack);
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
-        IBlockState blockState = world.getBlockState(pos);
-        WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(world);
+        IBlockState blockState = worldObj.getBlockState(pos);
+        WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(worldObj);
         VolumeBox box = volumeBoxes.getBoxAt(pos.offset(blockState.getValue(BlockBCBase_Neptune.PROP_FACING).getOpposite()));
         if (box != null) {
             addon = (AddonFillingPlanner) box.addons
@@ -128,7 +128,7 @@ public class TileFiller extends TileBC_Neptune implements ITickable, IDebuggable
     public void update() {
         battery.tick(getWorld(), getPos());
         battery.addPowerChecking(64 * MjAPI.MJ, false);
-        if (addon != null || world.isRemote) {
+        if (addon != null || worldObj.isRemote) {
             builder.tick();
         }
         sendNetworkUpdate(NET_RENDER_DATA); // FIXME
@@ -191,7 +191,7 @@ public class TileFiller extends TileBC_Neptune implements ITickable, IDebuggable
         super.readFromNBT(nbt);
         battery.deserializeNBT(nbt.getCompoundTag("battery"));
         if (nbt.hasKey("addonSlot")) {
-            addon = (AddonFillingPlanner) WorldSavedDataVolumeBoxes.get(world)
+            addon = (AddonFillingPlanner) WorldSavedDataVolumeBoxes.get(worldObj)
                     .getBoxFromId(nbt.getUniqueId("addonBoxId"))
                     .addons
                     .get(NBTUtilBC.readEnum(nbt.getTag("addonSlot"), EnumAddonSlot.class));
@@ -230,7 +230,7 @@ public class TileFiller extends TileBC_Neptune implements ITickable, IDebuggable
 
     @Override
     public World getWorldBC() {
-        return world;
+        return worldObj;
     }
 
     @Override

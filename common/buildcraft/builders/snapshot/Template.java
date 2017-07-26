@@ -17,6 +17,7 @@ import net.minecraft.util.math.BlockPos;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.enums.EnumSnapshotType;
 
+import buildcraft.lib.blockpos.BlockPosRotator;
 import buildcraft.lib.misc.data.Box;
 
 public class Template extends Snapshot {
@@ -94,9 +95,9 @@ public class Template extends Snapshot {
             for (int z = 0; z < getSnapshot().size.getZ(); z++) {
                 for (int y = 0; y < getSnapshot().size.getY(); y++) {
                     for (int x = 0; x < getSnapshot().size.getX(); x++) {
-                        BlockPos blockPos = new BlockPos(x, y, z).rotate(rotation)
+                        BlockPos blockPos = BlockPosRotator.rotate(new BlockPos(x, y, z), rotation)
                             .add(basePos)
-                            .add(offset.rotate(rotation));
+                            .add(BlockPosRotator.rotate(offset, rotation));
                         if (!data[x][y][z]) {
                             toBreak.add(blockPos);
                         } else {

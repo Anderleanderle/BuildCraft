@@ -6,11 +6,13 @@
 
 package buildcraft.lib.inventory;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.NonNullList;
 
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.inventory.IItemTransactor;
@@ -29,13 +31,13 @@ public class InjectableWrapper implements IItemTransactor {
 
     @Nonnull
     @Override
-    public ItemStack insert(@Nonnull ItemStack stack, boolean allOrNone, boolean simulate) {
+    public ItemStack insert(@Nullable ItemStack stack, boolean allOrNone, boolean simulate) {
         if (allOrNone) {
             ItemStack leftOver = injectable.injectItem(stack, false, from, null, 0);
-            if (leftOver.isEmpty()) {
+            if (leftOver == null) {
                 ItemStack reallyLeftOver = injectable.injectItem(stack, !simulate, from, null, 0);
                 // sanity check: it really helps debugging
-                if (!reallyLeftOver.isEmpty()) {
+                if (!(reallyLeftOver == null)) {
                     throw new IllegalStateException("Found an invalid IInjectable instance! (leftOver = "//
                         + leftOver + ", reallyLeftOver = " + reallyLeftOver + ", " + injectable.getClass() + ")");
                 } else {
@@ -50,8 +52,9 @@ public class InjectableWrapper implements IItemTransactor {
     }
 
     @Override
-    public NonNullList<ItemStack> insert(NonNullList<ItemStack> stacks, boolean simulate) {
+    public List<ItemStack> insert(List<ItemStack> stacks, boolean simulate) {
         return ItemTransactorHelper.insertAllBypass(this, stacks, simulate);
+        
     }
 
     @Nonnull

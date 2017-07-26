@@ -27,13 +27,14 @@ import com.google.gson.reflect.TypeToken;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityList;
+//import net.minecraft.entity.EntityList;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 
 import buildcraft.lib.BCLib;
 
+//TODO Check if this works
 public class RulesLoader {
     private static final List<JsonRule> RULES = new ArrayList<>();
     public static final Set<String> READ_DOMAINS = new HashSet<>();
@@ -62,12 +63,10 @@ public class RulesLoader {
                                     String itemName = json.getAsString();
                                     itemName = itemName.contains("@") ? itemName : itemName + "@0";
                                     return new ItemStack(
-                                        Objects.requireNonNull(
-                                            Item.getByNameOrId(
-                                                itemName.substring(
-                                                    0,
-                                                    itemName.indexOf("@")
-                                                )
+                                        Item.getByNameOrId(
+                                            itemName.substring(
+                                                0,
+                                                itemName.indexOf("@")
                                             )
                                         ),
                                         1,
@@ -131,7 +130,7 @@ public class RulesLoader {
                                 )
                                     .map(nameValue -> nameValue.split("="))
                                     .allMatch(nameValue ->
-                                        blockState.getPropertyKeys().stream()
+                                        blockState.getPropertyNames().stream()
                                             .filter(property ->
                                                 property.getName().equals(nameValue[0])
                                             )
@@ -155,7 +154,7 @@ public class RulesLoader {
         // noinspection ConstantConditions
         return RulesLoader.RULES.stream()
             .filter(rule -> rule.selectors != null)
-            .filter(rule -> rule.selectors.stream().anyMatch(EntityList.getKey(entity).toString()::equals))
+            .filter(rule -> rule.selectors.stream().anyMatch(entity.getName()::equals))
             .collect(Collectors.toCollection(HashSet::new));
     }
 }

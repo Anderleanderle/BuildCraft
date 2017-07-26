@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
 
@@ -251,7 +251,7 @@ public enum MarkdownPageLoader implements IPageLoaderText {
         return loadAllCrafting(stack);
     }
 
-    public static List<GuidePartFactory> loadAllCrafting(@Nonnull ItemStack stack) {
+    public static List<GuidePartFactory> loadAllCrafting(@Nullable ItemStack stack) {
         List<GuidePartFactory> list = new ArrayList<>();
         List<GuidePartFactory> recipeParts = RecipeLookupHelper.getAllRecipes(stack);
         if (recipeParts.size() > 0) {
@@ -331,7 +331,7 @@ public enum MarkdownPageLoader implements IPageLoaderText {
         } catch (NumberFormatException nfe) {
             BCLog.logger.warn("[lib.markdown] " + args[1] + " was not a valid number: " + nfe.getLocalizedMessage());
         }
-        stack.setCount(stackSize);
+        stack.stackSize = stackSize;
 
         if (args.length == 2) return stack;
 
@@ -341,7 +341,7 @@ public enum MarkdownPageLoader implements IPageLoaderText {
                 // Use oredict
                 meta = OreDictionary.WILDCARD_VALUE;
             }
-            stack = new ItemStack(stack.getItem(), stack.getCount(), meta);
+            stack = new ItemStack(stack.getItem(), stack.stackSize, meta);
         } catch (NumberFormatException nfe) {
             BCLog.logger.warn("[lib.markdown] " + args[2] + " was not a valid number: " + nfe.getLocalizedMessage());
         }

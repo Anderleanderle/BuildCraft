@@ -17,7 +17,7 @@ import buildcraft.lib.inventory.filter.ArrayStackOrListFilter;
 public class StatementParameterStackFilter extends ArrayStackOrListFilter {
 
     public StatementParameterStackFilter(IStatementParameter... parameters) {
-        ArrayList<ItemStack> tmp = new ArrayList<>();
+        ArrayList<ItemStack> tmp = new ArrayList<ItemStack>();
 
         for (IStatementParameter s : parameters) {
             if (s != null) {

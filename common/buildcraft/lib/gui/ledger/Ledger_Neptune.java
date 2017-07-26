@@ -133,7 +133,7 @@ public abstract class Ledger_Neptune implements ITooltipElement {
         }
 
         int maxDiff = Math.max(maxWidth - CLOSED_WIDTH, maxHeight - CLOSED_HEIGHT);
-        int ldgDiff = MathHelper.clamp(maxDiff / 5, 1, 15);
+        int ldgDiff = MathHelper.clamp_int(maxDiff / 5, 1, 15);
 
         // TODO: extract a method
         if (currentWidth < targetWidth) {

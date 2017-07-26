@@ -6,7 +6,7 @@
 
 package buildcraft.lib.client.guide.parts.recipe;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -30,7 +30,7 @@ public class GuideSmelting extends GuidePartItem {
     private final ChangingItemStack input, output;
     private final ItemStack furnace;
 
-    public GuideSmelting(GuiGuide gui, @Nonnull ItemStack input, @Nonnull ItemStack output) {
+    public GuideSmelting(GuiGuide gui, @Nullable ItemStack input, @Nullable ItemStack output) {
         super(gui);
         this.input = ChangingItemStack.create(input);
         this.output = ChangingItemStack.create(output);

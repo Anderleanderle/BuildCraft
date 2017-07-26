@@ -65,6 +65,6 @@ public class GuiElementToolTips implements IGuiElement {
     }
 
     private int drawTooltip(ToolTip tooltip, int x, int y) {
-        return 4 + GuiUtil.drawHoveringText(tooltip, x, y, gui.width, gui.height, -1, gui.mc.fontRenderer);
+        return 4 + GuiUtil.drawHoveringText(tooltip, x, y, gui.width, gui.height, -1, gui.mc.fontRendererObj);
     }
 }

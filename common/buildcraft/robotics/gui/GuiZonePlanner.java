@@ -72,12 +72,12 @@ public class GuiZonePlanner extends GuiBC8<ContainerZonePlanner> {
     }
 
     private ItemStack getCurrentStack() {
-        return mc.player.inventory.getItemStack();
+        return mc.thePlayer.inventory.getItemStack();
     }
 
     private ItemStack getPaintbrush() {
         ItemStack currentStack = getCurrentStack();
-        if (!currentStack.isEmpty() && currentStack.getItem() instanceof ItemPaintbrush_BC8) {
+        if (!(currentStack == null) && currentStack.getItem() instanceof ItemPaintbrush_BC8) {
             return currentStack;
         }
         return null;
@@ -111,7 +111,7 @@ public class GuiZonePlanner extends GuiBC8<ContainerZonePlanner> {
             if (lastSelected != null) {
                 selectionStartXZ = lastSelected;
             }
-        } else if (getCurrentStack().isEmpty()) {
+        } else if (getCurrentStack() == null) {
             startPositionX = positionX;
             startPositionZ = positionZ;
             startMouseX = mouseX;
@@ -195,11 +195,11 @@ public class GuiZonePlanner extends GuiBC8<ContainerZonePlanner> {
         scaleSpeed *= 0.7F;
         int posX = (int) positionX;
         int posZ = (int) positionZ;
-        int dimension = mc.world.provider.getDimension();
+        int dimension = mc.theWorld.provider.getDimension();
         {
             ChunkPos chunkPos = new ChunkPos(posX >> 4, posZ >> 4);
             ZonePlannerMapChunk zonePlannerMapChunk = ZonePlannerMapDataClient.INSTANCE.getChunk(
-                    mc.world,
+                    mc.theWorld,
                     new ZonePlannerMapChunkKey(
                             chunkPos,
                             dimension,
@@ -221,7 +221,7 @@ public class GuiZonePlanner extends GuiBC8<ContainerZonePlanner> {
         int y = guiTop;
         if (lastSelected != null) {
             String text = "X: " + lastSelected.getX() + " Y: " + lastSelected.getY() + " Z: " + lastSelected.getZ();
-            fontRenderer.drawString(text, x + 130, y + 130, 0x404040);
+            fontRendererObj.drawString(text, x + 130, y + 130, 0x404040);
         }
         int offsetX = 8;
         int offsetY = 9;
@@ -301,10 +301,10 @@ public class GuiZonePlanner extends GuiBC8<ContainerZonePlanner> {
                 int chunkX = (int) Math.round(rayPosition.getX()) >> 4;
                 int chunkZ = (int) Math.round(rayPosition.getZ()) >> 4;
                 ZonePlannerMapChunk zonePlannerMapChunk = ZonePlannerMapDataClient.INSTANCE.getChunk(
-                        mc.world,
+                        mc.theWorld,
                         new ZonePlannerMapChunkKey(
                                 new ChunkPos(chunkX, chunkZ),
-                                mc.world.provider.getDimension(),
+                                mc.theWorld.provider.getDimension(),
                                 container.tile.getLevel()
                         )
                 );
@@ -371,7 +371,7 @@ public class GuiZonePlanner extends GuiBC8<ContainerZonePlanner> {
                                 }
                                 int height;
                                 ZonePlannerMapChunk zonePlannerMapChunk = ZonePlannerMapDataClient.INSTANCE.getChunk(
-                                        mc.world,
+                                        mc.theWorld,
                                         new ZonePlannerMapChunkKey(
                                                 chunkPos,
                                                 dimension,

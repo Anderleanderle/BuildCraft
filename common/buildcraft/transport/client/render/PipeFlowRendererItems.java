@@ -67,10 +67,10 @@ public enum PipeFlowRendererItems implements IPipeFlowRenderer<PipeFlowItems> {
             Vec3d pos = item.getRenderPosition(BlockPos.ORIGIN, now, partialTicks);
 
             ItemStack stack = item.clientItemLink.get();
-            if (stack != null && !stack.isEmpty()) {
-                if (item.stackSize != stack.getCount()) {
+            if (stack != null && !(stack == null)) {
+                if (item.stackSize != stack.stackSize) {
                     stack = stack.copy();
-                    stack.setCount(item.stackSize);
+                    stack.stackSize = (item.stackSize);
                 }
                 ItemRenderUtil.renderItemStack(x + pos.xCoord, y + pos.yCoord, z + pos.zCoord,//
                         stack, lightc, item.getRenderDirection(now, partialTicks), vb);

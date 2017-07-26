@@ -8,7 +8,7 @@ package buildcraft.transport.item;
 
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -19,7 +19,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.NonNullList;
 
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
@@ -47,11 +46,11 @@ public class ItemPluggableGate extends ItemBC_Neptune implements IItemPluggable 
         super(id);
     }
 
-    public static GateVariant getVariant(@Nonnull ItemStack stack) {
+    public static GateVariant getVariant(@Nullable ItemStack stack) {
         return new GateVariant(NBTUtilBC.getItemData(stack).getCompoundTag("gate"));
     }
 
-    @Nonnull
+    @Nullable
     public ItemStack getStack(GateVariant variant) {
         ItemStack stack = new ItemStack(this);
         NBTUtilBC.getItemData(stack).setTag("gate", variant.writeToNBT());
@@ -59,7 +58,7 @@ public class ItemPluggableGate extends ItemBC_Neptune implements IItemPluggable 
     }
 
     @Override
-    public PipePluggable onPlace(@Nonnull ItemStack stack, IPipeHolder holder, EnumFacing side, EntityPlayer player, EnumHand hand) {
+    public PipePluggable onPlace(@Nullable ItemStack stack, IPipeHolder holder, EnumFacing side, EntityPlayer player, EnumHand hand) {
         GateVariant variant = getVariant(stack);
         SoundUtil.playBlockPlace(holder.getPipeWorld(), holder.getPipePos(), variant.material.block.getDefaultState());
         PluggableDefinition def = BCTransportPlugs.gate;
@@ -68,13 +67,13 @@ public class ItemPluggableGate extends ItemBC_Neptune implements IItemPluggable 
 
     @Override
     public String getItemStackDisplayName(ItemStack stack) {
-        return getVariant(StackUtil.asNonNull(stack)).getLocalizedName();
+        return getVariant((stack)).getLocalizedName();
     }
 
     @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
-        GateVariant variant = getVariant(StackUtil.asNonNull(stack));
+        GateVariant variant = getVariant((stack));
 
         tooltip.add(LocaleUtil.localize("gate.slots", variant.numSlots));
 
@@ -94,7 +93,7 @@ public class ItemPluggableGate extends ItemBC_Neptune implements IItemPluggable 
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void getSubItems(Item item, CreativeTabs tab, NonNullList<ItemStack> subItems) {
+    public void getSubItems(Item item, CreativeTabs tab, List<ItemStack> subItems) {
         subItems.add(new ItemStack(this));
         for (EnumGateMaterial material : EnumGateMaterial.VALUES) {
             if (!material.canBeModified) {

@@ -64,8 +64,8 @@ public class TileZonePlanner extends TileBC_Neptune implements ITickable, IDebug
 
     @SideOnly(Side.CLIENT)
     public int getLevel() {
-        BlockPos blockPos = Minecraft.getMinecraft().player.getPosition();
-        while (!Minecraft.getMinecraft().world.getBlockState(blockPos).isSideSolid(Minecraft.getMinecraft().world, blockPos, EnumFacing.DOWN) && blockPos.getY() < 255) {
+        BlockPos blockPos = Minecraft.getMinecraft().thePlayer.getPosition();
+        while (!Minecraft.getMinecraft().theWorld.getBlockState(blockPos).isSideSolid(Minecraft.getMinecraft().theWorld, blockPos, EnumFacing.DOWN) && blockPos.getY() < 255) {
             blockPos = new BlockPos(blockPos.getX(), blockPos.getY() + 1, blockPos.getZ());
         }
         return (int) Math.floor((double) blockPos.getY() / ZonePlannerMapChunkKey.LEVEL_HEIGHT);
@@ -148,9 +148,9 @@ public class TileZonePlanner extends TileBC_Neptune implements ITickable, IDebug
 
         {
             // noinspection ConstantConditions
-            if (!invInputPaintbrush.getStackInSlot(0).isEmpty() && invInputPaintbrush.getStackInSlot(0).getItem() instanceof ItemPaintbrush_BC8 && !invInputMapLocation.getStackInSlot(0).isEmpty()
+            if (!(invInputPaintbrush.getStackInSlot(0) == null) && invInputPaintbrush.getStackInSlot(0).getItem() instanceof ItemPaintbrush_BC8 && !(invInputMapLocation.getStackInSlot(0) == null)
                 && invInputMapLocation.getStackInSlot(0).getItem() instanceof ItemMapLocation && invInputMapLocation.getStackInSlot(0).getTagCompound() != null && invInputMapLocation.getStackInSlot(0)
-                    .getTagCompound().hasKey("chunkMapping") && invInputResult.getStackInSlot(0).isEmpty()) {
+                    .getTagCompound().hasKey("chunkMapping") && invInputResult.getStackInSlot(0) == null) {
                 if (progressInput == 0) {
                     deltaProgressInput.addDelta(0, 200, 1);
                     deltaProgressInput.addDelta(200, 205, -1);
@@ -175,8 +175,8 @@ public class TileZonePlanner extends TileBC_Neptune implements ITickable, IDebug
             }
         }
         {
-            if (!invOutputPaintbrush.getStackInSlot(0).isEmpty() && invOutputPaintbrush.getStackInSlot(0).getItem() instanceof ItemPaintbrush_BC8 && !invOutputMapLocation.getStackInSlot(0).isEmpty()
-                && invOutputMapLocation.getStackInSlot(0).getItem() instanceof ItemMapLocation && invOutputResult.getStackInSlot(0).isEmpty()) {
+            if (!(invOutputPaintbrush.getStackInSlot(0) == null) && invOutputPaintbrush.getStackInSlot(0).getItem() instanceof ItemPaintbrush_BC8 && !(invOutputMapLocation.getStackInSlot(0) == null)
+                && invOutputMapLocation.getStackInSlot(0).getItem() instanceof ItemMapLocation && invOutputResult.getStackInSlot(0) == null) {
                 if (progressOutput == 0) {
                     deltaProgressOutput.addDelta(0, 200, 1);
                     deltaProgressOutput.addDelta(200, 205, -1);

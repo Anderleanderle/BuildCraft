@@ -37,16 +37,16 @@ public class NetworkedFluidStackCache extends NetworkedObjectCache<FluidStack> {
             buffer.writeBoolean(false);
         } else {
             buffer.writeBoolean(true);
-            buffer.writeCompoundTag(obj.tag);
+            buffer.writeNBTTagCompoundToBuffer(obj.tag);
         }
     }
 
     @Override
     protected FluidStack readObject(PacketBufferBC buffer) throws IOException {
-        Fluid fluid = FluidRegistry.getFluid(buffer.readString(255));
+        Fluid fluid = FluidRegistry.getFluid(buffer.readStringFromBuffer(255));
         FluidStack stack = new FluidStack(fluid, FLUID_AMOUNT);
         if (buffer.readBoolean()) {
-            stack.tag = buffer.readCompoundTag();
+            stack.tag = buffer.readNBTTagCompoundFromBuffer();
         }
         return stack;
     }

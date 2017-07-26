@@ -68,7 +68,7 @@ public abstract class TileMiner extends TileBC_Neptune implements ITickable, IDe
 
     @Override
     public void update() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             lastLength = currentLength;
             if (Math.abs(wantedLength - currentLength) <= 0.01) {
                 currentLength = wantedLength;
@@ -95,8 +95,8 @@ public abstract class TileMiner extends TileBC_Neptune implements ITickable, IDe
         super.invalidate();
         for (int y = pos.getY() - 1; y > 0; y--) {
             BlockPos blockPos = new BlockPos(pos.getX(), y, pos.getZ());
-            if (world.getBlockState(blockPos).getBlock() == BCFactoryBlocks.tube) {
-                world.setBlockToAir(blockPos);
+            if (worldObj.getBlockState(blockPos).getBlock() == BCFactoryBlocks.tube) {
+                worldObj.setBlockToAir(blockPos);
             } else {
                 break;
             }
@@ -109,15 +109,15 @@ public abstract class TileMiner extends TileBC_Neptune implements ITickable, IDe
         if (newLength != wantedLength) {
             for (int y = pos.getY() - 1; y > 0; y--) {
                 BlockPos blockPos = new BlockPos(pos.getX(), y, pos.getZ());
-                if (world.getBlockState(blockPos).getBlock() == BCFactoryBlocks.tube) {
-                    world.setBlockToAir(blockPos);
+                if (worldObj.getBlockState(blockPos).getBlock() == BCFactoryBlocks.tube) {
+                    worldObj.setBlockToAir(blockPos);
                 } else {
                     break;
                 }
             }
             for (int y = pos.getY() - 1; y > newY; y--) {
                 BlockPos blockPos = new BlockPos(pos.getX(), y, pos.getZ());
-                world.setBlockState(blockPos, BCFactoryBlocks.tube.getDefaultState());
+                worldObj.setBlockState(blockPos, BCFactoryBlocks.tube.getDefaultState());
             }
             if (wantedLength == 0) {
                 sendNetworkUpdate(NET_RENDER_DATA);
@@ -138,7 +138,7 @@ public abstract class TileMiner extends TileBC_Neptune implements ITickable, IDe
     }
 
     public boolean isComplete() {
-        return world.isRemote ? isComplete : currentPos == null;
+        return worldObj.isRemote ? isComplete : currentPos == null;
     }
 
     @Override

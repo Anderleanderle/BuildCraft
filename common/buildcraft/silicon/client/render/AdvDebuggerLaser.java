@@ -52,7 +52,7 @@ public enum AdvDebuggerLaser implements IDetachedRenderer {
         }
         VertexBuffer vb = Tessellator.getInstance().getBuffer();
         vb.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
-        VolumeUtil.iterateCone(player.world, pos, face, 6, true, (world, start, p, visible) -> {
+        VolumeUtil.iterateCone(player.worldObj, pos, face, 6, true, (world, start, p, visible) -> {
             int colour = visible ? COLOUR_VISIBLE : COLOUR_NOT_VISIBLE;
             DebugRenderHelper.renderSmallCuboid(vb, p, colour);
         });

@@ -5,7 +5,7 @@
  */
 package buildcraft.lib.inventory.filter;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
@@ -15,8 +15,8 @@ import buildcraft.api.core.IStackFilter;
 public class PassThroughStackFilter implements IStackFilter {
 
     @Override
-    public boolean matches(@Nonnull ItemStack stack) {
-        return !stack.isEmpty() && stack.getCount() > 0;
+    public boolean matches(@Nullable ItemStack stack) {
+        return !(stack == null) && stack.stackSize > 0;
     }
 
 }

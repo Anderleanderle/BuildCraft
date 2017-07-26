@@ -64,17 +64,17 @@ class InventoryIteratorHandler implements Iterable<IInvSlot> {
 
         @Override
         public boolean canPutStackInSlot(ItemStack stack) {
-            return inv.insertItem(slot, stack, true).isEmpty();
+            return inv.insertItem(slot, stack, true) == null;
         }
 
         @Override
         public boolean canTakeStackFromSlot(ItemStack stack) {
-            return !inv.extractItem(slot, 1, true).isEmpty();
+            return !(inv.extractItem(slot, 1, true) == null);
         }
 
         @Override
         public boolean isItemValidForSlot(ItemStack stack) {
-            return inv.insertItem(slot, stack, true).isEmpty();
+            return inv.insertItem(slot, stack, true) == null;
         }
 
         @Override

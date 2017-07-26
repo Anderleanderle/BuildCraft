@@ -9,10 +9,9 @@ package buildcraft.lib.client.guide.parts.recipe;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
 
 import buildcraft.api.recipes.AssemblyRecipe;
 import buildcraft.api.recipes.IAssemblyRecipeProvider;
@@ -29,7 +28,7 @@ public enum GuideAssemblyRecipes implements IStackRecipes {
     INSTANCE;
 
     @Override
-    public List<GuidePartFactory> getUsages(@Nonnull ItemStack stack) {
+    public List<GuidePartFactory> getUsages(@Nullable ItemStack stack) {
         List<GuidePartFactory> usages = new ArrayList<>();
         for (AssemblyRecipe recipe : AssemblyRecipeRegistry.INSTANCE.getAllRecipes()) {
             if (recipe.requiredStacks.stream().anyMatch((definition) -> definition.filter.matches(stack))) {
@@ -50,7 +49,7 @@ public enum GuideAssemblyRecipes implements IStackRecipes {
     }
 
     @Override
-    public List<GuidePartFactory> getRecipes(@Nonnull ItemStack stack) {
+    public List<GuidePartFactory> getRecipes(@Nullable ItemStack stack) {
         List<GuidePartFactory> recipes = new ArrayList<>();
         for (AssemblyRecipe recipe : AssemblyRecipeRegistry.INSTANCE.getAllRecipes()) {
             if (StackUtil.isCraftingEquivalent(recipe.output, stack, false)) {
@@ -72,8 +71,8 @@ public enum GuideAssemblyRecipes implements IStackRecipes {
 
     private GuideAssemblyFactory getFactory(AssemblyRecipe recipe) {
         ChangingItemStack[] stacks = recipe.requiredStacks.stream().map(definition -> {
-                NonNullList<ItemStack> items = definition.filter.getExamples().stream().map(ItemStack::copy).collect(StackUtil.nonNullListCollector());
-                items.forEach(stack -> stack.setCount(definition.count));
+                List<ItemStack> items = definition.filter.getExamples().stream().map(ItemStack::copy).collect(StackUtil.nonNullListCollector());
+                items.forEach(stack -> stack.stackSize = (definition.count));
                 return items;
         }).map(ChangingItemStack::new).toArray(ChangingItemStack[]::new);
         return new GuideAssemblyFactory(stacks, ChangingItemStack.create(recipe.output), new ChangingObject<>(new Long[] { recipe.requiredMicroJoules }));

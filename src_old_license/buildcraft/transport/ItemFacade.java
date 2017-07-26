@@ -160,7 +160,7 @@ public class ItemFacade extends ItemBuildCraft implements IFacadeItem, IPipePlug
         }
     }
 
-    public static final ArrayList<ItemStack> allStacks = new ArrayList<>();
+    public static final ArrayList<ItemStack> allStacks = new ArrayList<ItemStack>();
 
     private static final HashSet<IBlockState> blacklistedFacades = new HashSet<>();
     private static final HashSet<IBlockState> whitelistedFacades = new HashSet<>();

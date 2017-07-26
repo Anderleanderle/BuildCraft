@@ -8,7 +8,7 @@ package buildcraft.builders.container;
 
 import java.io.IOException;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -37,7 +37,7 @@ public class ContainerArchitectTable extends ContainerBCTile<TileArchitectTable>
 
         addSlotToContainer(new SlotBase(tile.invSnapshotIn, 0, 135, 35) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
+            public boolean isItemValid(@Nullable ItemStack stack) {
                 return stack.getItem() instanceof ItemSnapshot;
             }
         });

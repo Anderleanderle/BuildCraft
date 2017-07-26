@@ -9,6 +9,7 @@ package buildcraft.factory.block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
@@ -45,7 +46,7 @@ public class BlockDistiller extends BlockBCTile_Neptune implements IBlockWithFac
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack stack, EnumFacing facing, float hitX, float hitY, float hitZ) {
         TileEntity tile = world.getTileEntity(pos);
         if (tile instanceof TileDistiller_BC8) {
             return ((TileDistiller_BC8) tile).onActivated(player, hand, facing, hitX, hitY, hitZ);

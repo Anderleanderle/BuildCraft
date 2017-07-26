@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -105,7 +106,7 @@ public enum GuideManager {
         return pages.get(entry.page);
     }
 
-    public PageEntry getEntryFor(@Nonnull ItemStack stack) {
+    public PageEntry getEntryFor(@Nullable ItemStack stack) {
         for (PageEntry entry : entries.keySet()) {
             if (entry.stackMatches(stack)) {
                 return entry;
@@ -115,7 +116,7 @@ public enum GuideManager {
     }
 
     @Nonnull
-    public GuidePageFactory getPageFor(@Nonnull ItemStack stack) {
+    public GuidePageFactory getPageFor(@Nullable ItemStack stack) {
         PageEntry entry = getEntryFor(stack);
         if (entry != null) {
             GuidePageFactory factory = getFactoryFor(entry);

@@ -6,12 +6,13 @@
 
 package buildcraft.lib.inventory;
 
-import javax.annotation.Nonnull;
+import java.util.List;
+
+import javax.annotation.Nullable;
 
 import gnu.trove.list.array.TIntArrayList;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
 
 import buildcraft.api.core.IStackFilter;
 import buildcraft.api.inventory.IItemTransactor;
@@ -21,20 +22,20 @@ import buildcraft.lib.misc.StackUtil;
 
 /** Designates an {@link IItemTransactor} that is backed by a simple, static, array based inventory. */
 public abstract class AbstractInvItemTransactor implements IItemTransactor {
-    /** Returns a valid version of the given stack, or {@link ItemStack#EMPTY} if it was invalid */
-    @Nonnull
-    public static ItemStack asValid(@Nonnull ItemStack stack) {
-        if (stack.isEmpty()) {
+    /** Returns a valid version of the given stack, or {@link StackUtil#EMPTY} if it was invalid */
+	@Nullable
+    public static ItemStack asValid(@Nullable ItemStack stack) {
+        if (stack == null) {
             return StackUtil.EMPTY;
         } else {
             return stack;
         }
     }
 
-    @Nonnull
-    protected abstract ItemStack insert(int slot, @Nonnull ItemStack stack, boolean simulate);
+    @Nullable
+    protected abstract ItemStack insert(int slot, @Nullable ItemStack stack, boolean simulate);
 
-    @Nonnull
+    @Nullable
     protected abstract ItemStack extract(int slot, IStackFilter filter, int min, int max, boolean simulate);
 
     protected abstract int getSlots();
@@ -42,8 +43,8 @@ public abstract class AbstractInvItemTransactor implements IItemTransactor {
     protected abstract boolean isEmpty(int slot);
 
     @Override
-    @Nonnull
-    public ItemStack insert(@Nonnull ItemStack stack, boolean allAtOnce, boolean simulate) {
+    @Nullable
+    public ItemStack insert(@Nullable ItemStack stack, boolean allAtOnce, boolean simulate) {
         if (allAtOnce) {
             return insertAllAtOnce(stack, simulate);
         } else {
@@ -51,8 +52,8 @@ public abstract class AbstractInvItemTransactor implements IItemTransactor {
         }
     }
 
-    @Nonnull
-    private ItemStack insertAnyAmount(@Nonnull ItemStack stack, boolean simulate) {
+    @Nullable
+    private ItemStack insertAnyAmount(@Nullable ItemStack stack, boolean simulate) {
         int slotCount = getSlots();
         TIntArrayList emptySlots = new TIntArrayList(slotCount);
         for (int slot = 0; slot < getSlots(); slot++) {
@@ -60,18 +61,18 @@ public abstract class AbstractInvItemTransactor implements IItemTransactor {
                 emptySlots.add(slot);
             } else {
                 stack = insert(slot, stack, simulate);
-                if (stack.isEmpty()) return StackUtil.EMPTY;
+                if (stack == null) return StackUtil.EMPTY;
             }
         }
         for (int slot : emptySlots.toArray()) {
             stack = insert(slot, stack, simulate);
-            if (stack.isEmpty()) return StackUtil.EMPTY;
+            if (stack == null) return StackUtil.EMPTY;
         }
         return stack;
     }
 
-    @Nonnull
-    private ItemStack insertAllAtOnce(@Nonnull ItemStack stack, boolean simulate) {
+    @Nullable
+    private ItemStack insertAllAtOnce(@Nullable ItemStack stack, boolean simulate) {
         ItemStack before = asValid(stack);
         TIntArrayList insertedSlots = new TIntArrayList(getSlots());
         TIntArrayList emptySlots = new TIntArrayList(getSlots());
@@ -81,22 +82,22 @@ public abstract class AbstractInvItemTransactor implements IItemTransactor {
             } else {
                 stack = insert(slot, stack, true);
                 insertedSlots.add(slot);
-                if (stack.isEmpty()) break;
+                if (stack == null) break;
             }
         }
         for (int slot : emptySlots.toArray()) {
             stack = insert(slot, stack, true);
             insertedSlots.add(slot);
-            if (stack.isEmpty()) break;
+            if (stack == null) break;
         }
-        if (!stack.isEmpty()) {
+        if (!(stack == null)) {
             return stack;
         }
         if (simulate) return StackUtil.EMPTY;
         for (int slot : insertedSlots.toArray()) {
             before = insert(slot, before, false);
         }
-        if (!before.isEmpty()) {
+        if (!(before == null)) {
             // We have a bad implemtation that doesn't respect simulation properly- we are in an invalid state at this
             // point with no chance of recovery
             throw new IllegalStateException("Somehow inserting a lot of items at once failed when we thought it shouldn't! ("
@@ -106,12 +107,12 @@ public abstract class AbstractInvItemTransactor implements IItemTransactor {
     }
 
     @Override
-    public NonNullList<ItemStack> insert(NonNullList<ItemStack> stacks, boolean simulate) {
+    public List<ItemStack> insert(List<ItemStack> stacks, boolean simulate) {
         // WRANING: SLOW IMPL
         return stacks;
     }
 
-    @Nonnull
+    @Nullable
     @Override
     public ItemStack extract(IStackFilter filter, int min, int max, boolean simulate) {
         if (min < 1) min = 1;
@@ -129,12 +130,12 @@ public abstract class AbstractInvItemTransactor implements IItemTransactor {
 
         for (int slot = 0; slot < slots; slot++) {
             ItemStack possible = extract(slot, filter, 1, max - totalSize, true);
-            if (!possible.isEmpty()) {
-                if (toExtract.isEmpty()) {
+            if (!(possible == null)) {
+                if (toExtract == null) {
                     toExtract = possible.copy();
                 }
                 if (StackUtil.canMerge(toExtract, possible)) {
-                    totalSize += possible.getCount();
+                    totalSize += possible.stackSize;
                     valids.add(slot);
                     if (totalSize >= max) {
                         break;
@@ -146,11 +147,11 @@ public abstract class AbstractInvItemTransactor implements IItemTransactor {
         ItemStack total = StackUtil.EMPTY;
         if (min <= totalSize) {
             for (int slot : valids.toArray()) {
-                ItemStack extracted = extract(slot, filter, 1, max - total.getCount(), simulate);
-                if (total.isEmpty()) {
+                ItemStack extracted = extract(slot, filter, 1, max - total.stackSize, simulate);
+                if (total == null) {
                     total = extracted;
                 } else {
-                    total.grow(extracted.getCount());
+                    total.stackSize += extracted.stackSize;
                 }
             }
         }

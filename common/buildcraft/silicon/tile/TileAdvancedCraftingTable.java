@@ -41,7 +41,7 @@ public class TileAdvancedCraftingTable extends TileLaserTableBase implements IAu
     public void update() {
         super.update();
         updateRecipe();
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
         if (power > POWER_REQ) {

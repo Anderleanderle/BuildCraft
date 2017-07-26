@@ -6,7 +6,7 @@
 
 package buildcraft.builders.container;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -27,7 +27,7 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> {
             for (int sx = 0; sx < 9; sx++) {
                 addSlotToContainer(new SlotBase(tile.invResources, sx + sy * 9, 8 + sx * 18, 85 + sy * 18) {
                     @Override
-                    public boolean isItemValid(@Nonnull ItemStack stack) {
+                    public boolean isItemValid(@Nullable ItemStack stack) {
                         return Filling.INSTANCE.getItemBlocks().contains(stack.getItem());
                     }
                 });

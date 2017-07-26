@@ -149,7 +149,7 @@ public class Lock {
             @Override
             public void fromBytes(PacketBuffer buf) {
                 pos = MessageUtil.readBlockPos(buf);
-                block = Block.REGISTRY.getObject(new ResourceLocation(buf.readString(1024)));
+                block = Block.REGISTRY.getObject(new ResourceLocation(buf.readStringFromBuffer(1024)));
             }
 
             @Override

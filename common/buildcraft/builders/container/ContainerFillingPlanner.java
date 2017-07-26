@@ -39,9 +39,9 @@ public class ContainerFillingPlanner extends ContainerBC_Neptune {
 
     public ContainerFillingPlanner(EntityPlayer player) {
         super(player);
-        Pair<VolumeBox, EnumAddonSlot> selectingBoxAndSlot = player.world.isRemote ?
+        Pair<VolumeBox, EnumAddonSlot> selectingBoxAndSlot = player.worldObj.isRemote ?
                 EnumAddonSlot.getSelectingBoxAndSlot(player, ClientVolumeBoxes.INSTANCE) :
-                EnumAddonSlot.getSelectingBoxAndSlot(player, WorldSavedDataVolumeBoxes.get(player.world));
+                EnumAddonSlot.getSelectingBoxAndSlot(player, WorldSavedDataVolumeBoxes.get(player.worldObj));
         addon = (AddonFillingPlanner) selectingBoxAndSlot.getLeft().addons.get(selectingBoxAndSlot.getRight());
         parameters.addAll(addon.parameters);
         inverted = addon.inverted;
@@ -71,7 +71,7 @@ public class ContainerFillingPlanner extends ContainerBC_Neptune {
                 addon.parameters = parameters;
                 addon.inverted = inverted;
                 addon.markDirty();
-                WorldSavedDataVolumeBoxes.get(player.world).markDirty();
+                WorldSavedDataVolumeBoxes.get(player.worldObj).markDirty();
             }
         }
     }

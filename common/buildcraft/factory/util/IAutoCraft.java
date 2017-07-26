@@ -62,11 +62,11 @@ public interface IAutoCraft {
             ItemStack toExtract = input.copy();
             for (int i = 0; i < getInvMaterials().getSlots(); i++) {
                 if (StackUtil.canMerge(toExtract, getInvMaterials().getStackInSlot(i))) {
-                    ItemStack extracted = getInvMaterials().extractItem(i, toExtract.getCount(), false);
-                    if (extracted.getCount() == toExtract.getCount()) {
+                    ItemStack extracted = getInvMaterials().extractItem(i, toExtract.stackSize, false);
+                    if (extracted.stackSize == toExtract.stackSize) {
                         break;
                     } else {
-                        toExtract.setCount(toExtract.getCount() - extracted.getCount());
+                        toExtract.stackSize = toExtract.stackSize - extracted.stackSize;
                     }
                 }
             }
@@ -77,7 +77,7 @@ public interface IAutoCraft {
         ItemStack leftOver = stack;
         for (int i = 0; i < handler.getSlots(); i++) {
             leftOver = handler.insertItem(i, leftOver, false);
-            if (leftOver.isEmpty()) {
+            if (leftOver == null) {
                 break;
             }
         }
@@ -89,10 +89,10 @@ public interface IAutoCraft {
     }
 
     default boolean canWork() {
-        return getCurrentRecipe() != null && hasMaterials() && getInvResult().insert(getOutput(), true, true).isEmpty();
+        return getCurrentRecipe() != null && hasMaterials() && getInvResult().insert(getOutput(), true, true) == null;
     }
 
     default ItemStack getOutput() {
-        return getCurrentRecipe() == null ? ItemStack.EMPTY : getCurrentRecipe().getCraftingResult(getWorkbenchCrafting());
+        return getCurrentRecipe() == null ? null : getCurrentRecipe().getCraftingResult(getWorkbenchCrafting());
     }
 }

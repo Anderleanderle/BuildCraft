@@ -9,7 +9,7 @@ package buildcraft.builders.container;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -34,7 +34,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
 
         addSlotToContainer(new SlotBase(tile.invSnapshot, 0, 80, 27) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
+            public boolean isItemValid(@Nullable ItemStack stack) {
                 return stack.getItem() instanceof ItemSnapshot && ItemSnapshot.EnumItemSnapshotType.getFromStack(stack).used;
             }
         });
@@ -61,7 +61,7 @@ public class ContainerBuilder extends ContainerBCTile<TileBuilder> {
         return tile.snapshotType == EnumSnapshotType.BLUEPRINT &&
                 index < tile.blueprintBuilder.remainingDisplayRequired.size()
                 ? tile.blueprintBuilder.remainingDisplayRequired.get(index)
-                : ItemStack.EMPTY;
+                : null;
     }
 
     @Override

@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.transport.container;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.entity.player.EntityPlayer;
@@ -40,7 +40,7 @@ public class ContainerFilteredBuffer_BC8 extends ContainerBCTile<TileFilteredBuf
             // Filtered Buffer inventory slots
             addSlotToContainer(new SlotBase(tile.invMain, i, 8 + i * 18, 61) {
                 @Override
-                public boolean isItemValid(@Nonnull ItemStack stack) {
+                public boolean isItemValid(@Nullable ItemStack stack) {
                     return phantom.getHasStack() && StackUtil.canMerge(phantom.getStack(), stack);
                 }
             });

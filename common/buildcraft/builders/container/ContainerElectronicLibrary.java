@@ -8,7 +8,7 @@ package buildcraft.builders.container;
 
 import java.io.IOException;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -44,7 +44,7 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
         });
         addSlotToContainer(new SlotBase(tile.invDownIn, 0, 219, 57) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
+            public boolean isItemValid(@Nullable ItemStack stack) {
                 return stack.getItem() instanceof ItemSnapshot && ItemSnapshot.EnumItemSnapshotType.getFromStack(stack).used;
             }
 
@@ -56,7 +56,7 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
 
         addSlotToContainer(new SlotBase(tile.invUpIn, 0, 175, 79) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
+            public boolean isItemValid(@Nullable ItemStack stack) {
                 return stack.getItem() instanceof ItemSnapshot;
             }
         });

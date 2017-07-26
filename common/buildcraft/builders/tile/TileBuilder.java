@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
 
@@ -114,21 +114,21 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
     }
 
     @Override
-    protected void onSlotChange(IItemHandlerModifiable itemHandler, int slot, @Nonnull ItemStack before, @Nonnull ItemStack after) {
+    protected void onSlotChange(IItemHandlerModifiable itemHandler, int slot, @Nullable ItemStack before, @Nullable ItemStack after) {
         if (itemHandler == invSnapshot) {
             currentBasePosIndex = 0;
             snapshot = null;
             if (after.getItem() instanceof ItemSnapshot) {
                 Snapshot.Header header = BCBuildersItems.snapshot.getHeader(after);
                 if (header != null) {
-                    Snapshot newSnapshot = GlobalSavedDataSnapshots.get(world).getSnapshotByHeader(header);
+                    Snapshot newSnapshot = GlobalSavedDataSnapshots.get(worldObj).getSnapshotByHeader(header);
                     if (newSnapshot != null) {
                         snapshot = newSnapshot;
                     }
                 }
             }
             updateSnapshot();
-            if (!world.isRemote) {
+            if (!worldObj.isRemote) {
                 sendNetworkUpdate(NET_SNAPSHOT_TYPE);
             }
         }
@@ -153,7 +153,7 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
         Optional.ofNullable(getBuilder()).ifPresent(SnapshotBuilder::cancel);
         if (snapshot != null && getCurrentBasePos() != null) {
             snapshotType = snapshot.getType();
-            EnumFacing facing = world.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING);
+            EnumFacing facing = worldObj.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING);
             Rotation rotation = Arrays.stream(Rotation.values()).filter(r -> r.rotate(snapshot.facing) == facing).findFirst().orElse(null);
             if (snapshot.getType() == EnumSnapshotType.TEMPLATE) {
                 templateBuildingInfo = ((Template) snapshot).new BuildingInfo(getCurrentBasePos(), rotation);
@@ -184,7 +184,7 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
                 basePoses.addAll(PositionUtil.getAllOnPath(path.get(i - 1), path.get(i)));
             }
         } else {
-            basePoses.add(pos.offset(world.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING).getOpposite()));
+            basePoses.add(pos.offset(worldObj.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING).getOpposite()));
         }
     }
 
@@ -193,10 +193,10 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
     }
 
     @Override
-    public void onPlacedBy(EntityLivingBase placer, ItemStack stack) {
+    public void onPlacedBy(EntityLivingBase placer, @Nullable ItemStack stack) {
         super.onPlacedBy(placer, stack);
-        EnumFacing facing = world.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING);
-        TileEntity inFront = world.getTileEntity(pos.offset(facing.getOpposite()));
+        EnumFacing facing = worldObj.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING);
+        TileEntity inFront = worldObj.getTileEntity(pos.offset(facing.getOpposite()));
         if (inFront instanceof IPathProvider) {
             IPathProvider provider = (IPathProvider) inFront;
             ImmutableList<BlockPos> copiedPath = ImmutableList.copyOf(provider.getPath());
@@ -293,7 +293,7 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
             }
             if (id == NET_SNAPSHOT_TYPE) {
                 snapshotType = buffer.readEnumValue(EnumOptionalSnapshotType.class).type;
-                world.notifyBlockUpdate(pos, world.getBlockState(pos), world.getBlockState(pos), 0);
+                worldObj.notifyBlockUpdate(pos, worldObj.getBlockState(pos), worldObj.getBlockState(pos), 0);
             }
         }
         if (side == Side.SERVER) {
@@ -368,7 +368,7 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
 
     @Override
     public World getWorldBC() {
-        return world;
+        return worldObj;
     }
 
     @Override

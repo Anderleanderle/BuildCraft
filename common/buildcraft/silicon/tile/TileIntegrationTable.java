@@ -37,11 +37,11 @@ public class TileIntegrationTable extends TileLaserTableBase {
 
     private boolean extract(StackDefinition item, ImmutableList<StackDefinition> items, boolean simulate) {
         ItemStack targetStack = invTarget.getStackInSlot(0);
-        if (targetStack.isEmpty()) return false;
+        if (targetStack == null) return false;
         if (!StackUtil.contains(item, targetStack)) return false;
         if (!extract(invToIntegrate, items, simulate, true)) return false;
         if (!simulate) {
-            targetStack.setCount(targetStack.getCount() - item.count);
+            targetStack.stackSize = (targetStack.stackSize - item.count);
             invTarget.setStackInSlot(0, targetStack);
         }
         return true;
@@ -49,7 +49,7 @@ public class TileIntegrationTable extends TileLaserTableBase {
 
     private boolean isSpaceEnough(ItemStack stack) {
         ItemStack output = invResult.getStackInSlot(0);
-        return output.isEmpty() || (StackUtil.canMerge(stack, output) && stack.getCount() + output.getCount() <= stack.getMaxStackSize());
+        return output == null || (StackUtil.canMerge(stack, output) && stack.stackSize + output.stackSize <= stack.getMaxStackSize());
     }
 
     private void updateRecipe() {
@@ -66,7 +66,7 @@ public class TileIntegrationTable extends TileLaserTableBase {
     public void update() {
         super.update();
 
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
 
@@ -75,9 +75,9 @@ public class TileIntegrationTable extends TileLaserTableBase {
         if (getTarget() > 0 && power >= getTarget()) {
             extract(recipe.target, recipe.toIntegrate, false);
             ItemStack result = invResult.getStackInSlot(0);
-            if (!result.isEmpty()) {
+            if (!(result == null)) {
                 result = result.copy();
-                result.setCount(result.getCount() + recipe.output.getCount());
+                result.stackSize = (result.stackSize + recipe.output.stackSize);
             } else {
                 result = recipe.output.copy();
             }
@@ -118,7 +118,7 @@ public class TileIntegrationTable extends TileLaserTableBase {
             buffer.writeBoolean(recipe != null);
             if (recipe != null) {
                 buffer.writeString(recipe.name.toString());
-                buffer.writeCompoundTag(recipe.recipeTag);
+                buffer.writeNBTTagCompoundToBuffer(recipe.recipeTag);
             }
         }
     }
@@ -129,7 +129,7 @@ public class TileIntegrationTable extends TileLaserTableBase {
 
         if (id == NET_GUI_DATA) {
             if (buffer.readBoolean()) {
-                recipe = lookupRecipe(buffer.readString(), buffer.readCompoundTag());
+                recipe = lookupRecipe(buffer.readString(), buffer.readNBTTagCompoundFromBuffer());
             } else {
                 recipe = null;
             }

@@ -78,7 +78,7 @@ public class PipeBehaviourLapis extends PipeBehaviour {
 
     @Override
     public boolean onPipeActivate(EntityPlayer player, RayTraceResult trace, float hitX, float hitY, float hitZ, EnumPipePart part) {
-        if (player.world.isRemote) {
+        if (player.worldObj.isRemote) {
             return EntityUtil.getWrenchHand(player) != null;
         }
         if (EntityUtil.getWrenchHand(player) != null) {

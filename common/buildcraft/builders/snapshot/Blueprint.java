@@ -30,7 +30,7 @@ import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.enums.EnumSnapshotType;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.api.schematics.ISchematicEntity;
-
+import buildcraft.lib.blockpos.BlockPosRotator;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.data.Box;
 
@@ -148,7 +148,7 @@ public class Blueprint extends Snapshot {
                 for (int y = 0; y < getSnapshot().size.getY(); y++) {
                     for (int x = 0; x < getSnapshot().size.getX(); x++) {
                         ISchematicBlock<?> schematicBlock = palette.get(data[x][y][z]);
-                        BlockPos blockPos = new BlockPos(x, y, z).rotate(rotation).add(basePos).add(offset.rotate(
+                        BlockPos blockPos = BlockPosRotator.rotate(new BlockPos(x, y, z), rotation).add(basePos).add(BlockPosRotator.rotate(offset,
                             rotation));
                         if (schematicBlock.isAir()) {
                             toBreak.add(blockPos);

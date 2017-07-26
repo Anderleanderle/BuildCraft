@@ -82,7 +82,7 @@ public class GuiElectronicLibrary extends GuiBC8<ContainerElectronicLibrary> {
                 1
         );
         iterateSnapshots((i, x, y, width, height, snapshot) ->
-                drawString(fontRenderer, snapshot.header.name, x, y, snapshot.header.equals(container.tile.selected) ? 0xffffa0 : 0xe0e0e0)
+                drawString(fontRendererObj, snapshot.header.name, x, y, snapshot.header.equals(container.tile.selected) ? 0xffffa0 : 0xe0e0e0)
         );
         delButton.setActive(container.tile.selected != null && getSnapshots().getSnapshotByHeader(container.tile.selected) != null);
     }

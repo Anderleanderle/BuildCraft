@@ -57,17 +57,17 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
     }
 
     /**
-     * @return return flying item on success, or list with one ItemStack.EMPTY on fail
+     * @return return flying item on success, or list with one null on fail
      */
     private List<ItemStack> tryExtractRequired(List<ItemStack> requiredItems, List<FluidStack> requiredFluids) {
         if (StackUtil.mergeSameItems(requiredItems).stream()
             .noneMatch(stack ->
                 tile.getInvResources().extract(
                     extracted -> StackUtil.canMerge(stack, extracted),
-                    stack.getCount(),
-                    stack.getCount(),
+                    stack.stackSize,
+                    stack.stackSize,
                     true
-                ).isEmpty()
+                ) == null
             ) &&
             FluidUtilBC.mergeSameFluids(requiredFluids).stream()
                 .allMatch(stack ->
@@ -79,8 +79,8 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                         .map(stack ->
                             tile.getInvResources().extract(
                                 extracted -> StackUtil.canMerge(stack, extracted),
-                                stack.getCount(),
-                                stack.getCount(),
+                                stack.stackSize,
+                                stack.stackSize,
                                 false
                             )
                         ),
@@ -101,7 +101,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                 ).collect(Collectors.toList())
             );
         } else {
-            return Collections.singletonList(ItemStack.EMPTY);
+            return Collections.singletonList(null);
         }
     }
 
@@ -153,7 +153,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
         // noinspection ConstantConditions
         placeTask.items.stream()
             .filter(stack -> stack.hasTagCompound() && stack.getTagCompound().hasKey("BuilderFluidStack"))
-            .map(stack -> Pair.of(stack.getCount(), stack.getTagCompound().getCompoundTag("BuilderFluidStack")))
+            .map(stack -> Pair.of(stack.stackSize, stack.getTagCompound().getCompoundTag("BuilderFluidStack")))
             .map(countNbt -> {
                 FluidStack fluidStack = FluidStack.loadFluidStackFromNBT(countNbt.getRight());
                 if (fluidStack != null) {
@@ -263,7 +263,7 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
                                 !tryExtractRequired(
                                     buildingInfo.entitiesRequiredItems.get(schematicEntity),
                                     buildingInfo.entitiesRequiredFluids.get(schematicEntity)
-                                ).contains(ItemStack.EMPTY)
+                                ).contains(null)
                             )
                             .forEach(schematicEntity -> schematicEntity.build(tile.getWorldBC(), buildingInfo.basePos));
                     }
@@ -280,8 +280,8 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
         super.writeToByteBuf(buffer);
         buffer.writeInt(remainingDisplayRequired.size());
         remainingDisplayRequired.forEach(stack -> {
-            buffer.writeItemStack(stack);
-            buffer.writeInt(stack.getCount());
+            buffer.writeItemStackToBuffer(stack);
+            buffer.writeInt(stack.stackSize);
         });
     }
 
@@ -292,11 +292,11 @@ public class BlueprintBuilder extends SnapshotBuilder<ITileForBlueprintBuilder> 
         IntStream.range(0, buffer.readInt()).mapToObj(i -> {
             ItemStack stack;
             try {
-                stack = buffer.readItemStack();
+                stack = buffer.readItemStackFromBuffer();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            stack.setCount(buffer.readInt());
+            stack.stackSize = buffer.readInt();
             return stack;
         }).forEach(remainingDisplayRequired::add);
     }

@@ -70,7 +70,7 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
 
     @Override
     public void update() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             amountLast = amount;
             if (amount != target) {
                 int delta = target - amount;
@@ -86,15 +86,15 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
         }
 
         if (lastSentFluid != (tank.getFluid() != null)) {
-            if (tracker.markTimeIfDelay(world)) {
+            if (tracker.markTimeIfDelay(worldObj)) {
                 lastSentFluid = tank.getFluid() != null;
                 lastSentAmount = tank.getFluidAmount();
                 sendNetworkUpdate(NET_RENDER_DATA);
             }
         } else if (lastSentAmount != tank.getFluidAmount()) {
-            if (tracker.markTimeIfDelay(world)) {
+            if (tracker.markTimeIfDelay(worldObj)) {
                 lastSentAmount = tank.getFluidAmount();
-                world.notifyNeighborsOfStateChange(pos, world.getBlockState(pos).getBlock(), false);
+                worldObj.notifyNeighborsOfStateChange(pos, worldObj.getBlockState(pos).getBlock());
                 sendNetworkUpdate(NET_FLUID_DELTA);
             }
         }
@@ -103,11 +103,11 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
     @Override
     public void onPlacedBy(EntityLivingBase placer, ItemStack stack) {
         super.onPlacedBy(placer, stack);
-        if (!placer.world.isRemote) {
+        if (!placer.worldObj.isRemote) {
             BlockPos p = pos.up();
             TileTank moveTo = this;
             while (true) {
-                TileEntity tileUp = world.getTileEntity(p);
+                TileEntity tileUp = worldObj.getTileEntity(p);
                 if (tileUp instanceof TileTank) {
                     TileTank tankUp = (TileTank) tileUp;
 
@@ -161,11 +161,11 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
             if (id == NET_RENDER_DATA) {
                 tank.readFromBuffer(buffer);
                 target = tank.getClientAmount();
-                lastMessageMinus1 = lastMessage = world.getTotalWorldTime();
+                lastMessageMinus1 = lastMessage = worldObj.getTotalWorldTime();
             } else if (id == NET_FLUID_DELTA) {
                 target = buffer.readInt();
                 lastMessageMinus1 = lastMessage;
-                lastMessage = world.getTotalWorldTime();
+                lastMessage = worldObj.getTotalWorldTime();
             }
         }
     }
@@ -176,7 +176,7 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
     @SideOnly(Side.CLIENT)
     public void getDebugInfo(List<String> left, List<String> right, EnumFacing side) {
         left.add("fluid = " + tank.getDebugString());
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             left.add("shown = " + amount + ", target = " + target);
             left.add("lastMsg = " + lastMessage + ", lastMsg-1 = " + lastMessageMinus1 + ", diff = " + (lastMessage - lastMessageMinus1));
         } else {
@@ -200,7 +200,7 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
     // Tank helper methods
 
     private Tank getTank(BlockPos at) {
-        TileEntity tile = world.getTileEntity(at);
+        TileEntity tile = worldObj.getTileEntity(at);
         if (tile instanceof TileTank) {
             TileTank tileTank = (TileTank) tile;
             return tileTank.tank;

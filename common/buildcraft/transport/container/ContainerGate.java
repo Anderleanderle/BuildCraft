@@ -112,7 +112,7 @@ public class ContainerGate extends ContainerBC_Neptune {
                 }
             } else if (id == ID_TRIGGER || id == ID_ACTION) {
                 int index = buffer.readUnsignedByte();
-                String tag = buffer.readString(64);
+                String tag = buffer.readStringFromBuffer(64);
                 EnumFacing face = EnumPipePart.fromMeta(buffer.readUnsignedByte()).face;
                 IStatement statement = StatementManager.statements.get(tag);
                 if (id == ID_TRIGGER) {
@@ -125,7 +125,7 @@ public class ContainerGate extends ContainerBC_Neptune {
                 int paramIndex = buffer.readUnsignedByte();
 
                 if (buffer.readBoolean()) {
-                    NBTTagCompound nbt = buffer.readCompoundTag();
+                    NBTTagCompound nbt = buffer.readNBTTagCompoundFromBuffer();
 
                     IStatementParameter param;
                     if (id == ID_TRIGGER_PARAM) {
@@ -156,7 +156,7 @@ public class ContainerGate extends ContainerBC_Neptune {
                 int numTriggers = buffer.readInt();
                 int numActions = buffer.readInt();
                 for (int i = 0; i < numTriggers; i++) {
-                    String tag = buffer.readString(256);
+                    String tag = buffer.readStringFromBuffer(256);
                     EnumPipePart part = buffer.readEnumValue(EnumPipePart.class);
                     TriggerWrapper wrapper = TriggerWrapper.wrap(StatementManager.statements.get(tag), part.face);
                     if (gate.isValidTrigger(wrapper)) {
@@ -164,7 +164,7 @@ public class ContainerGate extends ContainerBC_Neptune {
                     }
                 }
                 for (int i = 0; i < numActions; i++) {
-                    String tag = buffer.readString(256);
+                    String tag = buffer.readStringFromBuffer(256);
                     EnumPipePart part = buffer.readEnumValue(EnumPipePart.class);
                     ActionWrapper wrapper = ActionWrapper.wrap(StatementManager.statements.get(tag), part.face);
                     if (gate.isValidAction(wrapper)) {
@@ -233,7 +233,7 @@ public class ContainerGate extends ContainerBC_Neptune {
                 buffer.writeBoolean(true);
                 NBTTagCompound nbt = new NBTTagCompound();
                 to.writeToNBT(nbt);
-                buffer.writeCompoundTag(nbt);
+                buffer.writeNBTTagCompoundToBuffer(nbt);
             }
         });
     }
@@ -314,7 +314,7 @@ public class ContainerGate extends ContainerBC_Neptune {
 
         public void readFromBuffer(PacketBuffer buffer) throws IOException {
             {
-                String tag = buffer.readString(256);
+                String tag = buffer.readStringFromBuffer(256);
                 EnumPipePart part = EnumPipePart.fromMeta(buffer.readUnsignedByte());
                 TriggerWrapper wrapper = TriggerWrapper.wrap(StatementManager.statements.get(tag), part.face);
                 if (gate.isValidTrigger(wrapper)) {
@@ -322,7 +322,7 @@ public class ContainerGate extends ContainerBC_Neptune {
                 }
             }
             {
-                String tag = buffer.readString(256);
+                String tag = buffer.readStringFromBuffer(256);
                 EnumPipePart part = EnumPipePart.fromMeta(buffer.readUnsignedByte());
                 ActionWrapper wrapper = ActionWrapper.wrap(StatementManager.statements.get(tag), part.face);
                 if (gate.isValidAction(wrapper)) {
@@ -355,13 +355,13 @@ public class ContainerGate extends ContainerBC_Neptune {
                 buffer.writeBoolean(true);
                 NBTTagCompound nbt = new NBTTagCompound();
                 current.writeToNBT(nbt);
-                buffer.writeCompoundTag(nbt);
+                buffer.writeNBTTagCompoundToBuffer(nbt);
             }
         }
 
         public void readFromBuffer(PacketBuffer buffer) throws IOException {
             if (buffer.readBoolean()) {
-                NBTTagCompound nbt = buffer.readCompoundTag();
+                NBTTagCompound nbt = buffer.readNBTTagCompoundFromBuffer();
                 IStatementParameter param = get();
                 if (param != null) {
                     param.readFromNBT(nbt);

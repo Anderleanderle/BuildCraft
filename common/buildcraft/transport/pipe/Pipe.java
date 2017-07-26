@@ -19,7 +19,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 
 import net.minecraftforge.common.capabilities.Capability;
@@ -91,7 +90,7 @@ public final class Pipe implements IPipe, IDebuggable {
     public Pipe(IPipeHolder holder, PacketBufferBC buffer, MessageContext ctx) throws IOException {
         this.holder = holder;
         try {
-            this.definition = PipeRegistry.INSTANCE.loadDefinition(buffer.readString(256));
+            this.definition = PipeRegistry.INSTANCE.loadDefinition(buffer.readStringFromBuffer(256));
         } catch (InvalidInputDataException e) {
             throw new IOException(e);
         }
@@ -290,7 +289,7 @@ public final class Pipe implements IPipe, IDebuggable {
         getHolder().scheduleNetworkUpdate(PipeMessageReceiver.BEHAVIOUR);
     }
 
-    public void getDrops(NonNullList<ItemStack> toDrop) {
+    public void getDrops(List<ItemStack> toDrop) {
         Item item = (Item) PipeApi.pipeRegistry.getItemForPipe(definition);
         if (item != null) {
             toDrop.add(new ItemStack(item, 1, colour == null ? 0 : 1 + colour.ordinal()));

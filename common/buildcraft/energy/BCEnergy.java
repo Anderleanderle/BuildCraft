@@ -55,11 +55,11 @@ public class BCEnergy {
         NetworkRegistry.INSTANCE.registerGuiHandler(INSTANCE, BCEnergyProxy.getProxy());
         GameRegistry.register(BiomeOilOcean.INSTANCE);
         GameRegistry.register(BiomeOilDesert.INSTANCE);
-        BiomeDictionary.addTypes(
+        BiomeDictionary.registerBiomeType(
                 BiomeOilOcean.INSTANCE,
                 BiomeDictionary.Type.OCEAN
         );
-        BiomeDictionary.addTypes(
+        BiomeDictionary.registerBiomeType(
                 BiomeOilDesert.INSTANCE,
                 BiomeDictionary.Type.HOT,
                 BiomeDictionary.Type.DRY,

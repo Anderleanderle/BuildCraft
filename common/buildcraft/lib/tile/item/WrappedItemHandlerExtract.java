@@ -6,7 +6,7 @@
 
 package buildcraft.lib.tile.item;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
@@ -18,7 +18,7 @@ public class WrappedItemHandlerExtract extends DelegateItemHandler {
     }
 
     @Override
-    public ItemStack insertItem(int slot, @Nonnull ItemStack stack, boolean simulate) {
+    public ItemStack insertItem(int slot, @Nullable ItemStack stack, boolean simulate) {
         return stack;
     }
 }

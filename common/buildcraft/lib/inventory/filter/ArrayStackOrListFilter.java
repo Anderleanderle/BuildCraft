@@ -5,7 +5,7 @@
  */
 package buildcraft.lib.inventory.filter;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
@@ -19,7 +19,7 @@ public class ArrayStackOrListFilter extends ArrayStackFilter {
     }
 
     @Override
-    public boolean matches(@Nonnull ItemStack stack) {
+    public boolean matches(@Nullable ItemStack stack) {
         if (stacks.size() == 0 || !hasFilter()) {
             return true;
         }

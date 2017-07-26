@@ -8,9 +8,7 @@ package buildcraft.builders.snapshot;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -20,8 +18,6 @@ import java.util.Queue;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
 import javax.annotation.Nullable;
 
 import net.minecraft.block.state.IBlockState;
@@ -43,7 +39,6 @@ import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.mj.MjAPI;
 
 import buildcraft.lib.misc.BlockUtil;
-import buildcraft.lib.misc.FakePlayerProvider;
 import buildcraft.lib.misc.MessageUtil;
 import buildcraft.lib.misc.data.Box;
 import buildcraft.lib.net.PacketBufferBC;
@@ -99,6 +94,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
                                   int... parameters) {
         }
 
+        /*
         @Override
         public void spawnParticle(int id,
                                   boolean ignoreRange,
@@ -111,6 +107,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
                                   double zSpeed,
                                   int... parameters) {
         }
+        */
 
         @Override
         public void onEntityAdded(Entity entityIn) {
@@ -350,7 +347,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
                         )
                     )
                     .filter(placeTask -> placeTask.items != null)
-                    .filter(placeTask -> !placeTask.items.contains(ItemStack.EMPTY))
+                    .filter(placeTask -> !placeTask.items.contains(null))
                     .limit(MAX_QUEUE_SIZE - placeTasks.size())
                     .forEach(placeTasks::add);
             }
@@ -502,7 +499,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
             pos = MessageUtil.readBlockPos(buffer);
             items = IntStream.range(0, buffer.readInt()).mapToObj(j -> {
                 try {
-                    return buffer.readItemStack();
+                    return buffer.readItemStackFromBuffer();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -517,7 +514,7 @@ public abstract class SnapshotBuilder<T extends ITileForSnapshotBuilder> {
         public void writePayload(PacketBufferBC buffer) {
             MessageUtil.writeBlockPos(buffer, pos);
             buffer.writeInt(items.size());
-            items.forEach(buffer::writeItemStack);
+            items.forEach(buffer::writeItemStackToBuffer);
             buffer.writeLong(power);
         }
     }

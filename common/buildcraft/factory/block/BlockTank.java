@@ -12,6 +12,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
@@ -104,17 +105,17 @@ public class BlockTank extends BlockBCTile_Neptune implements ICustomPipeConnect
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack stack, EnumFacing side, float hitX, float hitY, float hitZ) {
         if (world.isRemote) {
             return true;
         }
-        if (player.getHeldItem(hand).isEmpty()) {
-            return super.onBlockActivated(world, pos, state, player, hand, side, hitX, hitY, hitZ);
+        if (stack == null) {
+            return super.onBlockActivated(world, pos, state, player, hand, stack, side, hitX, hitY, hitZ);
         }
         TileEntity tile = world.getTileEntity(pos);
         if (tile instanceof TileTank) {
             TileTank tank = (TileTank) tile;
-            if (FluidUtil.interactWithFluidHandler(player, hand, world, pos, side)) {
+            if (FluidUtil.interactWithFluidHandler(stack, FluidUtil.getFluidHandler(world, pos, side), player)) {
                 tank.sendNetworkUpdate(TileBC_Neptune.NET_RENDER_DATA);
                 player.inventoryContainer.detectAndSendChanges();
                 return true;

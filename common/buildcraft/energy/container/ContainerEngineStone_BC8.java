@@ -6,7 +6,7 @@
 
 package buildcraft.energy.container;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -24,7 +24,7 @@ public class ContainerEngineStone_BC8 extends ContainerBCTile<TileEngineStone_BC
         addFullPlayerInventory(84);
         addSlotToContainer(new SlotBase(engine.invFuel, 0, 80, 41) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
+            public boolean isItemValid(@Nullable ItemStack stack) {
                 return TileEntityFurnace.getItemBurnTime(stack) > 0;
             }
         });

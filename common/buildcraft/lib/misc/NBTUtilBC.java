@@ -18,7 +18,7 @@ import java.util.UUID;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.properties.IProperty;
@@ -60,8 +60,8 @@ public final class NBTUtilBC {
         return null;
     }
 
-    public static NBTTagCompound getItemData(@Nonnull ItemStack stack) {
-        if (stack.isEmpty()) {
+    public static NBTTagCompound getItemData(@Nullable ItemStack stack) {
+        if (stack == null) {
             return new NBTTagCompound();
         }
         NBTTagCompound nbt = stack.getTagCompound();
@@ -250,7 +250,7 @@ public final class NBTUtilBC {
 
     public static NBTTagCompound writeBlockStateProperties(IBlockState state) {
         NBTTagCompound nbt = new NBTTagCompound();
-        for (IProperty<?> prop : state.getPropertyKeys()) {
+        for (IProperty<?> prop : state.getPropertyNames()) {
             nbt.setString(prop.getName().toLowerCase(Locale.ROOT), getPropName(state, prop));
         }
         return nbt;
@@ -261,7 +261,7 @@ public final class NBTUtilBC {
     }
 
     public static IBlockState readBlockStateProperties(IBlockState state, NBTTagCompound nbt) {
-        for (IProperty<?> prop : state.getPropertyKeys()) {
+        for (IProperty<?> prop : state.getPropertyNames()) {
             state = updateState(state, prop, nbt.getString(prop.getName().toLowerCase(Locale.ROOT)));
         }
         return state;

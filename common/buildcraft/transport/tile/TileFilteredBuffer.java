@@ -27,7 +27,7 @@ public class TileFilteredBuffer extends TileBC_Neptune {
     }
 
     private boolean canInsert(int slot, ItemStack stack) {
-        if (stack.isEmpty()) {
+        if (stack == null) {
             return true;
         }
         ItemStack filterStack = invFilter.getStackInSlot(slot);

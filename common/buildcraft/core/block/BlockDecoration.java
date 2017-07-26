@@ -11,9 +11,10 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
+
+import java.util.List;
 
 import buildcraft.api.enums.EnumDecoratedBlock;
 import buildcraft.api.properties.BuildCraftProperties;
@@ -49,7 +50,7 @@ public class BlockDecoration extends BlockBCBase_Neptune {
     // Other
 
     @Override
-    public void getSubBlocks(Item item, CreativeTabs tab, NonNullList<ItemStack> list) {
+    public void getSubBlocks(Item item, CreativeTabs tab, List<ItemStack> list) {
         for (EnumDecoratedBlock type : EnumDecoratedBlock.values()) {
             list.add(new ItemStack(this, 1, type.ordinal()));
         }

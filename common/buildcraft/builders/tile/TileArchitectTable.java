@@ -12,7 +12,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
@@ -97,12 +97,14 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
     }
 
     @Override
-    protected void onSlotChange(IItemHandlerModifiable handler, int slot, @Nonnull ItemStack before,
-        @Nonnull ItemStack after) {
+    protected void onSlotChange(IItemHandlerModifiable handler, int slot, @Nullable ItemStack before,
+        @Nullable ItemStack after) {
         super.onSlotChange(handler, slot, before, after);
         if (handler == invSnapshotIn) {
-            if (invSnapshotOut.getStackInSlot(0).isEmpty() && after.getItem() instanceof ItemSnapshot) {
-                snapshotType = ItemSnapshot.EnumItemSnapshotType.getFromStack(after).snapshotType;
+            if (invSnapshotOut.getStackInSlot(0) == null && after != null) {
+            	if (after.getItem() instanceof ItemSnapshot) {
+            		snapshotType = ItemSnapshot.EnumItemSnapshotType.getFromStack(after).snapshotType;
+            	}
             }
         }
     }
@@ -110,14 +112,14 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
     @Override
     public void onPlacedBy(EntityLivingBase placer, ItemStack stack) {
         super.onPlacedBy(placer, stack);
-        if (placer.world.isRemote) {
+        if (placer.worldObj.isRemote) {
             return;
         }
-        WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(world);
-        IBlockState blockState = world.getBlockState(pos);
+        WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(worldObj);
+        IBlockState blockState = worldObj.getBlockState(pos);
         BlockPos offsetPos = pos.offset(blockState.getValue(BlockArchitectTable.PROP_FACING).getOpposite());
         VolumeBox volumeBox = volumeBoxes.getBoxAt(offsetPos);
-        TileEntity tile = world.getTileEntity(offsetPos);
+        TileEntity tile = worldObj.getTileEntity(offsetPos);
         if (volumeBox != null) {
             box.reset();
             box.setMin(volumeBox.box.min());
@@ -137,9 +139,9 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
             provider.removeFromWorld();
         } else {
             isValid = false;
-            IBlockState state = world.getBlockState(pos);
+            IBlockState state = worldObj.getBlockState(pos);
             state = state.withProperty(BlockArchitectTable.PROP_VALID, Boolean.FALSE);
-            world.setBlockState(pos, state);
+            worldObj.setBlockState(pos, state);
         }
     }
 
@@ -147,14 +149,14 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
     public void update() {
         deltaManager.tick();
 
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             if (box.isInitialized()) {
                 ClientArchitectTables.BOXES.put(box.getBoundingBox(), ClientArchitectTables.START_BOX_VALUE);
             }
             return;
         }
 
-        if (!invSnapshotIn.getStackInSlot(0).isEmpty() && invSnapshotOut.getStackInSlot(0).isEmpty() && isValid) {
+        if (!(invSnapshotIn.getStackInSlot(0) == null) && invSnapshotOut.getStackInSlot(0) == null && isValid) {
             if (!scanning) {
                 int size = box.size().getX() * box.size().getY() * box.size().getZ();
                 size /= snapshotType.maxPerTick;
@@ -198,7 +200,7 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
         BlockPos worldScanPos = boxIterator.getCurrent();
         BlockPos schematicIndex = worldScanPos.subtract(box.min());
         if (snapshotType == EnumSnapshotType.TEMPLATE) {
-            boolean solid = !world.isAirBlock(worldScanPos);
+            boolean solid = !worldObj.isAirBlock(worldScanPos);
             templateScannedBlocks[schematicIndex.getX()][schematicIndex.getY()][schematicIndex.getZ()] = solid;
         }
         if (snapshotType == EnumSnapshotType.BLUEPRINT) {
@@ -226,18 +228,18 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
 
     private ISchematicBlock<?> readSchematicBlock(BlockPos worldScanPos) {
         return SchematicBlockManager.getSchematicBlock(
-            world,
-            pos.offset(world.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING).getOpposite()),
+            worldObj,
+            pos.offset(worldObj.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING).getOpposite()),
             worldScanPos,
-            world.getBlockState(worldScanPos),
-            world.getBlockState(worldScanPos).getBlock()
+            worldObj.getBlockState(worldScanPos),
+            worldObj.getBlockState(worldScanPos).getBlock()
         );
     }
 
     private void scanEntities() {
-        BlockPos basePos = pos.offset(world.getBlockState(pos).getValue(BlockArchitectTable.PROP_FACING).getOpposite());
-        world.getEntitiesWithinAABB(Entity.class, box.getBoundingBox()).stream()
-            .map(entity -> SchematicEntityManager.getSchematicEntity(world, basePos, entity))
+        BlockPos basePos = pos.offset(worldObj.getBlockState(pos).getValue(BlockArchitectTable.PROP_FACING).getOpposite());
+        worldObj.getEntitiesWithinAABB(Entity.class, box.getBoundingBox()).stream()
+            .map(entity -> SchematicEntityManager.getSchematicEntity(worldObj, basePos, entity))
             .filter(Objects::nonNull)
             .forEach(blueprintScannedEntities::add);
     }
@@ -266,13 +268,13 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
         }
 
         snapshot.header = new Header(snapshot.computeHash(), getOwner().getId(), new Date(), name);
-        GlobalSavedDataSnapshots store = GlobalSavedDataSnapshots.get(world);
+        GlobalSavedDataSnapshots store = GlobalSavedDataSnapshots.get(worldObj);
         store.snapshots.add(snapshot);
         store.markDirty();
         ItemStack stackIn = invSnapshotIn.getStackInSlot(0);
-        stackIn.setCount(stackIn.getCount() - 1);
-        if (stackIn.getCount() == 0) {
-            stackIn = ItemStack.EMPTY;
+        stackIn.stackSize = stackIn.stackSize - 1;
+        if (stackIn.stackSize == 0) {
+            stackIn = null;
         }
         invSnapshotIn.setStackInSlot(0, stackIn);
         invSnapshotOut.setStackInSlot(0, BCBuildersItems.snapshot.getUsed(snapshotType, snapshot.header));

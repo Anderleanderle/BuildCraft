@@ -4,7 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.robotics.container;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -27,7 +27,7 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
             for (int y = 0; y < 4; y++) {
                 addSlotToContainer(new SlotBase(tile.invPaintbrushes, x * 4 + y, 8 + x * 18, 146 + y * 18) {
                     @Override
-                    public boolean isItemValid(@Nonnull ItemStack stack) {
+                    public boolean isItemValid(@Nullable ItemStack stack) {
                         return stack.getItem() instanceof ItemPaintbrush_BC8;
                     }
                 });
@@ -35,31 +35,31 @@ public class ContainerZonePlanner extends ContainerBCTile<TileZonePlanner> {
         }
         addSlotToContainer(new SlotBase(tile.invInputPaintbrush, 0, 8, 125) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
+            public boolean isItemValid(@Nullable ItemStack stack) {
                 return stack.getItem() instanceof ItemPaintbrush_BC8;
             }
         });
         addSlotToContainer(new SlotBase(tile.invInputMapLocation, 0, 26, 125) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
+            public boolean isItemValid(@Nullable ItemStack stack) {
                 NBTTagCompound stackTag = stack.getTagCompound();
                 return stack.getItem() instanceof ItemMapLocation &&
                         stackTag != null &&
                         stackTag.hasKey("chunkMapping") &&
-                        stack.getCount() == 1;
+                        stack.stackSize == 1;
             }
         });
         addSlotToContainer(new SlotOutput(tile.invInputResult, 0, 74, 125));
         addSlotToContainer(new SlotBase(tile.invOutputPaintbrush, 0, 233, 9) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
+            public boolean isItemValid(@Nullable ItemStack stack) {
                 return stack.getItem() instanceof ItemPaintbrush_BC8;
             }
         });
         addSlotToContainer(new SlotBase(tile.invOutputMapLocation, 0, 233, 27) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
-                return stack.getItem() instanceof ItemMapLocation && stack.getCount() == 1;
+            public boolean isItemValid(@Nullable ItemStack stack) {
+                return stack.getItem() instanceof ItemMapLocation && stack.stackSize == 1;
             }
         });
         addSlotToContainer(new SlotOutput(tile.invOutputResult, 0, 233, 75));

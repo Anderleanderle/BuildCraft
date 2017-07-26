@@ -37,7 +37,7 @@ public class ElementStatementParam extends ElementGuiSlot<IStatementParameter> {
             GuiGate.SLOT_COLOUR.drawAt(this);
             super.drawBackground(partialTicks);
             ItemStack stack = param.getItemStack();
-            if (!stack.isEmpty()) {
+            if (!(stack == null)) {
                 gui.drawItemStackAt(stack, getX() + 1, getY() + 1);
             }
         }
@@ -51,7 +51,7 @@ public class ElementStatementParam extends ElementGuiSlot<IStatementParameter> {
             GuiGate.SLOT_COLOUR.drawAt(element);
             super.draw(val, element);
             ItemStack stack = val.getItemStack();
-            if (!stack.isEmpty()) {
+            if (!(stack == null)) {
                 gui.drawItemStackAt(stack, getX() + 1, getY() + 1);
             }
         }
@@ -62,7 +62,7 @@ public class ElementStatementParam extends ElementGuiSlot<IStatementParameter> {
         if (contains(gui.mouse)) {
             IStatementParameter value = reference.get();
             if (value == null) return;
-            if (value.onClick(gui.container.gate, parent.reference.get(), gui.mc.player.inventory.getItemStack(), new StatementMouseClick(button, GuiScreen.isShiftKeyDown()))) {
+            if (value.onClick(gui.container.gate, parent.reference.get(), gui.mc.thePlayer.inventory.getItemStack(), new StatementMouseClick(button, GuiScreen.isShiftKeyDown()))) {
                 // update the server with the click
                 reference.set(value);
                 return;

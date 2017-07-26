@@ -186,7 +186,7 @@ public class TilePipeHolder extends TileBC_Neptune implements IPipeHolder, ITick
                     continue;
                 }
             }
-            TileEntity tile = world.getTileEntity(getPos().offset(face));
+            TileEntity tile = worldObj.getTileEntity(getPos().offset(face));
             if (tile != null) {
                 neighbourTiles.put(face, new WeakReference<>(tile));
             }
@@ -386,7 +386,7 @@ public class TilePipeHolder extends TileBC_Neptune implements IPipeHolder, ITick
         if (pipe != null) {
             pipe.markForUpdate();
         }
-        if (!world.isRemote && old != with) {
+        if (!worldObj.isRemote && old != with) {
             wireManager.getWireSystems().rebuildWireSystemsAround(this);
         }
         scheduleNetworkUpdate(PipeMessageReceiver.PLUGGABLES[side.getIndex()]);
@@ -462,9 +462,9 @@ public class TilePipeHolder extends TileBC_Neptune implements IPipeHolder, ITick
     @Override
     public int getRedstoneInput(EnumFacing side) {
         if (side == null) {
-            return world.isBlockPowered(pos) ? 15 : 0;
+            return worldObj.isBlockPowered(pos) ? 15 : 0;
         } else {
-            return world.getRedstonePower(pos.offset(side), side);
+            return worldObj.getRedstonePower(pos.offset(side), side);
         }
     }
 
@@ -509,7 +509,7 @@ public class TilePipeHolder extends TileBC_Neptune implements IPipeHolder, ITick
         left.add("Parts:");
         wireManager.parts.forEach((part, color) -> left.add(" - " + part + " = " + color + " = " + wireManager
             .isPowered(part)));
-        left.add("All wire systems in world count = " + (world.isRemote ? 0 : wireManager.getWireSystems().wireSystems
+        left.add("All wire systems in world count = " + (worldObj.isRemote ? 0 : wireManager.getWireSystems().wireSystems
             .size()));
         if (unknownData != null) {
             left.add(unknownData.toString());

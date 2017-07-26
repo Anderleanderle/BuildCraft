@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import gnu.trove.map.hash.TCharObjectHashMap;
 
@@ -59,7 +60,7 @@ public class RecipeBuilderShaped {
         return this;
     }
 
-    public RecipeBuilderShaped setResult(@Nonnull ItemStack result) {
+    public RecipeBuilderShaped setResult(@Nullable ItemStack result) {
         this.result = result;
         return this;
     }
@@ -102,7 +103,7 @@ public class RecipeBuilderShaped {
     }
 
     private void ensureValid() {
-        if (result.isEmpty()) {
+        if (result == null) {
             throw new IllegalStateException("Result hasn't been set yet!");
         }
     }

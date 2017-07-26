@@ -18,7 +18,6 @@ import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 
 import buildcraft.api.recipes.AssemblyRecipe;
@@ -35,7 +34,7 @@ public enum AssemblyRecipeRegistry implements IAssemblyRecipeRegistry {
 
     @Nonnull
     @Override
-    public List<AssemblyRecipe> getRecipesFor(@Nonnull NonNullList<ItemStack> possibleIn) {
+    public List<AssemblyRecipe> getRecipesFor(@Nonnull List<ItemStack> possibleIn) {
         List<AssemblyRecipe> all = new ArrayList<>();
         for (AssemblyRecipe ar : recipes.values()) {
             if (ar.requiredStacks.stream().allMatch((definition) -> StackUtil.contains(definition, possibleIn))) {

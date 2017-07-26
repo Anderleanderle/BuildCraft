@@ -176,7 +176,7 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
         if (flowItem != null) {
             int max = requiresPower ? 1 : Integer.MAX_VALUE;
             ItemStack extracted = transactor.extract(StackFilter.ALL, 1, max, false);
-            if (!extracted.isEmpty()) {
+            if (!(extracted == null)) {
                 flowItem.insertItemsForce(extracted, faceFrom, null, INSERT_SPEED);
                 battery.extractPower(MjAPI.MJ);
                 return true;

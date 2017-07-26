@@ -105,7 +105,7 @@ public class ItemRenderUtil {
     /** Used to render a lot of items in sequential order. Assumes that you don't change the glstate inbetween calls.
      * You must call {@link #endItemBatch()} after your have rendered all of the items. */
     public static void renderItemStack(double x, double y, double z, ItemStack stack, int lightc, EnumFacing dir, VertexBuffer vb) {
-        if (stack.isEmpty()) {
+        if (stack == null) {
             return;
         }
         if (dir == null) {

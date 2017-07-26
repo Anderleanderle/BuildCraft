@@ -11,14 +11,13 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.NonNullList;
-
 import net.minecraftforge.fml.common.registry.ForgeRegistries;
 
 import buildcraft.api.lists.ListMatchHandler;
@@ -32,11 +31,15 @@ public final class ListHandler {
     public static final int HEIGHT = 2;
 
     public static class Line {
-        public final NonNullList<ItemStack> stacks;
+        public final List<ItemStack> stacks;
         public boolean precise, byType, byMaterial;
 
         public Line() {
-            stacks = NonNullList.withSize(WIDTH, StackUtil.EMPTY);
+            //stacks = List.withSize(WIDTH, StackUtil.EMPTY);
+        	stacks = new ArrayList<ItemStack>();
+        	for (int i=0; i<WIDTH; i++) {
+        		stacks.add(null);
+        	}
         }
 
         /** Checks to see if this line is completely blank, and no data would be lost if this line was not saved. */
@@ -48,7 +51,7 @@ public final class ListHandler {
         /** Checks to see if this line has any items */
         public boolean hasItems() {
             for (ItemStack stack : stacks) {
-                if (!stack.isEmpty()) return true;
+                if (!(stack == null)) return true;
             }
             return false;
         }
@@ -80,9 +83,9 @@ public final class ListHandler {
             }
         }
 
-        public boolean matches(@Nonnull ItemStack target) {
+        public boolean matches(@Nullable ItemStack target) {
             if (byType || byMaterial) {
-                if (stacks.get(0).isEmpty()) {
+                if (stacks.get(0) == null) {
                     return false;
                 }
 
@@ -116,7 +119,7 @@ public final class ListHandler {
             if (data != null && data.hasKey("st")) {
                 NBTTagList l = data.getTagList("st", 10);
                 for (int i = 0; i < l.tagCount(); i++) {
-                    line.stacks.set(i, new ItemStack(l.getCompoundTagAt(i)));
+                    line.stacks.set(i, ItemStack.loadItemStackFromNBT(l.getCompoundTagAt(i)));
                 }
 
                 line.precise = data.getBoolean("Fp");
@@ -144,13 +147,13 @@ public final class ListHandler {
             return data;
         }
 
-        public void setStack(int slotIndex, @Nonnull ItemStack stack) {
+        public void setStack(int slotIndex, @Nullable ItemStack stack) {
             if (slotIndex == 0 || (!byType && !byMaterial)) {
-                if (stack.isEmpty()) {
+                if (stack == null) {
                     stacks.set(slotIndex, StackUtil.EMPTY);
                 } else {
                     stack = stack.copy();
-                    stack.setCount(1);
+                    stack.stackSize = 1;
                     stacks.set(slotIndex, stack);
                 }
             }
@@ -165,18 +168,19 @@ public final class ListHandler {
             }
         }
 
-        public NonNullList<ItemStack> getExamples() {
+        public List<ItemStack> getExamples() {
             ItemStack firstStack = stacks.get(0);
-            if (firstStack.isEmpty()) {
-                return NonNullList.withSize(0, StackUtil.EMPTY);
+            if (firstStack == null) {
+                //return List.withSize(0, StackUtil.EMPTY);
+            	return new ArrayList<ItemStack>();
             }
-            NonNullList<ItemStack> stackList = NonNullList.create();
+            List<ItemStack> stackList = new ArrayList<ItemStack>();
             List<ListMatchHandler> handlers = ListRegistry.getHandlers();
             List<ListMatchHandler> handlersCustom = new ArrayList<>();
             ListMatchHandler.Type type = getSortingType();
             for (ListMatchHandler h : handlers) {
                 if (h.isValidSource(type, firstStack)) {
-                    NonNullList<ItemStack> examples = h.getClientExamples(type, firstStack);
+                    List<ItemStack> examples = h.getClientExamples(type, firstStack);
                     if (examples != null) {
                         stackList.addAll(examples);
                     } else {
@@ -186,7 +190,7 @@ public final class ListHandler {
             }
             if (handlersCustom.size() > 0) {
                 for (Item i : ForgeRegistries.ITEMS) {
-                    NonNullList<ItemStack> examples = NonNullList.create();
+                    List<ItemStack> examples = new ArrayList<ItemStack>();
                     i.getSubItems(i, CreativeTabs.MISC, examples);
                     for (ItemStack s : examples) {
                         for (ListMatchHandler mh : handlersCustom) {
@@ -207,7 +211,7 @@ public final class ListHandler {
 
     }
 
-    public static boolean hasItems(@Nonnull ItemStack stack) {
+    public static boolean hasItems(@Nullable ItemStack stack) {
         if (!stack.hasTagCompound()) return false;
         for (Line l : getLines(stack)) {
             if (l.hasItems()) return true;
@@ -215,7 +219,7 @@ public final class ListHandler {
         return false;
     }
 
-    public static boolean isDefault(@Nonnull ItemStack stack) {
+    public static boolean isDefault(@Nullable ItemStack stack) {
         if (!stack.hasTagCompound()) return true;
         for (Line l : getLines(stack)) {
             if (!l.isDefault()) return false;
@@ -223,7 +227,7 @@ public final class ListHandler {
         return true;
     }
 
-    public static Line[] getLines(@Nonnull ItemStack item) {
+    public static Line[] getLines(@Nullable ItemStack item) {
         NBTTagCompound data = NBTUtilBC.getItemData(item);
         if (data.hasKey("written") && data.hasKey("lines")) {
             NBTTagList list = data.getTagList("lines", 10);
@@ -241,7 +245,7 @@ public final class ListHandler {
         }
     }
 
-    public static void saveLines(@Nonnull ItemStack stackList, Line[] lines) {
+    public static void saveLines(@Nullable ItemStack stackList, Line[] lines) {
         boolean hasLine = false;
 
         for (Line l : lines) {
@@ -271,7 +275,7 @@ public final class ListHandler {
         }
     }
 
-    public static boolean matches(@Nonnull ItemStack stackList, @Nonnull ItemStack item) {
+    public static boolean matches(@Nullable ItemStack stackList, @Nullable ItemStack item) {
         NBTTagCompound data = NBTUtilBC.getItemData(stackList);
         if (data.hasKey("written") && data.hasKey("lines")) {
             NBTTagList list = data.getTagList("lines", 10);

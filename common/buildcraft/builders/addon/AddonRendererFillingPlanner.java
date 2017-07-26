@@ -29,7 +29,7 @@ public class AddonRendererFillingPlanner implements IFastAddonRenderer<AddonFill
                         Math.pow(player.posY - blockPos.getY(), 2) +
                         Math.pow(player.posZ - blockPos.getZ(), 2)
         ).reversed());
-        blocksShouldBePlaced.removeIf(blockPos -> !player.world.isAirBlock(blockPos));
+        blocksShouldBePlaced.removeIf(blockPos -> !player.worldObj.isAirBlock(blockPos));
         for (BlockPos blockPos : blocksShouldBePlaced) {
             AxisAlignedBB bb = new AxisAlignedBB(blockPos, blockPos.add(1, 1, 1)).expandXyz(-0.1);
             TextureAtlasSprite s = ModelLoader.White.INSTANCE;

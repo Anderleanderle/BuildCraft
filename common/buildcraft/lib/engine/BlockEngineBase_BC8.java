@@ -7,11 +7,12 @@
 package buildcraft.lib.engine;
 
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -27,7 +28,6 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -58,7 +58,7 @@ public abstract class BlockEngineBase_BC8<E extends Enum<E> & IEngineType> exten
         return engineTileConstructors.containsKey(type);
     }
 
-    @Nonnull
+    @Nullable
     public ItemStack getStack(E type) {
         return new ItemStack(this, 1, type.ordinal());
     }
@@ -129,12 +129,12 @@ public abstract class BlockEngineBase_BC8<E extends Enum<E> & IEngineType> exten
             return null;
         }
         TileEngineBase_BC8 tile = constructor.get();
-        tile.setWorld(world);
+        tile.setWorldObj(world);
         return tile;
     }
 
     @Override
-    public void getSubBlocks(Item item, CreativeTabs tab, NonNullList<ItemStack> list) {
+    public void getSubBlocks(Item item, CreativeTabs tab, List<ItemStack> list) {
         for (E engine : getEngineProperty().getAllowedValues()) {
             if (engineTileConstructors.containsKey(engine)) {
                 list.add(new ItemStack(item, 1, engine.ordinal()));
@@ -143,7 +143,7 @@ public abstract class BlockEngineBase_BC8<E extends Enum<E> & IEngineType> exten
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack stack, EnumFacing side, float hitX, float hitY, float hitZ) {
         if (EntityUtil.getWrenchHand(player) != null && !player.isSneaking()) {
             return false;
         }
@@ -161,7 +161,7 @@ public abstract class BlockEngineBase_BC8<E extends Enum<E> & IEngineType> exten
     }
 
     @Override
-    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos) {
+    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn) {
         if (world.isRemote) return;
         TileEntity tile = world.getTileEntity(pos);
         if (tile instanceof TileEngineBase_BC8) {

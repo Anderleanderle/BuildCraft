@@ -29,7 +29,7 @@ public class TileMarkerPath extends TileMarker<PathConnection> implements IPathP
     @Override
     public void removeFromWorld() {
         for (BlockPos pos : getPath()) {
-            world.destroyBlock(pos, true);
+            worldObj.destroyBlock(pos, true);
         }
     }
 
@@ -45,7 +45,7 @@ public class TileMarkerPath extends TileMarker<PathConnection> implements IPathP
     }
 
     public void reverseDirection() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
         PathConnection connection = getCurrentConnection();

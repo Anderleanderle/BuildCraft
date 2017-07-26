@@ -19,7 +19,6 @@ import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 
 import buildcraft.api.recipes.IIntegrationRecipeProvider;
@@ -34,7 +33,7 @@ public enum IntegrationRecipeRegistry implements IIntegrationRecipeRegistry {
     private final List<IIntegrationRecipeProvider> providers = new ArrayList<>();
 
     @Override
-    public IntegrationRecipe getRecipeFor(@Nonnull ItemStack target, @Nonnull NonNullList<ItemStack> toIntegrate) {
+    public IntegrationRecipe getRecipeFor(@Nullable ItemStack target, @Nonnull List<ItemStack> toIntegrate) {
         for (IntegrationRecipe recipe : recipes.values()) {
             if (matches(recipe, target, toIntegrate)) {
                 return recipe;
@@ -49,11 +48,11 @@ public enum IntegrationRecipeRegistry implements IIntegrationRecipeRegistry {
         return null;
     }
 
-    public static boolean matches(IntegrationRecipe recipe, @Nonnull ItemStack target, NonNullList<ItemStack> toIntegrate) {
+    public static boolean matches(IntegrationRecipe recipe, @Nullable ItemStack target, List<ItemStack> toIntegrate) {
         if (!StackUtil.contains(recipe.target, target)) {
             return false;
         }
-        NonNullList<ItemStack> toIntegrateCopy = toIntegrate.stream().filter(stack -> !stack.isEmpty()).collect(StackUtil.nonNullListCollector());
+        List<ItemStack> toIntegrateCopy = toIntegrate.stream().filter(stack -> !(stack == null)).collect(StackUtil.nonNullListCollector());
         boolean stackMatches = recipe.toIntegrate.stream().allMatch((definition) -> {
             boolean matches = false;
             Iterator<ItemStack> iterator = toIntegrateCopy.iterator();

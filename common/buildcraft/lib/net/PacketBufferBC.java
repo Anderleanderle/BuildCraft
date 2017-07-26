@@ -265,7 +265,7 @@ public class PacketBufferBC extends PacketBuffer {
         if (possible == null) throw new IllegalArgumentException("Not an enum " + value.getClass());
         if (possible.length == 0) throw new IllegalArgumentException("Tried to write an enum value without any values! How did you do this?");
         if (possible.length == 1) return this;
-        writeFixedBits(value.ordinal(), MathHelper.log2DeBruijn(possible.length));
+        writeFixedBits(value.ordinal(), MathHelper.calculateLogBaseTwoDeBruijn(possible.length));
         return this;
     }
 
@@ -275,7 +275,7 @@ public class PacketBufferBC extends PacketBuffer {
         if (enums == null) throw new IllegalArgumentException("Not an enum " + enumClass);
         if (enums.length == 0) throw new IllegalArgumentException("Tried to read an enum value without any values! How did you do this?");
         if (enums.length == 1) return enums[0];
-        int length = MathHelper.log2DeBruijn(enums.length);
+        int length = MathHelper.calculateLogBaseTwoDeBruijn(enums.length);
         int index = readFixedBits(length);
         return enums[index];
     }
@@ -284,6 +284,7 @@ public class PacketBufferBC extends PacketBuffer {
      * Reads string of any possible length
      */
     public String readString() {
-        return new String(readBytes(readVarInt()).array(), Charsets.UTF_8);
+        //return new String(readBytes(readVarInt()).array(), Charsets.UTF_8);
+        return new String(readBytes(readVarIntFromBuffer()).array(), Charsets.UTF_8);
     }
 }

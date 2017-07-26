@@ -21,12 +21,12 @@ public class SlotHidden extends Slot {
     }
 
     public void show() {
-        xPos = saveX;
-        yPos = saveY;
+        xDisplayPosition = saveX;
+        yDisplayPosition = saveY;
     }
 
     public void hide() {
-        xPos = 9999;
-        yPos = 9999;
+        xDisplayPosition = 9999;
+        yDisplayPosition = 9999;
     }
 }

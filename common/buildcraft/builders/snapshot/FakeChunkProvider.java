@@ -42,18 +42,27 @@ public class FakeChunkProvider implements IChunkProvider {
         return getLoadedChunk(x, z);
     }
 
+    /*
     @Override
     public boolean tick() {
         return false;
     }
+    */
 
     @Override
     public String makeString() {
         return "fake";
     }
-
+    
+    /*
     @Override
     public boolean isChunkGeneratedAt(int x, int z) {
         return true;
     }
+    */
+
+	@Override
+	public boolean unloadQueuedChunks() {
+		return false;
+	}
 }

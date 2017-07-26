@@ -7,6 +7,7 @@
 package buildcraft.lib.tile.item;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
@@ -20,37 +21,37 @@ public interface StackInsertionFunction {
      * @param toInsert The stacks to insert. Modifications are lost.
      * @return The result of attempting to insert it. */
     @Nonnull
-    InsertionResult modifyForInsertion(int slot, @Nonnull ItemStack addingTo, @Nonnull ItemStack toInsert);
+    InsertionResult modifyForInsertion(int slot, @Nullable ItemStack addingTo, @Nullable ItemStack toInsert);
 
     /** Gets a stack insertion function that will insert items up to a given stack size. The stack size of the items
      * themselves IS taken into account, so this has an effective upper limit of 64. */
     static StackInsertionFunction getInsertionFunction(int maxStackSize) {
         return (slot, addingTo, toInsert) -> {
-            if (toInsert.isEmpty()) {
+            if (toInsert == null) {
                 return new InsertionResult(addingTo, StackUtil.EMPTY);
             }
 
-            if (addingTo.isEmpty()) {
+            if (addingTo == null) {
                 int maxSize = Math.min(maxStackSize, toInsert.getMaxStackSize());
-                if (toInsert.getCount() <= maxSize) {
+                if (toInsert.stackSize <= maxSize) {
                     return new InsertionResult(toInsert, StackUtil.EMPTY);
                 } else {
                     ItemStack inserted = toInsert.splitStack(maxSize);
                     return new InsertionResult(inserted, toInsert);
                 }
-            } else if (addingTo.getCount() == maxStackSize) {
+            } else if (addingTo.stackSize == maxStackSize) {
                 return new InsertionResult(addingTo, toInsert);
             } else if (StackUtil.canMerge(addingTo, toInsert)) {
                 ItemStack complete = addingTo.copy();
-                int count = addingTo.getCount() + toInsert.getCount();
+                int count = addingTo.stackSize + toInsert.stackSize;
                 int maxSize = Math.min(maxStackSize, complete.getMaxStackSize());
                 if (count <= maxSize) {
-                    complete.setCount(count);
+                    complete.stackSize = (count);
                     return new InsertionResult(complete, StackUtil.EMPTY);
                 } else {
-                    complete.setCount(maxSize);
+                    complete.stackSize = (maxSize);
                     ItemStack leftOver = toInsert.copy();
-                    leftOver.setCount(count - maxSize);
+                    leftOver.stackSize = (count - maxSize);
                     return new InsertionResult(complete, leftOver);
                 }
             }
@@ -71,7 +72,7 @@ public interface StackInsertionFunction {
         @Nonnull
         public final ItemStack toSet, toReturn;
 
-        public InsertionResult(@Nonnull ItemStack toSet, @Nonnull ItemStack toReturn) {
+        public InsertionResult(@Nullable ItemStack toSet, @Nullable ItemStack toReturn) {
             this.toSet = toSet;
             this.toReturn = toReturn;
         }

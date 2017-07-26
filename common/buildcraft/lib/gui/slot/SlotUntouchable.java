@@ -5,7 +5,7 @@
  */
 package buildcraft.lib.gui.slot;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -22,7 +22,7 @@ public class SlotUntouchable extends SlotBase implements IPhantomSlot {
     }
 
     @Override
-    public boolean isItemValid(@Nonnull ItemStack itemstack) {
+    public boolean isItemValid(@Nullable ItemStack itemstack) {
         return false;
     }
 

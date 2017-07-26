@@ -135,26 +135,20 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
     @Override
     public boolean onActivated(EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
         ItemStack current = player.getHeldItem(hand);
-        if (!current.isEmpty()) {
+        if (!(current == null)) {
             if (EntityUtil.getWrenchHand(player) != null) {
                 return false;
             }
             if (current.getItem() instanceof IItemPipe) {
                 return false;
             }
-            if (!world.isRemote) {
-                if (FluidUtil.interactWithFluidHandler(
-                    player,
-                    hand,
-                    world,
-                    pos,
-                    side
-                )) {
+            if (!worldObj.isRemote) {
+                if (FluidUtil.interactWithFluidHandler(current, FluidUtil.getFluidHandler(worldObj, pos, side), player)) {
                     return true;
                 }
             }
         }
-        if (!world.isRemote) {
+        if (!worldObj.isRemote) {
             BCEnergyGuis.ENGINE_IRON.openGUI(player, getPos());
         }
         return true;
@@ -223,7 +217,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
                                 IDirtyFuel dirtyFuel = (IDirtyFuel) currentFuel;
                                 residueAmount += dirtyFuel.getResidue().amount / 1000.0;
                                 if (residueAmount >= 1) {
-                                    int residue = MathHelper.floor(residueAmount);
+                                    int residue = MathHelper.floor_double(residueAmount);
                                     FluidStack residueFluid = dirtyFuel.getResidue().copy();
                                     residueFluid.amount = residue;
                                     residueAmount -= tankResidue.fill(residueFluid, true);
@@ -352,7 +346,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
 
     private boolean isResidue(FluidStack fluid) {
         // If this is the client then we don't have a current fuel- just trust the server that its correct
-        if (world != null && world.isRemote) {
+        if (worldObj != null && worldObj.isRemote) {
             return true;
         }
         if (currentFuel instanceof IDirtyFuel) {

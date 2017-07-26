@@ -4,6 +4,7 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.lib.block;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.block.ITileEntityProvider;
@@ -12,7 +13,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.Explosion;
 import net.minecraft.world.IBlockAccess;
@@ -58,7 +58,7 @@ public abstract class BlockBCTile_Neptune extends BlockBCBase_Neptune implements
     @Override
     public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
         TileEntity tile = world.getTileEntity(pos);
-        NonNullList<ItemStack> toDrop = NonNullList.create();
+        List<ItemStack> toDrop = new ArrayList<ItemStack>();
         if (tile instanceof TileBC_Neptune) {
             TileBC_Neptune tileBC = (TileBC_Neptune) tile;
             tileBC.addDrops(toDrop, fortune);

@@ -29,7 +29,7 @@ public class TileEngineRedstone_BC8 extends TileEngineBase_BC8 {
     @Override
     protected void engineUpdate() {
         super.engineUpdate();
-        if (world.getTotalWorldTime() % 16 == 0) {
+        if (worldObj.getTotalWorldTime() % 16 == 0) {
             this.addPower(MjAPI.MJ);
         }
     }

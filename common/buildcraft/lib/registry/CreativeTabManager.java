@@ -56,7 +56,7 @@ public class CreativeTabManager {
     }
 
     public static class CreativeTabBC extends CreativeTabs {
-        private ItemStack item = new ItemStack(Items.COMPARATOR); // Temp.
+        private Item item = Items.COMPARATOR; // Temp.
 
         private CreativeTabBC(String name) {
             super(name);
@@ -64,17 +64,17 @@ public class CreativeTabManager {
 
         public void setItem(Item item) {
             if (item != null) {
-                this.item = new ItemStack(item);
+                this.item = item;
             }
         }
 
         public void setItem(ItemStack stack) {
-            if (stack == null || stack.isEmpty()) return;
-            item = stack;
+            if (stack == null || stack == null) return;
+            item = stack.getItem();
         }
 
         @Override
-        public ItemStack getTabIconItem() {
+        public Item getTabIconItem() {
             return item;
         }
     }

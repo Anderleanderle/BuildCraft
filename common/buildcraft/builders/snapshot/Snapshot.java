@@ -153,14 +153,14 @@ public abstract class Snapshot {
 
         public Header(PacketBufferBC buffer) {
             hash = buffer.readByteArray();
-            owner = buffer.readUniqueId();
+            owner = buffer.readUuid();
             created = new Date(buffer.readLong());
             name = buffer.readString();
         }
 
         public void writeToByteBuf(PacketBufferBC buffer) {
             buffer.writeByteArray(hash);
-            buffer.writeUniqueId(owner);
+            buffer.writeUuid(owner);
             buffer.writeLong(created.getTime());
             buffer.writeString(name);
         }

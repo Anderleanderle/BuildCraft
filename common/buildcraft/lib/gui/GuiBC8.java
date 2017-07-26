@@ -88,7 +88,7 @@ public abstract class GuiBC8<C extends ContainerBC_Neptune> extends GuiContainer
     }
 
     public FontRenderer getFontRenderer() {
-        return fontRenderer;
+        return fontRendererObj;
     }
 
     public float getLastPartialTicks() {
@@ -103,8 +103,8 @@ public abstract class GuiBC8<C extends ContainerBC_Neptune> extends GuiContainer
 
     public void drawItemStackAt(ItemStack stack, int x, int y) {
         RenderHelper.enableGUIStandardItemLighting();
-        itemRender.renderItemAndEffectIntoGUI(mc.player, stack, x, y);
-        itemRender.renderItemOverlayIntoGUI(mc.fontRenderer, stack, x, y, null);
+        itemRender.renderItemAndEffectIntoGUI(mc.thePlayer, stack, x, y);
+        itemRender.renderItemOverlayIntoGUI(mc.fontRendererObj, stack, x, y, null);
         RenderHelper.disableStandardItemLighting();
     }
 
@@ -174,8 +174,8 @@ public abstract class GuiBC8<C extends ContainerBC_Neptune> extends GuiContainer
     }
 
     public void drawProgress(GuiRectangle rect, GuiIcon icon, double widthPercent, double heightPercent) {
-        int nWidth = MathHelper.ceil(rect.width * Math.abs(widthPercent));
-        int nHeight = MathHelper.ceil(rect.height * Math.abs(heightPercent));
+        int nWidth = MathHelper.ceiling_double_int(rect.width * Math.abs(widthPercent));
+        int nHeight = MathHelper.ceiling_double_int(rect.height * Math.abs(heightPercent));
         icon
                 .offset(
                         widthPercent > 0 ? 0 : rect.width - nWidth,

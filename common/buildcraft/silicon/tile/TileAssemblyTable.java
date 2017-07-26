@@ -141,7 +141,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
     public void update() {
         super.update();
 
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
 
@@ -195,7 +195,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
             buffer.writeInt(recipesStates.size());
             recipesStates.forEach((recipe, state) -> {
                 buffer.writeString(recipe.name.toString());
-                buffer.writeCompoundTag(recipe.recipeTag);
+                buffer.writeNBTTagCompoundToBuffer(recipe.recipeTag);
                 buffer.writeInt(state.ordinal());
             });
         }
@@ -209,13 +209,13 @@ public class TileAssemblyTable extends TileLaserTableBase {
             recipesStates.clear();
             int count = buffer.readInt();
             for (int i = 0; i < count; i++) {
-                AssemblyRecipe recipe = lookupRecipe(buffer.readString(), buffer.readCompoundTag());
+                AssemblyRecipe recipe = lookupRecipe(buffer.readString(), buffer.readNBTTagCompoundFromBuffer());
                 recipesStates.put(recipe, EnumAssemblyRecipeState.values()[buffer.readInt()]);
             }
         }
 
         if (id == NET_RECIPE_STATE) {
-            AssemblyRecipe recipe = lookupRecipe(buffer.readString(), buffer.readCompoundTag());
+            AssemblyRecipe recipe = lookupRecipe(buffer.readString(), buffer.readNBTTagCompoundFromBuffer());
             EnumAssemblyRecipeState state = EnumAssemblyRecipeState.values()[buffer.readInt()];
             if (recipesStates.containsKey(recipe)) {
                 recipesStates.put(recipe, state);
@@ -226,7 +226,7 @@ public class TileAssemblyTable extends TileLaserTableBase {
     public void sendRecipeStateToServer(AssemblyRecipe recipe, EnumAssemblyRecipeState state) {
         IMessage message = createMessage(NET_RECIPE_STATE, (buffer) -> {
             buffer.writeString(recipe.name.toString());
-            buffer.writeCompoundTag(recipe.recipeTag);
+            buffer.writeNBTTagCompoundToBuffer(recipe.recipeTag);
             buffer.writeInt(state.ordinal());
         });
         MessageManager.sendToServer(message);

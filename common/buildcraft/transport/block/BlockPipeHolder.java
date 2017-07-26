@@ -7,6 +7,7 @@
 package buildcraft.transport.block;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -33,7 +34,6 @@ import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
@@ -123,7 +123,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
 
     @Override
     public void addCollisionBoxToList(IBlockState state, World world, BlockPos pos, AxisAlignedBB entityBox, List<
-        AxisAlignedBB> collidingBoxes, Entity entityIn, boolean isPistonMoving) {
+        AxisAlignedBB> collidingBoxes, Entity entityIn) {
         TilePipeHolder tile = getPipe(world, pos, false);
         if (tile == null) {
             addCollisionBoxToList(pos, entityBox, collidingBoxes, FULL_BLOCK_AABB);
@@ -365,7 +365,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
     }
 
     @Override
-    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos) {
+    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn) {
         TilePipeHolder pipe = getPipe(world, pos, true);
         if (pipe != null) {
             pipe.refreshNeighbours();
@@ -380,7 +380,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
         EntityPlayer player) {
         TilePipeHolder tile = getPipe(world, pos, false);
         if (tile == null || target == null) {
-            return ItemStack.EMPTY;
+            return null;
         }
         if (target.subHit <= 6) {
             Pipe pipe = tile.getPipe();
@@ -419,7 +419,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
     }
 
     @Override
-    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand,
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack stack,
         EnumFacing side, float hitX, float hitY, float hitZ) {
         TilePipeHolder tile = getPipe(world, pos, false);
         if (tile == null) {
@@ -443,7 +443,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
         EnumPipePart part = trace.subHit == 0 ? EnumPipePart.CENTER : EnumPipePart.fromFacing(realSide);
 
         ItemStack held = player.getHeldItem(hand);
-        Item item = held.isEmpty() ? null : held.getItem();
+        Item item = held == null ? null : held.getItem();
         PipePluggable existing = tile.getPluggable(realSide);
         if (item instanceof IItemPluggable && existing == null) {
             IItemPluggable itemPlug = (IItemPluggable) item;
@@ -453,7 +453,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
             } else {
                 tile.replacePluggable(realSide, plug);
                 if (!player.capabilities.isCreativeMode) {
-                    held.shrink(1);
+                    held.stackSize --;
                 }
                 return true;
             }
@@ -477,7 +477,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
                 attachTile.getWireManager().addPart(wirePart, EnumDyeColor.byMetadata(held.getMetadata()));
                 attachTile.scheduleNetworkUpdate(IPipeHolder.PipeMessageReceiver.WIRES);
                 if (!player.capabilities.isCreativeMode) {
-                    held.shrink(1);
+                    held.stackSize --;
                 }
             }
         }
@@ -502,7 +502,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
             return super.removedByPlayer(state, world, pos, player, willHarvest);
         }
 
-        NonNullList<ItemStack> toDrop = NonNullList.create();
+        List<ItemStack> toDrop = new ArrayList<ItemStack>();
         RayTraceResult trace = rayTrace(world, pos, player);
         EnumFacing side = null;
         EnumWirePart part = null;
@@ -544,7 +544,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
         } else {
             toDrop.addAll(getDrops(world, pos, state, 0));
             for (EnumFacing face : EnumFacing.VALUES) {
-                removePluggable(face, tile, NonNullList.create());
+                removePluggable(face, tile, new ArrayList<ItemStack>());
             }
         }
         if (!player.capabilities.isCreativeMode) {
@@ -555,7 +555,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
 
     @Override
     public List<ItemStack> getDrops(IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
-        NonNullList<ItemStack> toDrop = NonNullList.create();
+        List<ItemStack> toDrop = new ArrayList<ItemStack>();
         TilePipeHolder tile = getPipe(world, pos, false);
         for (EnumFacing face : EnumFacing.VALUES) {
             PipePluggable pluggable = tile.getPluggable(face);
@@ -612,6 +612,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
         player.addExhaustion(0.005F);
     }
 
+    /*
     @Override
     public boolean canBeConnectedTo(IBlockAccess world, BlockPos pos, EnumFacing facing) {
         TilePipeHolder tile = getPipe(world, pos, false);
@@ -620,7 +621,9 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
         }
         PipePluggable pluggable = tile.getPluggable(facing);
         return pluggable != null && pluggable.canBeConnected();
+        super.
     }
+    */
 
     @Override
     public boolean isSideSolid(IBlockState base_state, IBlockAccess world, BlockPos pos, EnumFacing side) {
@@ -632,7 +635,7 @@ public class BlockPipeHolder extends BlockBCTile_Neptune implements ICustomPaint
         return pluggable != null && pluggable.isSideSolid();
     }
 
-    private static void removePluggable(EnumFacing side, TilePipeHolder tile, NonNullList<ItemStack> toDrop) {
+    private static void removePluggable(EnumFacing side, TilePipeHolder tile, List<ItemStack> toDrop) {
         PipePluggable removed = tile.replacePluggable(side, null);
         if (removed != null) {
             removed.onRemove();

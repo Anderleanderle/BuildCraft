@@ -17,7 +17,6 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableSet;
@@ -108,14 +107,14 @@ public class FacadeStateManager {
             NBTTagCompound nbt = message.getNBTValue();
             String regName = nbt.getString(FacadeAPI.NBT_CUSTOM_BLOCK_REG_KEY);
             int meta = nbt.getInteger(FacadeAPI.NBT_CUSTOM_BLOCK_META);
-            ItemStack stack = new ItemStack(nbt.getCompoundTag(FacadeAPI.NBT_CUSTOM_ITEM_STACK));
+            ItemStack stack = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(FacadeAPI.NBT_CUSTOM_ITEM_STACK));
             if (regName.isEmpty()) {
                 BCLog.logger.warn("[facade.imc] Received an invalid IMC message from " + message.getSender() + " - "
                     + id + " should have a registry name for the block, stored as "
                     + FacadeAPI.NBT_CUSTOM_BLOCK_REG_KEY);
                 return;
             }
-            if (stack.isEmpty()) {
+            if (stack == null) {
                 BCLog.logger.warn("[facade.imc] Received an invalid IMC message from " + message.getSender() + " - "
                     + id + " should have a valid ItemStack stored in " + FacadeAPI.NBT_CUSTOM_ITEM_STACK);
                 return;
@@ -176,7 +175,7 @@ public class FacadeStateManager {
         return STR_SUCCESS;
     }
 
-    @Nonnull
+    @Nullable
     private static ItemStack getRequiredStack(IBlockState state) {
         ItemStack stack = customBlocks.get(state);
         if (stack != null) {
@@ -249,7 +248,7 @@ public class FacadeStateManager {
                 vars.values().removeIf(Objects::nonNull);
                 FacadeBlockStateInfo info = new FacadeBlockStateInfo(state, stack, ImmutableSet.copyOf(vars.keySet()));
                 validFacadeStates.put(state, info);
-                if (!info.requiredStack.isEmpty()) {
+                if (!(info.requiredStack == null)) {
                     ItemStackKey stackKey = new ItemStackKey(info.requiredStack);
                     stackFacades.computeIfAbsent(stackKey, k -> new ArrayList<>()).add(info);
                 }
@@ -274,7 +273,7 @@ public class FacadeStateManager {
             this.requiredStack = requiredStack;
             this.varyingProperties = varyingProperties;
             this.isTransparent = !state.isOpaqueCube();
-            this.isVisible = !requiredStack.isEmpty();
+            this.isVisible = !(requiredStack == null);
             IBlockAccess access = new SingleBlockAccess(state);
             for (EnumFacing side : EnumFacing.VALUES) {
                 isSideSolid[side.ordinal()] = state.isSideSolid(access, BlockPos.ORIGIN, side);

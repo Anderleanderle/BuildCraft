@@ -6,7 +6,7 @@
 
 package buildcraft.builders.container;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -24,7 +24,7 @@ public class ContainerReplacer extends ContainerBCTile<TileReplacer> {
 
         addSlotToContainer(new SlotBase(tile.invSnapshot, 0, 8, 115) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
+            public boolean isItemValid(@Nullable ItemStack stack) {
                 return stack.getItem() instanceof ItemSnapshot &&
                     ItemSnapshot.EnumItemSnapshotType.getFromStack(stack) ==
                         ItemSnapshot.EnumItemSnapshotType.BLUEPRINT_USED;
@@ -32,14 +32,14 @@ public class ContainerReplacer extends ContainerBCTile<TileReplacer> {
         });
         addSlotToContainer(new SlotBase(tile.invSchematicFrom, 0, 8, 137) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
+            public boolean isItemValid(@Nullable ItemStack stack) {
                 return stack.getItem() instanceof ItemSchematicSingle &&
                     stack.getItemDamage() == ItemSchematicSingle.DAMAGE_USED;
             }
         });
         addSlotToContainer(new SlotBase(tile.invSchematicTo, 0, 56, 137) {
             @Override
-            public boolean isItemValid(@Nonnull ItemStack stack) {
+            public boolean isItemValid(@Nullable ItemStack stack) {
                 return stack.getItem() instanceof ItemSchematicSingle &&
                     stack.getItemDamage() == ItemSchematicSingle.DAMAGE_USED;
             }

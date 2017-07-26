@@ -26,7 +26,7 @@ public abstract class Widget_Neptune<C extends ContainerBC_Neptune> implements I
     }
 
     public boolean isRemote() {
-        return container.player.world.isRemote;
+        return container.player.worldObj.isRemote;
     }
 
     // Net updating

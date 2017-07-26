@@ -69,7 +69,7 @@ public abstract class BCLibProxy implements IGuiHandler {
     }
 
     public EntityPlayer getPlayerForContext(MessageContext ctx) {
-        return ctx.getServerHandler().player;
+        return ctx.getServerHandler().playerEntity;
     }
 
     public void addScheduledTask(World world, Runnable task) {
@@ -136,12 +136,12 @@ public abstract class BCLibProxy implements IGuiHandler {
 
         @Override
         public World getClientWorld() {
-            return Minecraft.getMinecraft().world;
+            return Minecraft.getMinecraft().theWorld;
         }
 
         @Override
         public EntityPlayer getClientPlayer() {
-            return Minecraft.getMinecraft().player;
+            return Minecraft.getMinecraft().thePlayer;
         }
 
         @Override
@@ -164,7 +164,7 @@ public abstract class BCLibProxy implements IGuiHandler {
         @SuppressWarnings("unchecked")
         @Override
         public <T extends TileEntity> T getServerTile(T tile) {
-            if (tile != null && tile.hasWorld()) {
+            if (tile != null && tile.hasWorldObj()) {
                 World world = tile.getWorld();
                 if (world.isRemote && Minecraft.getMinecraft().isSingleplayer()) {
                     WorldServer server = DimensionManager.getWorld(world.provider.getDimension());

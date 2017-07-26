@@ -9,7 +9,6 @@ package buildcraft.transport;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.util.NonNullList;
 import net.minecraft.world.World;
 
 import buildcraft.lib.recipe.ChangingItemStack;
@@ -52,7 +51,7 @@ public class RecipePipeColour implements IRecipe, IRecipeViewable {
     }
 
     @Override
-    public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
+    public ItemStack[] getRemainingItems(InventoryCrafting inv) {
         // TODO Auto-generated method stub
         throw new AbstractMethodError("Implement this!");
     }

@@ -1,4 +1,4 @@
-## Welcome to Buildcraft on GitHub
+## Welcome to the unofficial 1.10.2 port of Buildcraft on GitHub
 
 ### Reporting an issue
 
@@ -12,25 +12,24 @@ Please open an issue for a bug report only if:
 
 **If you are not sure if a bug report is valid, please use the "Ask Help!" subforum.**
 
-Please only use **official BuildCraft releases** for any kind of bug reports unless otherwise told to do by the BuildCraft team. Custom builds (for instance from Jenkins) are unsupported, often buggy and will **not** get any support from the developers.
+Please only use **BuildCraft releases** for any kind of bug reports unless otherwise told to do by me. Custom builds are unsupported, often buggy and will **not** get any support from myself.
 
 Please check if the bug has been reported beforehand. Also, provide the version of BuildCraft used - if it's a version compiled from source, link to the commit/tree you complied from.
 
 Please mention if you are using MCPC+, Cauldron, OptiFine, FastCraft or any other mods which optimize or otherwise severely modify the functioning of the Minecraft engine. That is very helpful when trying to reproduce a bug.
 
-Please do not open issues for features unless you are a member of the BuildCraft team. For that, use the "Feature Requests" subforum.
+I won't add 1.10.2-exclusive features to BuildCraft, so please do not open issues for features. For that, use the [official BuildCraft subreddit](https://www.reddit.com/r/buildcraft/).
 
-BuildCraft, being an open-source project, gives you the right to submit a pull request if a particular fix or feature is important to you. However, if the change in question is major, please contact the team beforehand - we wish to prevent wasted effort.
+BuildCraft, being an open-source project, gives you the right to submit a pull request if a particular fix is important to you. However, if the change in question is major, please contact me beforehand - we wish to prevent wasted effort.
 
 ### Contributing
 
-If you wish to submit a pull request to fix bugs or broken behaviour feel free to do so. If you would like to add 
-features or change existing behaviour or balance, please discuss it on the feature ideas board before submitting a PR (http://mod-buildcraft.com/forums/index.php?board=7.0).
+If you wish to submit a pull request to fix bugs or broken behaviour feel free to do so.
 
 Do not submit pull requests which solely "fix" formatting. As these kinds of changes are usually very intrusive in commit history and everyone has their own idea what "proper formatting" is, they should be done by one of the main contributors. 
 Please only submit "code cleanup", if the changes actually have a substantial impact on readability.
 
-PR implementing new features or changing large portions of code are helpful. But if you're doing such a change and if it gets accepted, please don't "fire and forget". Complex changes are introducing bugs, and as thourough as testing and peer review may be, there will be bugs. Please carry on playing your changes after initial commit and fix residual issues. It is extremely frustrating for others to spend days fixing regressions introduced by unmaintained submissions.
+PR changing large portions of code are helpful. But if you're doing such a change and if it gets accepted, please don't "fire and forget". Complex changes are introducing bugs, and as thourough as testing and peer review may be, there will be bugs. Please carry on playing your changes after initial commit and fix residual issues. It is extremely frustrating for others to spend days fixing regressions introduced by unmaintained submissions.
 
 #### Frequently reported
 
@@ -96,33 +95,4 @@ this repository will have to be rejected.
 
 ### Depending on BuildCraft
 
-Instructions for depending on BC 7.1.x can be found [here](https://github.com/BuildCraft/BuildCraft/blob/7.1.x/README.md) (for 1.7.10).
-
 8.0.x hasn't been finished yet, so there are no instructions for depending on it :(
-
-The following instructions are for BC 7.2.x (1.8.9):
-
-Add the following to your build.gradle file:
-```
-repositories {
-    ivy {
-        name "BuildCraft"
-        artifactPattern "http://www.mod-buildcraft.com/releases/BuildCraft/[revision]/[module]-[revision](-[classifier]).[ext]"
-    }
-}
-````
-
-If you want to depend on JUST the API then do this:
-````
-dependencies {
-    deobfCompile name: "buildcraft", version: "7.2.5", classifier: "api"
-}
-````
-
-If you want to depend on the whole of buildcraft do this:
-```
-dependencies {
-    deobfCompile name: "buildcraft", version: "7.2.5"
-}
-```
-Where `7.2.5` is the desired version of BuildCraft.

@@ -18,7 +18,6 @@ import com.google.common.collect.ImmutableSet;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.ResourceLocation;
 
 import buildcraft.api.mj.MjAPI;
@@ -48,7 +47,7 @@ public enum FacadeAssemblyRecipes implements IAssemblyRecipeProvider, IRecipeVie
 
     @Nonnull
     @Override
-    public List<AssemblyRecipe> getRecipesFor(@Nonnull NonNullList<ItemStack> possible) {
+    public List<AssemblyRecipe> getRecipesFor(@Nonnull List<ItemStack> possible) {
         // Require 3 structure pipes -- check for those first as its much cheaper
         if (!StackUtil.contains(new ItemStack(BCTransportItems.pipeStructure, 3), possible)) {
             return ImmutableList.of();
@@ -56,7 +55,7 @@ public enum FacadeAssemblyRecipes implements IAssemblyRecipeProvider, IRecipeVie
         List<AssemblyRecipe> recipes = new ArrayList<>();
         for (ItemStack stack : possible) {
             stack = stack.copy();
-            stack.setCount(1);
+            stack.stackSize = (1);
             List<FacadeBlockStateInfo> infos = FacadeStateManager.stackFacades.get(new ItemStackKey(stack));
             if (infos == null || infos.isEmpty()) {
                 continue;
@@ -73,7 +72,7 @@ public enum FacadeAssemblyRecipes implements IAssemblyRecipeProvider, IRecipeVie
                 ArrayStackFilter.definition(3, BCTransportItems.pipeStructure));
 
         NBTTagCompound recipeTag = new NBTTagCompound();
-        recipeTag.setTag("stack", from.serializeNBT());
+        recipeTag.setTag("stack", from != null ? from.serializeNBT() : new NBTTagCompound());
 
         String name = String.format("facade-normal-%s", info.state);
         recipes.add(new AssemblyRecipe(new ResourceLocation(BCTransport.MODID, name), MJ_COST, stacks, createFacadeStack(info, false), recipeTag));
@@ -83,7 +82,7 @@ public enum FacadeAssemblyRecipes implements IAssemblyRecipeProvider, IRecipeVie
 
     public static ItemStack createFacadeStack(FacadeBlockStateInfo info, boolean isHollow) {
         ItemStack stack = BCTransportItems.plugFacade.createItemStack(FullFacadeInstance.createSingle(info, isHollow));
-        stack.setCount(6);
+        stack.stackSize = (6);
         return stack;
     }
 
@@ -91,7 +90,7 @@ public enum FacadeAssemblyRecipes implements IAssemblyRecipeProvider, IRecipeVie
     public ChangingItemStack[] getRecipeInputs() {
         ChangingItemStack[] inputs = new ChangingItemStack[2];
         inputs[0] = ChangingItemStack.create(new ItemStack(BCTransportItems.pipeStructure, 3));
-        NonNullList<ItemStack> list = NonNullList.create();
+        List<ItemStack> list = new ArrayList<ItemStack>();
         for (FacadeBlockStateInfo info : FacadeStateManager.validFacadeStates.values()) {
             if (info.isVisible) {
                 list.add(info.requiredStack);
@@ -105,7 +104,7 @@ public enum FacadeAssemblyRecipes implements IAssemblyRecipeProvider, IRecipeVie
 
     @Override
     public ChangingItemStack getRecipeOutputs() {
-        NonNullList<ItemStack> list = NonNullList.create();
+        List<ItemStack> list = new ArrayList<ItemStack>();
         for (FacadeBlockStateInfo info : FacadeStateManager.validFacadeStates.values()) {
             if (info.isVisible) {
                 list.add(createFacadeStack(info, false));
@@ -126,7 +125,7 @@ public enum FacadeAssemblyRecipes implements IAssemblyRecipeProvider, IRecipeVie
     public Optional<AssemblyRecipe> getRecipe(@Nonnull ResourceLocation name, @Nullable NBTTagCompound recipeTag) {
         if (!name.getResourceDomain().equals(BCTransport.MODID) || !name.getResourcePath().startsWith("facade-") ||
                 recipeTag == null || !recipeTag.hasKey("stack")) return Optional.empty();
-        ItemStack stack = new ItemStack(recipeTag.getCompoundTag("stack"));
+        ItemStack stack = ItemStack.loadItemStackFromNBT(recipeTag.getCompoundTag("stack"));
         List<FacadeBlockStateInfo> infos = FacadeStateManager.stackFacades.get(new ItemStackKey(stack));
         if (infos == null || infos.isEmpty()) {
             return Optional.empty();

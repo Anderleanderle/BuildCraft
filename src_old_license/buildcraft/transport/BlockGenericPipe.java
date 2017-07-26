@@ -555,7 +555,7 @@ public class BlockGenericPipe extends BlockBuildCraft implements IColorRemovable
         // return null;
         // }
 
-        ArrayList<ItemStack> list = new ArrayList<>();
+        ArrayList<ItemStack> list = new ArrayList<ItemStack>();
         Pipe<?> pipe = getPipe(world, pos);
 
         if (pipe == null) {

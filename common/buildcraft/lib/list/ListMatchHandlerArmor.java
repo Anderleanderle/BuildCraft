@@ -8,7 +8,7 @@ package buildcraft.lib.list;
 
 import java.util.EnumSet;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.EntityEquipmentSlot;
@@ -41,7 +41,7 @@ public class ListMatchHandlerArmor extends ListMatchHandler {
     }
 
     @Override
-    public boolean matches(Type type, @Nonnull ItemStack stack, @Nonnull ItemStack target, boolean precise) {
+    public boolean matches(Type type, @Nullable ItemStack stack, @Nullable ItemStack target, boolean precise) {
         if (type == Type.TYPE) {
             EnumSet<EntityEquipmentSlot> armorTypeIDSource = getArmorTypes(stack);
             if (armorTypeIDSource.size() > 0) {
@@ -58,7 +58,7 @@ public class ListMatchHandlerArmor extends ListMatchHandler {
     }
 
     @Override
-    public boolean isValidSource(Type type, @Nonnull ItemStack stack) {
+    public boolean isValidSource(Type type, @Nullable ItemStack stack) {
         return getArmorTypes(stack).size() > 0;
     }
 }

@@ -101,7 +101,7 @@ public enum ModelGateItem implements IBakedModel {
 
         @Override
         public IBakedModel handleItemState(IBakedModel originalModel, ItemStack stack, World world, EntityLivingBase entity) {
-            GateVariant variant = ItemPluggableGate.getVariant(StackUtil.asNonNull(stack));
+            GateVariant variant = ItemPluggableGate.getVariant((stack));
             return new ModelItemSimple(getQuads(variant), ModelItemSimple.TRANSFORM_PLUG_AS_ITEM_BIGGER);
         }
     }

@@ -9,7 +9,7 @@ package buildcraft.lib.recipe;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
@@ -21,7 +21,7 @@ import buildcraft.lib.misc.StackUtil;
 
 public class NBTAwareShapedOreRecipe extends ShapedOreRecipe {
 
-    public NBTAwareShapedOreRecipe(@Nonnull ItemStack result, Object... recipe) {
+    public NBTAwareShapedOreRecipe(@Nullable ItemStack result, Object... recipe) {
         super(result, recipe);
     }
 
@@ -42,7 +42,7 @@ public class NBTAwareShapedOreRecipe extends ShapedOreRecipe {
                     }
                 }
 
-                ItemStack slot = StackUtil.asNonNull(inv.getStackInRowAndColumn(x, y));
+                ItemStack slot = (inv.getStackInRowAndColumn(x, y));
 
                 if (target instanceof ItemStack) {
                     ItemStack targetStack = (ItemStack) target;
@@ -57,13 +57,13 @@ public class NBTAwareShapedOreRecipe extends ShapedOreRecipe {
 
                     Iterator<ItemStack> itr = ((List<ItemStack>) target).iterator();
                     while (itr.hasNext() && !matched) {
-                        matched = OreDictionary.itemMatches(StackUtil.asNonNull(itr.next()), slot, false);
+                        matched = OreDictionary.itemMatches((itr.next()), slot, false);
                     }
 
                     if (!matched) {
                         return false;
                     }
-                } else if (target == null && !slot.isEmpty()) {
+                } else if (target == null && !(slot == null)) {
                     return false;
                 }
             }

@@ -6,7 +6,7 @@ package buildcraft.builders.tile;
 
 import java.io.IOException;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -50,7 +50,7 @@ public class TileElectronicLibrary extends TileBC_Neptune implements ITickable {
     public final DeltaInt deltaProgressUp = deltaManager.addDelta("progressUp", DeltaManager.EnumNetworkVisibility.GUI_ONLY);
 
     @Override
-    protected void onSlotChange(IItemHandlerModifiable handler, int slot, @Nonnull ItemStack before, @Nonnull ItemStack after) {
+    protected void onSlotChange(IItemHandlerModifiable handler, int slot, @Nullable ItemStack before, @Nullable ItemStack after) {
         super.onSlotChange(handler, slot, before, after);
         if (handler == invDownIn) {
             if (progressDown > 0) {
@@ -70,11 +70,11 @@ public class TileElectronicLibrary extends TileBC_Neptune implements ITickable {
     public void update() {
         deltaManager.tick();
 
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
 
-        if (!invDownIn.getStackInSlot(0).isEmpty() && invDownOut.getStackInSlot(0).isEmpty()) {
+        if (!(invDownIn.getStackInSlot(0) == null) && invDownOut.getStackInSlot(0) == null) {
             if (progressDown == -1) {
                 progressDown = 0;
                 deltaProgressDown.addDelta(0, 50, 1);
@@ -93,7 +93,7 @@ public class TileElectronicLibrary extends TileBC_Neptune implements ITickable {
             deltaProgressDown.setValue(0);
         }
 
-        if (selected != null && !invUpIn.getStackInSlot(0).isEmpty() && invUpOut.getStackInSlot(0).isEmpty()) {
+        if (selected != null && !(invUpIn.getStackInSlot(0) == null) && invUpOut.getStackInSlot(0) == null) {
             if (progressUp == -1) {
                 progressUp = 0;
                 deltaProgressUp.addDelta(0, 50, 1);
@@ -133,7 +133,7 @@ public class TileElectronicLibrary extends TileBC_Neptune implements ITickable {
             if (id == NET_DOWN) {
                 Snapshot.Header header = BCBuildersItems.snapshot.getHeader(invDownIn.getStackInSlot(0));
                 if (header != null) {
-                    Snapshot snapshot = GlobalSavedDataSnapshots.get(world).getSnapshotByHeader(header);
+                    Snapshot snapshot = GlobalSavedDataSnapshots.get(worldObj).getSnapshotByHeader(header);
                     if (snapshot != null) {
                         buffer.writeBoolean(true);
                         NbtSquisher.squish(Snapshot.writeToNBT(snapshot), NbtSquishConstants.BUILDCRAFT_V1_COMPRESSED, buffer);
@@ -150,7 +150,7 @@ public class TileElectronicLibrary extends TileBC_Neptune implements ITickable {
         if (side == Side.CLIENT) {
             if (id == NET_UP) {
                 if (selected != null) {
-                    Snapshot snapshot = GlobalSavedDataSnapshots.get(world).getSnapshotByHeader(selected);
+                    Snapshot snapshot = GlobalSavedDataSnapshots.get(worldObj).getSnapshotByHeader(selected);
                     if (snapshot != null) {
                         buffer.writeBoolean(true);
                         NbtSquisher.squish(Snapshot.writeToNBT(snapshot), NbtSquishConstants.BUILDCRAFT_V1_COMPRESSED, buffer);
@@ -167,7 +167,7 @@ public class TileElectronicLibrary extends TileBC_Neptune implements ITickable {
     @Override
     public void readPayload(int id, PacketBufferBC buffer, Side side, MessageContext ctx) throws IOException {
         super.readPayload(id, buffer, side, ctx);
-        GlobalSavedDataSnapshots store = GlobalSavedDataSnapshots.get(world);
+        GlobalSavedDataSnapshots store = GlobalSavedDataSnapshots.get(worldObj);
         if (side == Side.CLIENT) {
             if (id == NET_RENDER_DATA) {
                 if (buffer.readBoolean()) {

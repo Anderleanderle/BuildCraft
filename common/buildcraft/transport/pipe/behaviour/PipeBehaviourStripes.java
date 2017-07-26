@@ -217,7 +217,7 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
             event.setStack(StackUtil.EMPTY);
             for (int i = 0; i < player.inventory.getSizeInventory(); i++) {
                 ItemStack stack = player.inventory.removeStackFromSlot(i);
-                if (!stack.isEmpty()) {
+                if (!(stack == null)) {
                     sendItem(stack, direction);
                 }
             }
@@ -225,12 +225,12 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
     }
 
     @Override
-    public void dropItem(@Nonnull ItemStack stack, EnumFacing direction) {
+    public void dropItem(@Nullable ItemStack stack, EnumFacing direction) {
         InventoryUtil.drop(pipe.getHolder().getPipeWorld(), pipe.getHolder().getPipePos(), stack);
     }
 
     @Override
-    public boolean sendItem(@Nonnull ItemStack stack, EnumFacing from) {
+    public boolean sendItem(@Nullable ItemStack stack, EnumFacing from) {
         PipeFlow flow = pipe.getFlow();
         if (flow instanceof IFlowItems) {
             ((IFlowItems) flow).insertItemsForce(stack, from, null, 0.02);

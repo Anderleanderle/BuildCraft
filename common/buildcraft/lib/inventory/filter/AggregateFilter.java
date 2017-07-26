@@ -5,7 +5,7 @@
  */
 package buildcraft.lib.inventory.filter;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
@@ -21,7 +21,7 @@ public class AggregateFilter implements IStackFilter {
     }
 
     @Override
-    public boolean matches(@Nonnull ItemStack stack) {
+    public boolean matches(@Nullable ItemStack stack) {
         for (IStackFilter f : filters) {
             if (!f.matches(stack)) {
                 return false;

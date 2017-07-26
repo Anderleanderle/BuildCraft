@@ -61,20 +61,20 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable 
     }
 
     private void findTarget() {
-        IBlockState state = world.getBlockState(pos);
+        IBlockState state = worldObj.getBlockState(pos);
         if (state.getBlock() != BCSiliconBlocks.laser) {
             return;
         }
         EnumFacing face = state.getValue(BuildCraftProperties.BLOCK_FACING_6);
 
         List<BlockPos> possible = new ArrayList<>();
-        VolumeUtil.iterateCone(world, pos, face, 6, true, (w, s, p, visible) -> {
+        VolumeUtil.iterateCone(worldObj, pos, face, 6, true, (w, s, p, visible) -> {
             if (!visible) {
                 return;
             }
-            IBlockState stateAt = world.getBlockState(p);
+            IBlockState stateAt = worldObj.getBlockState(p);
             if (stateAt.getBlock() instanceof ILaserTargetBlock) {
-                TileEntity tileAt = world.getTileEntity(p);
+                TileEntity tileAt = worldObj.getTileEntity(p);
                 if (tileAt instanceof ILaserTarget) {
                     ILaserTarget targetAt = (ILaserTarget) tileAt;
                     if (targetAt.getRequiredLaserPower() > 0) {
@@ -89,12 +89,12 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable 
             return;
         }
 
-        targetPos = possible.get(world.rand.nextInt(possible.size()));
+        targetPos = possible.get(worldObj.rand.nextInt(possible.size()));
     }
 
     private ILaserTarget getTarget() {
         if (targetPos != null) {
-            TileEntity tile = world.getTileEntity(targetPos);
+            TileEntity tile = worldObj.getTileEntity(targetPos);
             if (tile instanceof ILaserTarget) {
                 ILaserTarget target = (ILaserTarget) tile;
                 return target.getRequiredLaserPower() > 0 ? target : null;
@@ -110,9 +110,9 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable 
         if (getTarget() != null) {
             laserPos = new Vec3d(targetPos)
                 .addVector(
-                    (5 + world.rand.nextInt(6) + 0.5) / 16D,
+                    (5 + worldObj.rand.nextInt(6) + 0.5) / 16D,
                     9 / 16D,
-                    (5 + world.rand.nextInt(6) + 0.5) / 16D
+                    (5 + worldObj.rand.nextInt(6) + 0.5) / 16D
                 );
         } else {
             laserPos = null;
@@ -129,7 +129,7 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable 
 
     @Override
     public void update() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
         avgPower.tick();
@@ -139,11 +139,11 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable 
             targetPos = null;
         }
 
-        if (ticks % (10 + world.rand.nextInt(20)) == 0 || getTarget() == null) {
+        if (ticks % (10 + worldObj.rand.nextInt(20)) == 0 || getTarget() == null) {
             findTarget();
         }
 
-        if (ticks % (5 + world.rand.nextInt(10)) == 0 || getTarget() == null) {
+        if (ticks % (5 + worldObj.rand.nextInt(10)) == 0 || getTarget() == null) {
             updateLaser();
         }
 

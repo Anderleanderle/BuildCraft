@@ -66,7 +66,7 @@ public abstract class TileLaserTableBase extends TileBC_Neptune implements ILase
     @Override
     public void update() {
         avgPower.tick();
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
 
@@ -121,17 +121,17 @@ public abstract class TileLaserTableBase extends TileBC_Neptune implements ILase
     }
 
     protected boolean extract(ItemHandlerSimple inv, ImmutableCollection<StackDefinition> items, boolean simulate, boolean precise) {
-        AtomicLong remainingStacks = new AtomicLong(inv.stacks.stream().filter(stack -> !stack.isEmpty()).count());
+        AtomicLong remainingStacks = new AtomicLong(inv.stacks.stream().filter(stack -> !(stack == null)).count());
         boolean allItemsConsumed = items.stream().allMatch((definition) -> {
             int remaining = definition.count;
             for (int i = 0; i < inv.getSlots() && remaining > 0; i++) {
                 ItemStack slotStack = inv.getStackInSlot(i);
-                if (slotStack.isEmpty()) continue;
+                if (slotStack == null) continue;
                 if (definition.filter.matches(slotStack)) {
-                    int spend = Math.min(remaining, slotStack.getCount());
+                    int spend = Math.min(remaining, slotStack.stackSize);
                     remaining -= spend;
                     if (!simulate) {
-                        slotStack.setCount(slotStack.getCount() - spend);
+                        slotStack.stackSize = (slotStack.stackSize - spend);
                         inv.setStackInSlot(i, slotStack);
                     }
                 }

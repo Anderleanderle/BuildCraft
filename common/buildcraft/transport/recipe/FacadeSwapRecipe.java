@@ -9,10 +9,12 @@ package buildcraft.transport.recipe;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
-import net.minecraft.util.NonNullList;
 import net.minecraft.world.World;
 
 import net.minecraftforge.common.ForgeHooks;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.recipe.ChangingItemStack;
@@ -34,8 +36,8 @@ public enum FacadeSwapRecipe implements IRecipe, IRecipeViewable.IViewableGrid {
 
     static {
         INPUTS = new ChangingItemStack[1];
-        NonNullList<ItemStack> list1 = NonNullList.create();
-        NonNullList<ItemStack> list2 = NonNullList.create();
+        List<ItemStack> list1 = new ArrayList<ItemStack>();
+        List<ItemStack> list2 = new ArrayList<ItemStack>();
         for (FacadeBlockStateInfo info : FacadeStateManager.validFacadeStates.values()) {
             if (info.isVisible) {
                 ItemStack stack = createFacade(info, false);
@@ -55,7 +57,7 @@ public enum FacadeSwapRecipe implements IRecipe, IRecipeViewable.IViewableGrid {
 
     @Override
     public boolean matches(InventoryCrafting inv, World world) {
-        return !getCraftingResult(inv).isEmpty();
+        return !(getCraftingResult(inv) == null);
     }
 
     @Override
@@ -63,13 +65,16 @@ public enum FacadeSwapRecipe implements IRecipe, IRecipeViewable.IViewableGrid {
         ItemStack stackIn = StackUtil.EMPTY;
         for (int s = 0; s < inv.getSizeInventory(); s++) {
             ItemStack stack = inv.getStackInSlot(s);
-            if (!stack.isEmpty()) {
-                if (stackIn.isEmpty()) {
+            if (!(stack == null)) {
+                if (stackIn == null) {
                     stackIn = stack;
                 } else {
                     return StackUtil.EMPTY;
                 }
             }
+        }
+        if (stackIn == null) {
+        	return StackUtil.EMPTY;
         }
         if (stackIn.getItem() != BCTransportItems.plugFacade) {
             return StackUtil.EMPTY;
@@ -90,7 +95,7 @@ public enum FacadeSwapRecipe implements IRecipe, IRecipeViewable.IViewableGrid {
     }
 
     @Override
-    public NonNullList<ItemStack> getRemainingItems(InventoryCrafting inv) {
+    public ItemStack[] getRemainingItems(InventoryCrafting inv) {
         return ForgeHooks.defaultRecipeGetRemainingItems(inv);
     }
 

@@ -15,15 +15,20 @@ import buildcraft.lib.marker.MarkerSubCache;
 
 public enum MarkerRenderer implements IDetachedRenderer {
     INSTANCE;
-
-    @Override
-    public void render(EntityPlayer player, float partialTicks) {
+	
+	@Override
+	public void render(EntityPlayer player, float partialTicks) {
+		internalRenderFunction(player, partialTicks);
+	}
+	
+    @SuppressWarnings("unchecked")
+	private <C extends MarkerConnection<C>> void internalRenderFunction(EntityPlayer player, float partialTicks) {
         for (MarkerCache<? extends MarkerSubCache<?>> cache : MarkerCache.CACHES) {
-            renderCache(cache.getSubCache(player.world));
+            renderCache((MarkerSubCache<C>) cache.getSubCache(player.worldObj));
         }
     }
 
-    private static <C extends MarkerConnection<C>> void renderCache(MarkerSubCache<C> cache) {
+	private static <C extends MarkerConnection<C>> void renderCache(MarkerSubCache<C> cache) {
         for (C connection : cache.getConnections()) {
             connection.renderInWorld();
         }

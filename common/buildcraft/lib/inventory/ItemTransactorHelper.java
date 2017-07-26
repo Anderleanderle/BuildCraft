@@ -6,6 +6,9 @@
 
 package buildcraft.lib.inventory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.annotation.Nonnull;
 
 import net.minecraft.entity.Entity;
@@ -16,7 +19,6 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.NonNullList;
 
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import net.minecraftforge.items.IItemHandler;
@@ -96,11 +98,11 @@ public class ItemTransactorHelper {
     /** Provides an implementation of {@link IItemTransactor#insert(NonNullList, boolean)} that relies on
      * {@link IItemTransactor#insert(ItemStack, boolean, boolean)}. This is the least efficient, default
      * implementation. */
-    public static NonNullList<ItemStack> insertAllBypass(IItemTransactor transactor, NonNullList<ItemStack> stacks, boolean simulate) {
-        NonNullList<ItemStack> leftOver = NonNullList.create();
+    public static List<ItemStack> insertAllBypass(IItemTransactor transactor, List<ItemStack> stacks, boolean simulate) {
+        List<ItemStack> leftOver = new ArrayList<ItemStack>();
         for (ItemStack stack : stacks) {
             ItemStack leftOverStack = transactor.insert(stack, false, simulate);
-            if (!leftOverStack.isEmpty()) {
+            if (!(leftOverStack == null)) {
                 leftOver.add(leftOverStack);
             }
         }

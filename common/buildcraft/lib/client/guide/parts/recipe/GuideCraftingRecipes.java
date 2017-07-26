@@ -9,7 +9,6 @@ package buildcraft.lib.client.guide.parts.recipe;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
@@ -31,7 +30,7 @@ public enum GuideCraftingRecipes implements IStackRecipes {
     INSTANCE;
 
     @Override
-    public List<GuidePartFactory> getUsages(@Nonnull ItemStack target) {
+    public List<GuidePartFactory> getUsages(@Nullable ItemStack target) {
         List<GuidePartFactory> list = new ArrayList<>();
 
         for (IRecipe recipe : CraftingManager.getInstance().getRecipeList()) {
@@ -45,18 +44,18 @@ public enum GuideCraftingRecipes implements IStackRecipes {
         return list;
     }
 
-    private static boolean checkRecipeUses(IRecipe recipe, @Nonnull ItemStack target) {
+    private static boolean checkRecipeUses(IRecipe recipe, @Nullable ItemStack target) {
         if (recipe instanceof ShapedRecipes) {
             ShapedRecipes shaped = (ShapedRecipes) recipe;
             for (ItemStack in : shaped.recipeItems) {
-                if (StackUtil.doesEitherStackMatch(StackUtil.asNonNull(in), target)) {
+                if (StackUtil.doesEitherStackMatch((in), target)) {
                     return true;
                 }
             }
         } else if (recipe instanceof ShapelessRecipes) {
             ShapelessRecipes shapeless = (ShapelessRecipes) recipe;
             for (ItemStack in : shapeless.recipeItems) {
-                if (StackUtil.doesEitherStackMatch(StackUtil.asNonNull(in), target)) {
+                if (StackUtil.doesEitherStackMatch((in), target)) {
                     return true;
                 }
             }
@@ -85,7 +84,7 @@ public enum GuideCraftingRecipes implements IStackRecipes {
         return false;
     }
 
-    private static boolean matches(@Nonnull ItemStack target, @Nullable Object in) {
+    private static boolean matches(@Nullable ItemStack target, @Nullable Object in) {
         if (in instanceof ItemStack) {
             return StackUtil.doesEitherStackMatch((ItemStack) in, target);
         } else if (in instanceof List) {
@@ -101,7 +100,7 @@ public enum GuideCraftingRecipes implements IStackRecipes {
     }
 
     @Override
-    public List<GuidePartFactory> getRecipes(@Nonnull ItemStack target) {
+    public List<GuidePartFactory> getRecipes(@Nullable ItemStack target) {
         List<GuidePartFactory> list = new ArrayList<>();
 
         for (IRecipe recipe : CraftingManager.getInstance().getRecipeList()) {
@@ -114,7 +113,7 @@ public enum GuideCraftingRecipes implements IStackRecipes {
                     }
                 }
             } else {
-                ItemStack out = StackUtil.asNonNull(recipe.getRecipeOutput());
+                ItemStack out = (recipe.getRecipeOutput());
                 if (OreDictionary.itemMatches(target, out, false) || OreDictionary.itemMatches(out, target, false)) {
                     GuidePartFactory factory = GuideCraftingFactory.getFactory(recipe);
                     if (factory != null) {

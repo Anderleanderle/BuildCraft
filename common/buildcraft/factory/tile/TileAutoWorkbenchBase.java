@@ -66,7 +66,7 @@ public abstract class TileAutoWorkbenchBase extends TileBC_Neptune implements IT
                 progress++;
                 return;
             }
-            if (invOverflow.getStackInSlot(1).isEmpty()) {
+            if (invOverflow.getStackInSlot(1) == null) {
                 craft();
                 progress = 0;
             }

@@ -67,10 +67,10 @@ public class MessageManager {
                                                                              Side side) {
         IMessageHandler<I, O> handler = (message, context) -> {
             EntityPlayer player = BCLibProxy.getProxy().getPlayerForContext(context);
-            if (player == null || player.world == null) {
+            if (player == null || player.worldObj == null) {
                 return null;
             }
-            BCLibProxy.getProxy().addScheduledTask(player.world, () -> {
+            BCLibProxy.getProxy().addScheduledTask(player.worldObj, () -> {
                 IMessage reply = messageType.handler.onMessage(message, context);
                 if (reply != null) {
                     MessageUtil.sendReturnMessage(context, reply);

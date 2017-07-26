@@ -69,7 +69,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
         long tickNow = pipe.getHolder().getPipeWorld().getTotalWorldTime();
         for (int i = 0; i < list.tagCount(); i++) {
             TravellingItem item = new TravellingItem(list.getCompoundTagAt(i), tickNow);
-            if (!item.stack.isEmpty()) {
+            if (!(item.stack == null)) {
                 items.add(item.getCurrentDelay(tickNow), item);
             }
         }
@@ -118,7 +118,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
         sendCustomPayload(NET_CREATE_ITEM, (buffer) -> {
             PacketBufferBC buf = PacketBufferBC.asPacketBufferBc(buffer);
             buf.writeInt(stackId);
-            buf.writeShort(item.stack.getCount());
+            buf.writeShort(item.stack.stackSize);
             buf.writeBoolean(item.toCenter);
             buf.writeEnumValue(item.side);
             MessageUtil.writeEnumOrNull(buf, item.colour);
@@ -142,7 +142,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
         ItemStack possible = trans.extract(filter, 1, count, true);
 
-        if (possible.isEmpty()) {
+        if (possible == null) {
             return 0;
         }
 
@@ -157,7 +157,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
         ItemStack stack = trans.extract(filter, count, count, false);
 
-        if (stack.isEmpty()) {
+        if (stack == null) {
             throw new IllegalStateException("The transactor " + trans + " returned an empty itemstack from a known good request!");
         }
 
@@ -212,7 +212,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
         IPipeHolder holder = pipe.getHolder();
         PipeEventItem.ReachCenter reachCenter = new PipeEventItem.ReachCenter(holder, this, item.colour, item.stack, item.side);
         holder.fireEvent(reachCenter);
-        if (reachCenter.getStack().isEmpty()) {
+        if (reachCenter.getStack() == null) {
             return;
         }
 
@@ -226,7 +226,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
         holder.fireEvent(sideCheck);
 
         List<EnumSet<EnumFacing>> order = sideCheck.getOrder();
-        if (order.isEmpty()) {
+        if (order == null) {
             PipeEventItem.TryBounce tryBounce = new PipeEventItem.TryBounce(holder, this, reachCenter.colour, reachCenter.from, reachCenter.getStack());
             holder.fireEvent(tryBounce);
             if (tryBounce.canBounce) {
@@ -248,7 +248,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
         World world = holder.getPipeWorld();
         long now = world.getTotalWorldTime();
         for (PipeEventItem.ItemEntry itemEntry : findDest.items) {
-            if (itemEntry.stack.isEmpty()) {
+            if (itemEntry.stack == null) {
                 continue;
             }
             PipeEventItem.ModifySpeed modifySpeed = new PipeEventItem.ModifySpeed(holder, this, itemEntry, item.speed);
@@ -297,7 +297,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
         item.colour = reachEnd.colour;
         item.stack = reachEnd.getStack();
         ItemStack excess = item.stack;
-        if (excess.isEmpty()) {
+        if (excess == null) {
             return;
         }
         if (pipe.isConnected(item.side)) {
@@ -312,7 +312,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
                     if (flow instanceof IFlowItems) {
                         IFlowItems oFlow = (IFlowItems) flow;
                         excess = oFlow.injectItem(excess, true, item.side.getOpposite(), item.colour, item.speed);
-                        if (excess.isEmpty()) {
+                        if (excess == null) {
                             return;
                         }
                     }
@@ -322,14 +322,14 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
                     TileEntity tile = pipe.getConnectedTile(item.side);
                     IInjectable injectable = ItemTransactorHelper.getInjectable(tile, item.side.getOpposite());
                     excess = injectable.injectItem(excess, true, item.side.getOpposite(), item.colour, item.speed);
-                    if (excess.isEmpty()) {
+                    if (excess == null) {
                         return;
                     }
 
                     IItemTransactor transactor = ItemTransactorHelper.getTransactor(tile, item.side.getOpposite());
                     excess = transactor.insert(excess, false, false);
 
-                    if (excess.isEmpty()) {
+                    if (excess == null) {
                         return;
                     }
 
@@ -337,7 +337,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
                 }
             }
         }
-        if (excess.isEmpty()) {
+        if (excess == null) {
             return;
         }
         item.tried.add(item.side);
@@ -349,7 +349,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
     }
 
     private void dropItem(ItemStack stack, EnumFacing side, EnumFacing motion, double speed) {
-        if (stack == null || stack.isEmpty()) {
+        if (stack == null || stack == null) {
             return;
         }
 
@@ -369,11 +369,11 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
         PipeEventItem.Drop drop = new PipeEventItem.Drop(holder, this, ent);
         holder.fireEvent(drop);
-        if (ent.getEntityItem().isEmpty() || ent.isDead) {
+        if (ent.getEntityItem() == null || ent.isDead) {
             return;
         }
 
-        world.spawnEntity(ent);
+        world.spawnEntityInWorld(ent);
     }
 
     @Override
@@ -383,7 +383,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
 
     @Nonnull
     @Override
-    public ItemStack injectItem(@Nonnull ItemStack stack, boolean doAdd, EnumFacing from, EnumDyeColor colour, double speed) {
+    public ItemStack injectItem(@Nullable ItemStack stack, boolean doAdd, EnumFacing from, EnumDyeColor colour, double speed) {
         if (pipe.getHolder().getPipeWorld().isRemote) {
             throw new IllegalStateException("Cannot inject items on the client side!");
         }
@@ -409,7 +409,7 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
             insertItemEvents(toInsert, colour, speed, from);
         }
 
-        if (toSplit.isEmpty()) {
+        if (toSplit == null) {
             toSplit = StackUtil.EMPTY;
         }
 
@@ -417,12 +417,12 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
     }
 
     @Override
-    public void insertItemsForce(@Nonnull ItemStack stack, EnumFacing from, EnumDyeColor colour, double speed) {
+    public void insertItemsForce(@Nullable ItemStack stack, EnumFacing from, EnumDyeColor colour, double speed) {
         World world = pipe.getHolder().getPipeWorld();
         if (world.isRemote) {
             throw new IllegalStateException("Cannot inject items on the client side!");
         }
-        if (stack.isEmpty()) {
+        if (stack == null) {
             return;
         }
         if (speed < 0.01) {
@@ -440,13 +440,13 @@ public final class PipeFlowItems extends PipeFlow implements IFlowItems {
     }
 
     /** Used internally to split up manual insertions from controlled extractions. */
-    private void insertItemEvents(@Nonnull ItemStack toInsert, EnumDyeColor colour, double speed, EnumFacing from) {
+    private void insertItemEvents(@Nullable ItemStack toInsert, EnumDyeColor colour, double speed, EnumFacing from) {
         IPipeHolder holder = pipe.getHolder();
 
         PipeEventItem.OnInsert onInsert = new PipeEventItem.OnInsert(holder, this, colour, toInsert, from);
         holder.fireEvent(onInsert);
 
-        if (onInsert.getStack().isEmpty()) {
+        if (onInsert.getStack() == null) {
             return;
         }
 

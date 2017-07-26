@@ -26,21 +26,23 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ResourceLocation;
+//import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import net.minecraftforge.fluids.FluidStack;
-
+//import net.minecraftforge.fml.common.registry.EntityRegistry;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.schematics.ISchematicEntity;
 import buildcraft.api.schematics.SchematicEntityContext;
 
+import buildcraft.lib.blockpos.BlockPosRotator;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.RotationUtil;
 
+//TODO Check if this works
 public class SchematicEntityDefault implements ISchematicEntity<SchematicEntityDefault> {
     private NBTTagCompound entityNbt;
     private Vec3d pos;
@@ -49,9 +51,9 @@ public class SchematicEntityDefault implements ISchematicEntity<SchematicEntityD
     private Rotation entityRotation = Rotation.NONE;
 
     public static boolean predicate(SchematicEntityContext context) {
-        ResourceLocation registryName = EntityList.getKey(context.entity);
+        String registryName = context.entity.getName();
         return registryName != null &&
-            RulesLoader.READ_DOMAINS.contains(registryName.getResourceDomain()) &&
+            RulesLoader.READ_DOMAINS.contains(registryName) &&
             RulesLoader.getRules(context.entity).stream().anyMatch(rule -> rule.capture);
     }
 
@@ -106,7 +108,7 @@ public class SchematicEntityDefault implements ISchematicEntity<SchematicEntityD
         SchematicEntityDefault schematicEntity = new SchematicEntityDefault();
         schematicEntity.entityNbt = entityNbt;
         schematicEntity.pos = RotationUtil.rotateVec3d(pos, rotation);
-        schematicEntity.hangingPos = hangingPos.rotate(rotation);
+        schematicEntity.hangingPos = BlockPosRotator.rotate(hangingPos, rotation);
         schematicEntity.hangingFacing = rotation.rotate(hangingFacing);
         schematicEntity.entityRotation = entityRotation.add(rotation);
         return schematicEntity;
@@ -142,7 +144,7 @@ public class SchematicEntityDefault implements ISchematicEntity<SchematicEntityD
                     entity.rotationPitch
                 );
             }
-            world.spawnEntity(entity);
+            world.spawnEntityInWorld(entity);
         }
         return entity;
     }

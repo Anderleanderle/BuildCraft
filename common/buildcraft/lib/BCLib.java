@@ -43,8 +43,8 @@ import buildcraft.lib.registry.TagManager.TagEntry;
 @Mod(modid = BCLib.MODID,
      name = "BuildCraft Lib",
      version = BCLib.VERSION,
-     acceptedMinecraftVersions = "(gradle_replace_mcversion,)",
-     dependencies = "required-after:forge@(gradle_replace_forgeversion,)")
+     acceptedMinecraftVersions = "(gradle_replace_mcversion,)"/*,
+     dependencies = "required-after:forge@(gradle_replace_forgeversion,)"*/)
 //@formatter:on
 public class BCLib {
     public static final String MODID = "buildcraftlib";

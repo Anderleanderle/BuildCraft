@@ -110,10 +110,11 @@ public class TileEngineCreative extends TileEngineBase_BC8 {
     @Override
     public boolean onActivated(EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
         if (EntityUtil.getWrenchHand(player) != null && player.isSneaking()) {
-            if (!world.isRemote) {
+            if (!worldObj.isRemote) {
                 currentOutputIndex++;
                 currentOutputIndex %= outputs.length;
-                player.sendStatusMessage(new TextComponentTranslation("chat.pipe.power.iron.mode", outputs[currentOutputIndex]), true);
+                //player.sendStatusMessage(new TextComponentTranslation("chat.pipe.power.iron.mode", outputs[currentOutputIndex]), true);
+                player.addChatMessage(new TextComponentTranslation("chat.pipe.power.iron.mode", outputs[currentOutputIndex]));
                 sendNetworkUpdate(NET_RENDER_DATA);
             }
             return true;

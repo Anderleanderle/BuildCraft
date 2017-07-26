@@ -60,6 +60,7 @@ public class ConfigGuiFactoryBC implements IModGuiFactory {
         return null;
     }
 
+    /*
     @Override
     public boolean hasConfigGui() {
         return true;
@@ -69,4 +70,5 @@ public class ConfigGuiFactoryBC implements IModGuiFactory {
     public GuiScreen createConfigGui(GuiScreen parentScreen) {
         return new GuiConfigManager(parentScreen);
     }
+    */
 }

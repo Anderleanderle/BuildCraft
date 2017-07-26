@@ -61,7 +61,7 @@ public abstract class MarkerCache<S extends MarkerSubCache<?>> {
 
     public static void onPlayerJoinWorld(EntityPlayerMP player) {
         for (MarkerCache<?> cache : CACHES) {
-            World world = player.world;
+            World world = player.worldObj;
             cache.getSubCache(world).onPlayerJoinWorld(player);
         }
     }

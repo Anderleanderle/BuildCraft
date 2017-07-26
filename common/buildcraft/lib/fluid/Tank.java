@@ -21,10 +21,11 @@ import net.minecraft.util.SoundEvent;
 
 import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidUtil;
-import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 
 import buildcraft.api.core.IFluidFilter;
 import buildcraft.api.core.IFluidHandlerAdv;
@@ -239,10 +240,11 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
         return (f == null ? 0 : f.amount) + " / " + capacity + " mB of " + (f != null ? f.getFluid().getName() : "n/a");
     }
 
-    public void onGuiClicked(ContainerBC_Neptune container) {
+    @SuppressWarnings("deprecation")
+	public void onGuiClicked(ContainerBC_Neptune container) {
         EntityPlayer player = container.player;
         ItemStack held = player.inventory.getItemStack();
-        if (held.isEmpty()) {
+        if (held == null) {
             return;
         }
 
@@ -251,7 +253,7 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
         boolean hasFilled = false;
 
         ItemStack copy = held.copy();
-        copy.setCount(1);
+        copy.stackSize = 1;
         int space = capacity - getFluidAmount();
 
         boolean isCreative = player.capabilities.isCreativeMode;
@@ -262,7 +264,7 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
             if (isCreative) {
                 held = copy;// so we don't change the stack held by the player.
             }
-            int potential = held.getCount();
+            int potential = held.stackSize;
             // Insert a single item until a fluid was not accepted.
             for (int p = 0; p < potential; p++) {
                 int accepted = fill(result.fluidStack, false);
@@ -272,16 +274,16 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
                     if (reallyAccepted != accepted) {
                         throw new IllegalStateException("We seem to be buggy! (accepted = " + accepted + ", reallyAccepted = " + reallyAccepted + ")");
                     }
-                    held.shrink(1);
+                    held.stackSize --;
                     if (isSurvival) {
-                        if (held.isEmpty()) {
+                        if (held.stackSize == 0) {
                             held = result.itemStack;
                             break;
-                        } else if (!result.itemStack.isEmpty()) {
+                        } else if (!(result.itemStack == null)) {
                             player.inventory.addItemStackToInventory(result.itemStack);
                             player.inventoryContainer.detectAndSendChanges();
                         }
-                    } else if (held.isEmpty()) {
+                    } else if (held.stackSize == 0) {
                         break;
                     }
                 } else {
@@ -289,20 +291,20 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
                 }
             }
             if (isSurvival) {
-                player.inventory.setItemStack(held.isEmpty() ? StackUtil.EMPTY : held);
+                player.inventory.setItemStack(held == null ? StackUtil.EMPTY : held);
                 ((EntityPlayerMP) player).updateHeldItem();
             }
             if (hasFilled) {
                 FluidStack fl = getFluid();
                 if (fl != null) {
-                    SoundEvent sound = fl.getFluid().getEmptySound(container.player.world, container.player.getPosition());
-                    container.player.world.playSound(null, player.getPosition(), sound, SoundCategory.BLOCKS, 1, 1);
+                    SoundEvent sound = fl.getFluid().getEmptySound(container.player.worldObj, container.player.getPosition());
+                    container.player.worldObj.playSound(null, player.getPosition(), sound, SoundCategory.BLOCKS, 1, 1);
                 }
                 return;
             }
         }
         // Now try to drain the fluid into the item
-        IFluidHandlerItem fluidHandler = FluidUtil.getFluidHandler(held.copy());
+        IFluidHandler fluidHandler = FluidUtil.getFluidHandler(held.copy());
         if (fluidHandler == null) return;
         FluidStack drained = drain(capacity, false);
         if (drained == null || drained.amount <= 0) return;
@@ -314,12 +316,12 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
                     + drained + ", filled = " + filled + ", reallyDrained = " + reallyDrained + " )");
             }
             if (isSurvival) {
-                ItemStack filledContainer = fluidHandler.getContainer();
+                ItemStack filledContainer = FluidContainerRegistry.drainFluidContainer(held.copy());
                 player.inventory.setItemStack(filledContainer);
                 ((EntityPlayerMP) player).updateHeldItem();
             }
-            SoundEvent sound = reallyDrained.getFluid().getFillSound(container.player.world, container.player.getPosition());
-            container.player.world.playSound(null, player.getPosition(), sound, SoundCategory.BLOCKS, 1, 1);
+            SoundEvent sound = reallyDrained.getFluid().getFillSound(container.player.worldObj, container.player.getPosition());
+            container.player.worldObj.playSound(null, player.getPosition(), sound, SoundCategory.BLOCKS, 1, 1);
         }
     }
 
@@ -327,13 +329,14 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
      * 
      * @param stack The stack to map. This will ALWAYS have an {@link ItemStack#getCount()} of 1.
      * @param space The maximum amount of fluid that can be accepted by this tank. */
-    protected FluidGetResult map(ItemStack stack, int space) {
-        IFluidHandlerItem fluidHandler = FluidUtil.getFluidHandler(stack.copy());
+    @SuppressWarnings("deprecation")
+	protected FluidGetResult map(ItemStack stack, int space) {
+        IFluidHandler fluidHandler = FluidUtil.getFluidHandler(stack.copy());
         if (fluidHandler == null) return null;
         FluidStack drained = fluidHandler.drain(space, true);
         if (drained == null || drained.amount <= 0) return null;
-        ItemStack leftOverStack = fluidHandler.getContainer();
-        if (leftOverStack.isEmpty()) leftOverStack = StackUtil.EMPTY;
+        ItemStack leftOverStack = FluidContainerRegistry.drainFluidContainer(stack.copy());
+        if (leftOverStack == null) leftOverStack = StackUtil.EMPTY;
         return new FluidGetResult(leftOverStack, drained);
     }
 

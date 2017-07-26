@@ -44,7 +44,7 @@ public enum StripesHandlerShears implements IStripesHandlerItem {
             if (shearableBlock.isShearable(stack, world, pos)) {
                 List<ItemStack> drops = shearableBlock.onSheared(stack, world, pos, 0);
                 if (stack.attemptDamageItem(1, player.getRNG())) {
-                    stack.shrink(1);
+                    stack.stackSize --;
                 }
                 for (ItemStack dropStack : drops) {
                     activator.sendItem(dropStack, direction.getOpposite());

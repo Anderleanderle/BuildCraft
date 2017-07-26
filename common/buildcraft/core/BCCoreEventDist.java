@@ -35,11 +35,11 @@ public enum BCCoreEventDist {
             // Delay sending join messages to player as it makes it work when in single-player
             MessageUtil.doDelayed(() ->
                 MessageManager.sendTo(
-                    new MessageVolumeBoxes(WorldSavedDataVolumeBoxes.get(event.player.world).boxes),
+                    new MessageVolumeBoxes(WorldSavedDataVolumeBoxes.get(event.player.worldObj).boxes),
                     (EntityPlayerMP) event.player
                 )
             );
-            WorldSavedDataVolumeBoxes.get(((EntityPlayerMP) event.player).world).boxes.stream()
+            WorldSavedDataVolumeBoxes.get(((EntityPlayerMP) event.player).worldObj).boxes.stream()
                 .filter(box -> box.isPausedEditingBy(event.player))
                 .forEach(VolumeBox::resumeEditing);
         }

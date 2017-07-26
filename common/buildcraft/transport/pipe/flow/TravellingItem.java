@@ -10,6 +10,7 @@ import java.util.EnumSet;
 import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
@@ -31,7 +32,7 @@ public class TravellingItem {
 
     // Server fields
     /** The server itemstack */
-    @Nonnull
+    @Nullable
     ItemStack stack;
     int id = 0;
     boolean toCenter;
@@ -63,20 +64,20 @@ public class TravellingItem {
      */
     // @formatter:on
 
-    public TravellingItem(@Nonnull ItemStack stack) {
+    public TravellingItem(@Nullable ItemStack stack) {
         this.stack = stack;
-        clientItemLink = () -> ItemStack.EMPTY;
+        clientItemLink = () -> null;
     }
 
     public TravellingItem(Supplier<ItemStack> clientStackLink, int count) {
-        this.clientItemLink = StackUtil.asNonNull(clientStackLink);
+        this.clientItemLink = (clientStackLink);
         this.stackSize = count;
         this.stack = StackUtil.EMPTY;
     }
 
     public TravellingItem(NBTTagCompound nbt, long tickNow) {
-        clientItemLink = () -> ItemStack.EMPTY;
-        stack = new ItemStack(nbt.getCompoundTag("stack"));
+        clientItemLink = () -> null;
+        stack = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag("stack"));
         int c = nbt.getByte("colour");
         this.colour = c == 0 ? null : EnumDyeColor.byMetadata(c - 1);
         this.toCenter = nbt.getBoolean("toCenter");
@@ -99,7 +100,7 @@ public class TravellingItem {
 
     public NBTTagCompound writeToNbt(long tickNow) {
         NBTTagCompound nbt = new NBTTagCompound();
-        nbt.setTag("stack", stack.serializeNBT());
+        nbt.setTag("stack", stack != null ? stack.serializeNBT() : new NBTTagCompound());
         nbt.setByte("colour", (byte) (colour == null ? 0 : colour.getMetadata() + 1));
         nbt.setBoolean("toCenter", toCenter);
         nbt.setDouble("speed", speed);
@@ -137,7 +138,7 @@ public class TravellingItem {
             && colour == with.colour//
             && side == with.side//
             && Math.abs(tickFinished - with.tickFinished) < 10//
-            && stack.getMaxStackSize() >= stack.getCount() + with.stack.getCount()//
+            && stack.getMaxStackSize() >= stack.stackSize + with.stack.stackSize//
             && StackUtil.canMerge(stack, with.stack);
     }
 
@@ -147,7 +148,7 @@ public class TravellingItem {
      * @return */
     public boolean mergeWith(TravellingItem with) {
         if (canMerge(with)) {
-            this.stack.grow(with.stack.getCount());
+            this.stack.stackSize += (with.stack.stackSize);
             return true;
         }
         return false;

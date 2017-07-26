@@ -110,16 +110,16 @@ public class TileFloodGate extends TileBC_Neptune implements ITickable, IDebugga
                         return;
                     }
 
-                    IBlockState blockState = world.getBlockState(currentPos);
+                    IBlockState blockState = worldObj.getBlockState(currentPos);
 
                     Block block = blockState.getBlock();
                     Fluid fluid = BlockUtil.getFluidWithFlowing(block);
 
                     boolean isCurrentFluid = this.tank.getFluidType() != null && this.tank.getFluidType() == fluid;
 
-                    if (world.isAirBlock(currentPos) || block instanceof BlockFloodGate || isCurrentFluid) {
+                    if (worldObj.isAirBlock(currentPos) || block instanceof BlockFloodGate || isCurrentFluid) {
                         blocksFound.add(currentPos);
-                        if (world.isAirBlock(currentPos) || (isCurrentFluid && blockState.getValue(BlockLiquid.LEVEL) != 0)) {
+                        if (worldObj.isAirBlock(currentPos) || (isCurrentFluid && blockState.getValue(BlockLiquid.LEVEL) != 0)) {
                             getLayerQueue(currentPos.getY()).addLast(currentPos);
                         }
                     }
@@ -149,19 +149,19 @@ public class TileFloodGate extends TileBC_Neptune implements ITickable, IDebugga
 
     @Override
     public void update() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
 
-        FluidUtilBC.pullFluidAround(world, pos, tank);
+        FluidUtilBC.pullFluidAround(worldObj, pos, tank);
 
         tick++;
         if (tick % 16 == 0) {
             FluidStack fluid = tank.drain(1000, false);
             if (fluid != null && fluid.amount == 1000) {
                 BlockPos current = getNext();
-                if (current != null && world.isAirBlock(current)) {
-                    world.setBlockState(current, fluid.getFluid().getBlock().getDefaultState());
+                if (current != null && worldObj.isAirBlock(current)) {
+                    worldObj.setBlockState(current, fluid.getFluid().getBlock().getDefaultState());
                     tank.drain(1000, true);
                     delayIndex = 0;
                 }

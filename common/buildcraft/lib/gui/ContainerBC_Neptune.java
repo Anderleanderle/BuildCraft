@@ -96,16 +96,16 @@ public abstract class ContainerBC_Neptune extends Container {
         ItemStack playerStack = player.inventory.getItemStack();
         if (slot instanceof IPhantomSlot) {
             IPhantomSlot phantom = (IPhantomSlot) slot;
-            if (playerStack.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
-            } else if (!StackUtil.canMerge(playerStack, StackUtil.asNonNull(slot.getStack()))) {
+            if (playerStack == null) {
+                slot.putStack(null);
+            } else if (!StackUtil.canMerge(playerStack, (slot.getStack()))) {
                 ItemStack copy = playerStack.copy();
-                copy.setCount(1);
+                copy.stackSize = (1);
                 slot.putStack(copy);
             } else if (phantom.canAdjustCount()) {
                 ItemStack stack = slot.getStack();
-                if (stack.getCount() < stack.getMaxStackSize()) {
-                    stack.grow(1);
+                if (stack.stackSize < stack.getMaxStackSize()) {
+                    stack.stackSize ++;
                     slot.putStack(stack);
                 }
             }
@@ -116,7 +116,7 @@ public abstract class ContainerBC_Neptune extends Container {
 
     @Override
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
-        ItemStack itemstack = ItemStack.EMPTY;
+        ItemStack itemstack = null;
         Slot slot = this.inventorySlots.get(index);
         Slot firstSlot = this.inventorySlots.get(0);
         int playerInventorySize = 36;
@@ -126,27 +126,27 @@ public abstract class ContainerBC_Neptune extends Container {
             ItemStack itemstack1 = slot.getStack();
             itemstack = itemstack1.copy();
 
-            if (inventorySlots.size() == playerInventorySize) return ItemStack.EMPTY;
+            if (inventorySlots.size() == playerInventorySize) return null;
             if (playerInventoryFirst) {
                 if (index < playerInventorySize) {
                     if (!this.mergeItemStack(itemstack1, playerInventorySize, this.inventorySlots.size(), false)) {
-                        return ItemStack.EMPTY;
+                        return null;
                     }
                 } else if (!this.mergeItemStack(itemstack1, 0, playerInventorySize, true)) {
-                    return ItemStack.EMPTY;
+                    return null;
                 }
             } else {
                 if (index < this.inventorySlots.size() - playerInventorySize) {
                     if (!this.mergeItemStack(itemstack1, this.inventorySlots.size() - playerInventorySize, this.inventorySlots.size(), false)) {
-                        return ItemStack.EMPTY;
+                        return null;
                     }
                 } else if (!this.mergeItemStack(itemstack1, 0, this.inventorySlots.size() - playerInventorySize, true)) {
-                    return ItemStack.EMPTY;
+                    return null;
                 }
             }
 
-            if (itemstack1.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+            if (itemstack1 == null) {
+                slot.putStack(null);
             } else {
                 slot.onSlotChanged();
             }
@@ -180,14 +180,14 @@ public abstract class ContainerBC_Neptune extends Container {
     }
 
     public final void sendMessage(int id) {
-        Side side = player.world.isRemote ? Side.CLIENT : Side.SERVER;
+        Side side = player.worldObj.isRemote ? Side.CLIENT : Side.SERVER;
         sendMessage(id, (buffer) -> writeMessage(id, buffer, side));
     }
 
     public final void sendMessage(int id, IPayloadWriter writer) {
         PacketBufferBC payload = PacketBufferBC.write(writer);
         MessageContainer message = new MessageContainer(windowId, id, payload);
-        if (player.world.isRemote) {
+        if (player.worldObj.isRemote) {
             MessageManager.sendToServer(message);
         } else {
             MessageManager.sendTo(message, (EntityPlayerMP) player);
