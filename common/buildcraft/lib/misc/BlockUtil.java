@@ -3,6 +3,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
+
 package buildcraft.lib.misc;
 
 import java.util.ArrayList;
@@ -48,6 +49,7 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.fluids.BlockFluidBase;
+import net.minecraftforge.fluids.BlockFluidClassic;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -62,8 +64,14 @@ import buildcraft.api.mj.MjAPI;
 
 import buildcraft.lib.BCLibConfig;
 import buildcraft.lib.compat.CompatManager;
+import buildcraft.lib.world.SingleBlockAccess;
 
 public final class BlockUtil {
+
+    /**
+     * @return A list of itemstacks that are dropped from the block, or null if the block is air
+     */
+    @Nullable
     public static List<ItemStack> getItemStackFromBlock(WorldServer world, BlockPos pos, GameProfile owner) {
         IBlockState state = world.getBlockState(pos);
         Block block = state.getBlock();
@@ -252,11 +260,36 @@ public final class BlockUtil {
         if (block == Blocks.FLOWING_LAVA) {
             return FluidRegistry.LAVA;
         }
-        return FluidRegistry.lookupFluidForBlock(block);
+        return getFluid(block);
     }
 
     public static Fluid getFluid(Block block) {
+        if (block instanceof IFluidBlock) {
+            return FluidRegistry.getFluid(((IFluidBlock) block).getFluid().getName());
+        }
         return FluidRegistry.lookupFluidForBlock(block);
+    }
+
+    public static Fluid getFluidWithoutFlowing(IBlockState state) {
+        Block block = state.getBlock();
+        if (block instanceof BlockFluidClassic) {
+            if (((BlockFluidClassic) block).isSourceBlock(new SingleBlockAccess(state), SingleBlockAccess.POS)) {
+                return getFluid(block);
+            }
+        }
+        if (block instanceof BlockLiquid) {
+            if (state.getValue(BlockLiquid.LEVEL) != 0) {
+                return null;
+            }
+            if (block == Blocks.WATER || block == Blocks.FLOWING_WATER) {
+                return FluidRegistry.WATER;
+            }
+            if (block == Blocks.LAVA || block == Blocks.FLOWING_LAVA) {
+                return FluidRegistry.LAVA;
+            }
+            return FluidRegistry.lookupFluidForBlock(block);
+        }
+        return null;
     }
 
     public static Fluid getFluidWithFlowing(Block block) {
@@ -419,26 +452,26 @@ public final class BlockUtil {
     }
 
     public static boolean blockStatesWithoutBlockEqual(IBlockState a, IBlockState b, Collection<IProperty<?>> ignoredProperties) {
-        return Sets.union(new HashSet<>(a.getPropertyNames()), new HashSet<>(b.getPropertyNames())).stream()
+        return Sets.intersection(new HashSet<>(a.getPropertyNames()), new HashSet<>(b.getPropertyNames())).stream()
                 .filter(property -> !ignoredProperties.contains(property))
                 .allMatch(property -> Objects.equals(a.getValue(property), b.getValue(property)));
     }
 
     public static boolean blockStatesWithoutBlockEqual(IBlockState a, IBlockState b) {
-        return Sets.union(new HashSet<>(a.getPropertyNames()), new HashSet<>(b.getPropertyNames())).stream()
+        return Sets.intersection(new HashSet<>(a.getPropertyNames()), new HashSet<>(b.getPropertyNames())).stream()
                 .allMatch(property -> Objects.equals(a.getValue(property), b.getValue(property)));
     }
 
     public static boolean blockStatesEqual(IBlockState a, IBlockState b, Collection<IProperty<?>> ignoredProperties) {
         return a.getBlock() == b.getBlock() &&
-                Sets.union(new HashSet<>(a.getPropertyNames()), new HashSet<>(b.getPropertyNames())).stream()
+                Sets.intersection(new HashSet<>(a.getPropertyNames()), new HashSet<>(b.getPropertyNames())).stream()
                 .filter(property -> !ignoredProperties.contains(property))
                 .allMatch(property -> Objects.equals(a.getValue(property), b.getValue(property)));
     }
 
     public static boolean blockStatesEqual(IBlockState a, IBlockState b) {
         return a.getBlock() == b.getBlock() &&
-                Sets.union(new HashSet<>(a.getPropertyNames()), new HashSet<>(b.getPropertyNames())).stream()
+                Sets.intersection(new HashSet<>(a.getPropertyNames()), new HashSet<>(b.getPropertyNames())).stream()
                 .allMatch(property -> Objects.equals(a.getValue(property), b.getValue(property)));
     }
 
@@ -446,5 +479,22 @@ public final class BlockUtil {
         return world instanceof ChunkCache
                 ? ((ChunkCache) world).getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK)
                 : world.getTileEntity(pos);
+    }
+
+    public static Comparator<BlockPos> uniqueBlockPosComparator(Comparator<BlockPos> parent) {
+        return (a, b) -> {
+            int parentValue = parent.compare(a, b);
+            if (parentValue != 0) {
+                return parentValue;
+            } else if (a.getX() != b.getX()) {
+                return Integer.compare(a.getX(), b.getX());
+            } else if (a.getY() != b.getY()) {
+                return Integer.compare(a.getY(), b.getY());
+            } else if (a.getZ() != b.getZ()) {
+                return Integer.compare(a.getZ(), b.getZ());
+            } else {
+                return 0;
+            }
+        };
     }
 }

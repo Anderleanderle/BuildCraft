@@ -147,13 +147,7 @@ public class StackUtil {
             return list.matches(stack2, stack1);
         }
 
-        if (!stack1.isItemEqual(stack2)) {
-            return false;
-        }
-        if (!ItemStack.areItemStackTagsEqual(stack1, stack2)) {
-            return false;
-        }
-        return true;
+        return stack1.isItemEqual(stack2) && ItemStack.areItemStackTagsEqual(stack1, stack2);
 
     }
 
@@ -380,18 +374,18 @@ public class StackUtil {
 
     public static List<ItemStack> mergeSameItems(List<ItemStack> items) {
         List<ItemStack> stacks = new ArrayList<ItemStack>();
-        items.forEach(toAdd -> {
+        for (ItemStack toAdd : items) {
             boolean found = false;
             for (ItemStack stack : stacks) {
-                if (StackUtil.canMerge(stack, toAdd)) {
-                    stack.stackSize = stack.stackSize + toAdd.stackSize;
+                if (canMerge(stack, toAdd)) {
+                    stack.stackSize += toAdd.stackSize;
                     found = true;
                 }
             }
             if (!found) {
                 stacks.add(toAdd.copy());
             }
-        });
+        }
         return stacks;
     }
 }

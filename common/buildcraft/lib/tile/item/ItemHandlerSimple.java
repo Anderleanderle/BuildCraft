@@ -3,9 +3,9 @@
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
-
 package buildcraft.lib.tile.item;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,11 +29,14 @@ import buildcraft.lib.inventory.AbstractInvItemTransactor;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.tile.item.StackInsertionFunction.InsertionResult;
 
-public class ItemHandlerSimple extends AbstractInvItemTransactor implements IItemHandlerModifiable, IItemHandlerAdv, INBTSerializable<NBTTagCompound> {
+public class ItemHandlerSimple extends AbstractInvItemTransactor
+    implements IItemHandlerModifiable, IItemHandlerAdv, INBTSerializable<NBTTagCompound> {
     // Function-called stuff (helpers etc)
-    private final StackInsertionChecker checker;
-    private final StackInsertionFunction insertor;
-    private final StackChangeCallback callback;
+    private StackInsertionChecker checker;
+    private StackInsertionFunction inserter;
+
+    @Nullable
+    private StackChangeCallback callback;
 
     // Actual item stacks used
     public final List<ItemStack> stacks;
@@ -41,17 +44,43 @@ public class ItemHandlerSimple extends AbstractInvItemTransactor implements IIte
     // Transactor speedup (small)
     private int firstUsed = Integer.MAX_VALUE;
 
-    public ItemHandlerSimple(int size, StackChangeCallback callback) {
+    public ItemHandlerSimple(int size) {
+        this(size, (slot, stack) -> true, StackInsertionFunction.getDefaultInserter(), null);
+    }
+
+    public ItemHandlerSimple(int size, int maxStackSize) {
+        this(size);
+        setLimitedInsertor(maxStackSize);
+    }
+
+    public ItemHandlerSimple(int size, @Nullable StackChangeCallback callback) {
         this(size, (slot, stack) -> true, StackInsertionFunction.getDefaultInserter(), callback);
     }
 
-    public ItemHandlerSimple(int size, StackInsertionChecker checker, StackInsertionFunction insertionFunction, StackChangeCallback callback) {
-    	stacks = new ArrayList<ItemStack>();
-    	for (int i=0; i<size; i++) {
-    		stacks.add(i, null);
-    	}
+    public ItemHandlerSimple(int size, StackInsertionChecker checker, StackInsertionFunction insertionFunction,
+        @Nullable StackChangeCallback callback) {
+		stacks = new ArrayList<ItemStack>();
+		for (int i=0; i<size; i++) {
+			stacks.add(i, null);
+		}
         this.checker = checker;
-        this.insertor = insertionFunction;
+        this.inserter = insertionFunction;
+        this.callback = callback;
+    }
+
+    public void setChecker(StackInsertionChecker checker) {
+        this.checker = checker;
+    }
+
+    public void setInsertor(StackInsertionFunction insertor) {
+        this.inserter = insertor;
+    }
+
+    public void setLimitedInsertor(int maxStackSize) {
+        setInsertor(StackInsertionFunction.getInsertionFunction(maxStackSize));
+    }
+
+    public void setCallback(StackChangeCallback callback) {
         this.callback = callback;
     }
 
@@ -115,16 +144,17 @@ public class ItemHandlerSimple extends AbstractInvItemTransactor implements IIte
         }
         if (canSet(slot, stack)) {
             ItemStack current = stacks.get(slot);
-            InsertionResult result = insertor.modifyForInsertion(slot, asValid(current != null ? current.copy() : null), asValid(stack != null ? stack.copy() : null));
+            InsertionResult result = inserter.modifyForInsertion(slot, asValid(current != null ? current.copy() : null), asValid(stack != null ? stack.copy() : null));
             if (!canSet(slot, result.toSet)) {
                 // We have a bad inserter or checker, as they should not be conflicting
-                CrashReport report = new CrashReport("Inserting an item (buildcraft:ItemHandlerSimple)", new IllegalStateException("Confilicting Insertion!"));
+                CrashReport report = new CrashReport("Inserting an item (buildcraft:ItemHandlerSimple)",
+                    new IllegalStateException("Conflicting Insertion!"));
                 CrashReportCategory cat = report.makeCategory("Inventory details");
                 cat.addCrashSection("Existing Item", current);
                 cat.addCrashSection("Inserting Item", stack);
                 cat.addCrashSection("Slot", slot);
                 cat.addCrashSection("Checker", checker.getClass());
-                cat.addCrashSection("Insertor", insertor.getClass());
+                cat.addCrashSection("Inserter", inserter.getClass());
                 throw new ReportedException(report);
             } else if (!simulate) {
                 setStackInternal(slot, result.toSet);
@@ -150,17 +180,24 @@ public class ItemHandlerSimple extends AbstractInvItemTransactor implements IIte
         if (current == null) return StackUtil.EMPTY;
         if (current.stackSize < amount) {
             if (simulate) {
-                return asValid(current);
+                return asValid(current.copy());
             }
             setStackInternal(slot, StackUtil.EMPTY);
+            if (callback != null) {
+                callback.onStackChange(this, slot, current, StackUtil.EMPTY);
+            }
             // no need to copy as we no longer have it
             return current;
         } else {
+            ItemStack before = current;
             current = current.copy();
             ItemStack split = current.splitStack(amount);
             if (!simulate) {
                 if (current.stackSize <= 0) current = StackUtil.EMPTY;
                 setStackInternal(slot, current);
+                if (callback != null) {
+                    callback.onStackChange(this, slot, before, current);
+                }
             }
             return split;
         }
@@ -173,7 +210,8 @@ public class ItemHandlerSimple extends AbstractInvItemTransactor implements IIte
         if (min <= 0) min = 1;
         if (max < min) return StackUtil.EMPTY;
         ItemStack current = stacks.get(slot);
-        if (current == null || current.stackSize < min) return StackUtil.EMPTY;
+        ItemStack before = current.copy();
+        if (current.stackSize < min) return StackUtil.EMPTY;
         if (filter.matches(asValid(current))) {
             if (simulate) {
                 ItemStack copy = current.copy();
@@ -182,6 +220,9 @@ public class ItemHandlerSimple extends AbstractInvItemTransactor implements IIte
             ItemStack split = current.splitStack(max);
             if (current.stackSize <= 0) {
                 stacks.set(slot, StackUtil.EMPTY);
+            }
+            if (callback != null) {
+                callback.onStackChange(this, slot, before, stacks.get(slot));
             }
             return split;
         }
@@ -195,11 +236,16 @@ public class ItemHandlerSimple extends AbstractInvItemTransactor implements IIte
             throw new IndexOutOfBoundsException("Slot index out of range: " + slot);
         }
         if (canSet(slot, stack)) {
+            ItemStack before = stacks.get(slot);
             setStackInternal(slot, stack);
+            if (callback != null) {
+                callback.onStackChange(this, slot, before, asValid(stack));
+            }
         } else {
             // Someone miss-called this. Woops. Looks like they didn't call insert.
             // If this is *somehow* called from vanilla code then its probably a vanilla bug
-            throw new IllegalStateException("Attempted to set stack[" + slot + "] when it was invalid! (" + stack + ")");
+            throw new IllegalStateException(
+                "Attempted to set stack[" + slot + "] when it was invalid! (" + stack + ")");
         }
     }
 
@@ -212,28 +258,33 @@ public class ItemHandlerSimple extends AbstractInvItemTransactor implements IIte
         return checker.canSet(slot, copied);
     }
 
-    private void setStackInternal(int slot, @Nullable ItemStack stack) {
-        ItemStack before = stacks.get(slot);
-        if (!ItemStack.areItemStacksEqual(before, stack)) {
-            stacks.set(slot, asValid(stack));
-            // Transactor calc
-            if (stack == null && firstUsed == slot) {
-                for (int s = firstUsed; s < getSlots(); s++) {
-                    if (!(stacks.get(s) == null)) {
-                        firstUsed = s;
-                        break;
-                    }
+    private void setStackInternal(int slot, @Nonnull ItemStack stack) {
+        stacks.set(slot, asValid(stack));
+        // Transactor calc
+        if (stack == null && firstUsed == slot) {
+            for (int s = firstUsed; s < getSlots(); s++) {
+                if (stacks.get(s) != null) {
+                    firstUsed = s;
+                    break;
                 }
-                if (firstUsed == slot) {
-                    firstUsed = Integer.MAX_VALUE;
-                }
-            } else if (!(stack == null) && firstUsed > slot) {
-                firstUsed = slot;
             }
-
-            if (callback != null) {
-                callback.onStackChange(this, slot, before, asValid(stack));
+            if (firstUsed == slot) {
+                firstUsed = Integer.MAX_VALUE;
             }
+        } else if (stack != null && firstUsed > slot) {
+            firstUsed = slot;
         }
+    }
+
+    /*
+    @Override
+    public int getSlotLimit(int slot) {
+        return 64;
+    }
+    */
+
+    @Override
+    public String toString() {
+        return "ItemHandlerSimple " + stacks;
     }
 }

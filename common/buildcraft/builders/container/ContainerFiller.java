@@ -6,18 +6,32 @@
 
 package buildcraft.builders.container;
 
+import java.io.IOException;
 import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
+
+import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.relauncher.Side;
+
+import buildcraft.api.filler.IFillerPattern;
 
 import buildcraft.lib.gui.ContainerBCTile;
 import buildcraft.lib.gui.slot.SlotBase;
+import buildcraft.lib.net.PacketBufferBC;
+import buildcraft.lib.statement.FullStatement;
 
-import buildcraft.builders.filling.Filling;
+import buildcraft.builders.filler.FillerType;
 import buildcraft.builders.tile.TileFiller;
+import buildcraft.core.marker.volume.WorldSavedDataVolumeBoxes;
 
-public class ContainerFiller extends ContainerBCTile<TileFiller> {
+public class ContainerFiller extends ContainerBCTile<TileFiller> implements IContainerFilling {
+    private final FullStatement<IFillerPattern> patternStatementClient = new FullStatement<>(
+        FillerType.INSTANCE,
+        4,
+        (statement, paramIndex) -> onStatementChange()
+    );
+
     public ContainerFiller(EntityPlayer player, TileFiller tile) {
         super(player, tile);
 
@@ -25,14 +39,59 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> {
 
         for (int sy = 0; sy < 3; sy++) {
             for (int sx = 0; sx < 9; sx++) {
-                addSlotToContainer(new SlotBase(tile.invResources, sx + sy * 9, 8 + sx * 18, 85 + sy * 18) {
-                    @Override
-                    public boolean isItemValid(@Nullable ItemStack stack) {
-                        return Filling.INSTANCE.getItemBlocks().contains(stack.getItem());
-                    }
-                });
+                addSlotToContainer(new SlotBase(tile.invResources, sx + sy * 9, sx * 18 + 8, sy * 18 + 40));
             }
         }
+
+        init();
+    }
+
+    @Override
+    public EntityPlayer getPlayer() {
+        return player;
+    }
+
+    @Override
+    public FullStatement<IFillerPattern> getPatternStatementClient() {
+        return patternStatementClient;
+    }
+
+    @Override
+    public FullStatement<IFillerPattern> getPatternStatement() {
+        return tile.addon != null ? tile.addon.patternStatement : tile.patternStatement;
+    }
+
+    @Override
+    public boolean isInverted() {
+        return tile.addon != null ? tile.addon.inverted : tile.inverted;
+    }
+
+    @Override
+    public void setInverted(boolean value) {
+        if (tile.addon != null) {
+            tile.addon.inverted = value;
+        } else {
+            tile.inverted = value;
+        }
+    }
+
+    @Override
+    public void valuesChanged() {
+        if (tile.addon != null) {
+            tile.addon.updateBuildingInfo();
+            if (!player.worldObj.isRemote) {
+                WorldSavedDataVolumeBoxes.get(getPlayer().worldObj).markDirty();
+            }
+        }
+        if (!player.worldObj.isRemote) {
+            tile.onStatementChange();
+        }
+    }
+
+    @Override
+    public void readMessage(int id, PacketBufferBC buffer, Side side, MessageContext ctx) throws IOException {
+        super.readMessage(id, buffer, side, ctx);
+        IContainerFilling.super.readMessage(id, buffer, side, ctx);
     }
 
     @Override

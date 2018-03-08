@@ -141,13 +141,13 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood {
     }
 
     @Override
-    protected int extractItems(IFlowItems flow, EnumFacing dir, int count) {
+    protected int extractItems(IFlowItems flow, EnumFacing dir, int count, boolean simulate) {
         if (currentSlot == null && activeSlots.size() > 0) {
             currentSlot = getNextSlot();
         }
         if (currentSlot == null) return 0;
-        int extracted = flow.tryExtractItems(count, dir, slotColours.get(currentSlot), filter);
-        if (extracted > 0) {
+        int extracted = flow.tryExtractItems(count, dir, slotColours.get(currentSlot), filter, simulate);
+        if (extracted > 0 && !simulate) {
             currentSlot = getNextSlot();
             pipe.getHolder().scheduleNetworkUpdate(PipeMessageReceiver.BEHAVIOUR);
         }
@@ -216,13 +216,15 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood {
         return true;
     }
 
-    @PipeEventHandler
-    public static void addActions(PipeEventStatement.AddActionInternal event) {
+    @Override
+    public void addActions(PipeEventStatement.AddActionInternal event) {
+        super.addActions(event);
         Collections.addAll(event.actions, BCTransportStatements.ACTION_EXTRACTION_PRESET);
     }
 
-    @PipeEventHandler
+    @Override
     public void onActionActivate(PipeEventActionActivate event) {
+        super.onActionActivate(event);
         if (event.action instanceof ActionExtractionPreset) {
             ActionExtractionPreset preset = (ActionExtractionPreset) event.action;
             activeSlots.add(preset.index);

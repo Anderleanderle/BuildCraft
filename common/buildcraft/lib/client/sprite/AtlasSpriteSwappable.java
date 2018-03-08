@@ -37,6 +37,7 @@ public abstract class AtlasSpriteSwappable extends TextureAtlasSprite {
     @Override
     public void updateAnimation() {
         if (current == null) {
+            copyFrom(Minecraft.getMinecraft().getTextureMapBlocks().getMissingSprite());
             return;
         }
         Profiler p = Minecraft.getMinecraft().mcProfiler;
@@ -48,7 +49,9 @@ public abstract class AtlasSpriteSwappable extends TextureAtlasSprite {
         }
         if (current.hasAnimationMetadata()) {
             p.startSection("update");
+            p.startSection(getIconName());
             current.updateAnimation();
+            p.endSection();
             p.endSection();
         } else if (needsSwapping) {
             p.startSection("swap");

@@ -3,6 +3,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
+
 package buildcraft.core.statements;
 
 import java.util.Locale;
@@ -29,37 +30,29 @@ import buildcraft.core.BCCoreSprites;
 import buildcraft.core.BCCoreStatements;
 
 public class TriggerInventory extends BCStatement implements ITriggerExternal {
-
-    public enum State {
-
-        Empty,
-        Contains,
-        Space,
-        Full;
-
-        public static final State[] VALUES = values();
-    }
-
     public State state;
 
     public TriggerInventory(State state) {
-        super("buildcraft:inventory." + state.name().toLowerCase(Locale.ENGLISH), "buildcraft.inventory." + state.name().toLowerCase(Locale.ENGLISH));
+        super(
+            "buildcraft:inventory." + state.name().toLowerCase(Locale.ROOT),
+            "buildcraft.inventory." + state.name().toLowerCase(Locale.ROOT)
+        );
         this.state = state;
     }
 
     @Override
-    public SpriteHolder getSpriteHolder() {
+    public SpriteHolder getSprite() {
         return BCCoreSprites.TRIGGER_INVENTORY.get(state);
     }
 
     @Override
     public int maxParameters() {
-        return state == State.Contains || state == State.Space ? 1 : 0;
+        return state == State.CONTAINS || state == State.SPACE ? 1 : 0;
     }
 
     @Override
     public String getDescription() {
-        return LocaleUtil.localize("gate.trigger.inventory." + state.name().toLowerCase(Locale.ENGLISH));
+        return LocaleUtil.localize("gate.trigger.inventory." + state.name().toLowerCase(Locale.ROOT));
     }
 
     @Override
@@ -84,7 +77,7 @@ public class TriggerInventory extends BCStatement implements ITriggerExternal {
                 // TODO: Replace some of this with
                 foundItems |= !(stack == null) && (searchedStack == null || StackUtil.canStacksOrListsMerge(stack, searchedStack));
 
-                foundSpace |= (stack == null | (StackUtil.canStacksOrListsMerge(stack, searchedStack) && stack.stackSize < stack.getMaxStackSize()))//
+                foundSpace |= (stack == null || (StackUtil.canStacksOrListsMerge(stack, searchedStack) && stack.stackSize < stack.getMaxStackSize()))//
                     && (searchedStack == null || searchedStack.getItem() instanceof IList || handler.insertItem(i, searchedStack, true) == null);
                 // On the test above, we deactivate item list as inventories
                 // typically don't check for lists possibility. This is a
@@ -97,11 +90,11 @@ public class TriggerInventory extends BCStatement implements ITriggerExternal {
             }
 
             switch (state) {
-                case Empty:
+                case EMPTY:
                     return !foundItems;
-                case Contains:
+                case CONTAINS:
                     return foundItems;
-                case Space:
+                case SPACE:
                     return foundSpace;
                 default:
                     return !foundSpace;
@@ -119,5 +112,14 @@ public class TriggerInventory extends BCStatement implements ITriggerExternal {
     @Override
     public IStatement[] getPossible() {
         return BCCoreStatements.TRIGGER_INVENTORY_ALL;
+    }
+
+    public enum State {
+        EMPTY,
+        CONTAINS,
+        SPACE,
+        FULL;
+
+        public static final State[] VALUES = values();
     }
 }

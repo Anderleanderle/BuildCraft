@@ -22,7 +22,7 @@ import buildcraft.api.tiles.TilesAPI;
 import buildcraft.lib.delta.DeltaInt;
 import buildcraft.lib.delta.DeltaManager;
 import buildcraft.lib.tile.TileBC_Neptune;
-import buildcraft.lib.tile.item.ItemHandlerManager;
+import buildcraft.lib.tile.item.ItemHandlerManager.EnumAccess;
 import buildcraft.lib.tile.item.ItemHandlerSimple;
 
 import buildcraft.factory.util.IAutoCraft;
@@ -38,14 +38,15 @@ public abstract class TileAutoWorkbenchBase extends TileBC_Neptune implements IT
     public IRecipe currentRecipe;
     private List<ItemStack> requirements = null;
 
-    public final DeltaInt deltaProgress = deltaManager.addDelta("progress", DeltaManager.EnumNetworkVisibility.GUI_ONLY);
+    public final DeltaInt deltaProgress =
+        deltaManager.addDelta("progress", DeltaManager.EnumNetworkVisibility.GUI_ONLY);
 
     public TileAutoWorkbenchBase(int width, int height) {
         int slots = width * height;
-        invBlueprint = itemManager.addInvHandler("blueprint", slots, ItemHandlerManager.EnumAccess.PHANTOM);
-        invMaterials = itemManager.addInvHandler("materials", slots, ItemHandlerManager.EnumAccess.INSERT, EnumPipePart.VALUES);
-        invResult = itemManager.addInvHandler("result", 1, ItemHandlerManager.EnumAccess.EXTRACT, EnumPipePart.VALUES);
-        invOverflow = itemManager.addInvHandler("overflow", slots, ItemHandlerManager.EnumAccess.EXTRACT, EnumPipePart.VALUES);
+        invBlueprint = itemManager.addInvHandler("blueprint", slots, EnumAccess.PHANTOM);
+        invMaterials = itemManager.addInvHandler("materials", slots, EnumAccess.INSERT, EnumPipePart.VALUES);
+        invResult = itemManager.addInvHandler("result", 1, EnumAccess.EXTRACT, EnumPipePart.VALUES);
+        invOverflow = itemManager.addInvHandler("overflow", slots, EnumAccess.EXTRACT, EnumPipePart.VALUES);
         crafting = new WorkbenchCrafting(width, height, invBlueprint);
         caps.addCapabilityInstance(TilesAPI.CAP_HAS_WORK, () -> progress >= 0, EnumPipePart.VALUES);
     }
@@ -78,8 +79,7 @@ public abstract class TileAutoWorkbenchBase extends TileBC_Neptune implements IT
 
     @Override
     public void getDebugInfo(List<String> left, List<String> right, EnumFacing side) {
-        left.add("");
-        left.add(currentRecipe.toString());
+        left.add("recipe = " + currentRecipe);
     }
 
     @Override

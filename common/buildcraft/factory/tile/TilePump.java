@@ -7,21 +7,26 @@
 package buildcraft.factory.tile;
 
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
-import java.util.Queue;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.math.BlockPos;
 
 import net.minecraftforge.fluids.Fluid;
@@ -38,24 +43,35 @@ import buildcraft.lib.fluid.Tank;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.CapUtil;
 import buildcraft.lib.misc.FluidUtilBC;
+import buildcraft.lib.misc.NBTUtilBC;
+import buildcraft.lib.misc.VecUtil;
 import buildcraft.lib.mj.MjRedstoneBatteryReceiver;
 import buildcraft.lib.net.PacketBufferBC;
 
+import buildcraft.core.BCCoreBlocks;
+import buildcraft.energy.BCEnergyFluids;
+import buildcraft.energy.tile.TileSpringOil;
 import buildcraft.factory.BCFactoryBlocks;
 
 public class TilePump extends TileMiner {
+    private static final EnumFacing[] SEARCH_DIRECTIONS = new EnumFacing[] { //
+        EnumFacing.UP, EnumFacing.NORTH, EnumFacing.SOUTH, //
+        EnumFacing.WEST, EnumFacing.EAST //
+    };
+
     private final Tank tank = new Tank("tank", 16 * Fluid.BUCKET_VOLUME, this);
     private boolean queueBuilt = false;
-    private Queue<BlockPos> queue = new PriorityQueue<>(
-        Comparator.<BlockPos, Integer>comparing(blockPos ->
-            (blockPos.getX() - pos.getX()) * (blockPos.getX() - pos.getX()) +
-                (blockPos.getZ() - pos.getZ()) * (blockPos.getZ() - pos.getZ())
-        ).reversed()
-    );
-    private Map<BlockPos, List<BlockPos>> paths = new HashMap<>();
+    private final Map<BlockPos, List<BlockPos>> paths = new HashMap<>();
+    private BlockPos fluidConnection;
+    private final Deque<BlockPos> queue = new ArrayDeque<>();
+    private boolean isInfiniteWaterSource;
+
+    @Nullable
+    private BlockPos oilSpringPos;
 
     public TilePump() {
         tank.setCanFill(false);
+        tankManager.add(tank);
         caps.addCapabilityInstance(CapUtil.CAP_FLUIDS, tank, EnumPipePart.VALUES);
     }
 
@@ -68,19 +84,23 @@ public class TilePump extends TileMiner {
         worldObj.theProfiler.startSection("prepare");
         queue.clear();
         paths.clear();
+        Fluid queueFluid = null;
+        isInfiniteWaterSource = false;
         Set<BlockPos> checked = new HashSet<>();
         List<BlockPos> nextPosesToCheck = new ArrayList<>();
-        Fluid fluid = null;
         for (BlockPos posToCheck = pos.down(); posToCheck.getY() > 0; posToCheck = posToCheck.down()) {
             if (BlockUtil.getFluidWithFlowing(worldObj, posToCheck) != null) {
-                fluid = BlockUtil.getFluidWithFlowing(worldObj, posToCheck);
+                queueFluid = BlockUtil.getFluidWithFlowing(worldObj, posToCheck);
                 nextPosesToCheck.add(posToCheck);
                 paths.put(posToCheck, Collections.singletonList(posToCheck));
+                checked.add(posToCheck);
                 if (BlockUtil.getFluid(worldObj, posToCheck) != null) {
                     queue.add(posToCheck);
                 }
+                fluidConnection = posToCheck;
                 break;
-            } else if (!worldObj.isAirBlock(posToCheck) && worldObj.getBlockState(posToCheck).getBlock() != BCFactoryBlocks.tube) {
+            } else if (!worldObj.isAirBlock(posToCheck)
+                && worldObj.getBlockState(posToCheck).getBlock() != BCFactoryBlocks.tube) {
                 break;
             }
         }
@@ -89,24 +109,20 @@ public class TilePump extends TileMiner {
             return;
         }
         worldObj.theProfiler.endStartSection("build");
-        while (!nextPosesToCheck.isEmpty()) {
+        boolean isWater =
+            /* BCFactoryConfig.consumeWaterSources && */ FluidUtilBC.areFluidsEqual(queueFluid, FluidRegistry.WATER);
+        outer: while (!nextPosesToCheck.isEmpty()) {
             List<BlockPos> nextPosesToCheckCopy = new ArrayList<>(nextPosesToCheck);
             nextPosesToCheck.clear();
             for (BlockPos posToCheck : nextPosesToCheckCopy) {
-                for (EnumFacing side : new EnumFacing[] {
-                    EnumFacing.UP,
-                    EnumFacing.NORTH,
-                    EnumFacing.SOUTH,
-                    EnumFacing.WEST,
-                    EnumFacing.EAST
-                }) {
+                int count = 0;
+                for (EnumFacing side : SEARCH_DIRECTIONS) {
                     BlockPos offsetPos = posToCheck.offset(side);
-                    if ((offsetPos.getX() - pos.getX()) * (offsetPos.getX() - pos.getX()) +
-                        (offsetPos.getZ() - pos.getZ()) * (offsetPos.getZ() - pos.getZ()) > 64 * 64) {
+                    if (offsetPos.distanceSq(pos) > 64 * 64) {
                         continue;
                     }
-                    if (!checked.contains(offsetPos)) {
-                        if (BlockUtil.getFluidWithFlowing(worldObj, offsetPos) == fluid) {
+                    if (checked.add(offsetPos)) {
+                        if (FluidUtilBC.areFluidsEqual(BlockUtil.getFluidWithFlowing(worldObj, offsetPos), queueFluid)) {
                             ImmutableList.Builder<BlockPos> pathBuilder = new ImmutableList.Builder<>();
                             pathBuilder.addAll(paths.get(posToCheck));
                             pathBuilder.add(offsetPos);
@@ -115,23 +131,61 @@ public class TilePump extends TileMiner {
                                 queue.add(offsetPos);
                             }
                             nextPosesToCheck.add(offsetPos);
+                            count++;
                         }
-                        checked.add(offsetPos);
+                    } else {
+                        // We've already tested this block: it *must* be a valid water source
+                        count++;
+                    }
+                }
+                if (isWater && count > 2) {
+                    IBlockState below = worldObj.getBlockState(posToCheck.down());
+                    // Same check as in BlockDynamicLiquid.updateTick:
+                    // if that method changes how it checks for adjacent
+                    // water sources then this also needs updating
+                    Fluid fluidBelow = BlockUtil.getFluidWithoutFlowing(below);
+                    if (FluidUtilBC.areFluidsEqual(fluidBelow, FluidRegistry.WATER) || below.getMaterial().isSolid()) {
+                        isInfiniteWaterSource = true;
+                        break outer;
                     }
                 }
             }
+        }
+        worldObj.theProfiler.endStartSection("oil_spring_search");
+        if (FluidUtilBC.areFluidsEqual(queueFluid, BCEnergyFluids.crudeOil[0])) {
+            List<BlockPos> springPositions = new ArrayList<>();
+            BlockPos center = VecUtil.replaceValue(getPos(), Axis.Y, 0);
+            for (BlockPos spring : BlockPos.getAllInBox(center.add(-10, 0, -10), center.add(10, 0, 10))) {
+                if (worldObj.getBlockState(spring).getBlock() == BCCoreBlocks.spring) {
+                    TileEntity tile = worldObj.getTileEntity(spring);
+                    if (tile instanceof TileSpringOil) {
+                        springPositions.add(spring);
+                    }
+                }
+            }
+            switch (springPositions.size()) {
+                case 0:
+                    break;
+                case 1:
+                    oilSpringPos = springPositions.get(0);
+                    break;
+                default:
+                    springPositions.sort(Comparator.comparingDouble(pos::distanceSq));
+                    oilSpringPos = springPositions.get(0);
+            }
+
         }
         worldObj.theProfiler.endSection();
     }
 
     private boolean canDrain(BlockPos blockPos) {
         Fluid fluid = BlockUtil.getFluid(worldObj, blockPos);
-        return tank.isEmpty() ? fluid != null : fluid == tank.getFluidType();
+        return tank.isEmpty() ? fluid != null : FluidUtilBC.areFluidsEqual(fluid, tank.getFluidType());
     }
 
     private void nextPos() {
         while (!queue.isEmpty()) {
-            currentPos = queue.poll();
+            currentPos = queue.removeLast();
             if (canDrain(currentPos)) {
                 updateLength();
                 return;
@@ -139,6 +193,14 @@ public class TilePump extends TileMiner {
         }
         currentPos = null;
         updateLength();
+    }
+
+    @Override
+    protected BlockPos getTargetPos() {
+        if (currentPos != null && fluidConnection != null) {
+            return currentPos.getY() > fluidConnection.getY() ? fluidConnection : currentPos;
+        }
+        return currentPos;
     }
 
     @Override
@@ -165,7 +227,7 @@ public class TilePump extends TileMiner {
         boolean prevResult = true;
         while (prevResult) {
             prevResult = false;
-            if (tank.isFull()) {
+            if (tank.getFluidAmount() > tank.getCapacity() / 2) {
                 return;
             }
             long target = 10 * MjAPI.MJ;
@@ -173,25 +235,28 @@ public class TilePump extends TileMiner {
                 progress += battery.extractPower(0, target - progress);
                 if (progress >= target) {
                     FluidStack drain = BlockUtil.drainBlock(worldObj, currentPos, false);
-                    if (drain != null &&
-                        paths.get(currentPos).stream()
-                            .allMatch(blockPos -> BlockUtil.getFluidWithFlowing(worldObj, blockPos) != null) &&
-                        canDrain(currentPos)) {
+                    if (drain != null
+                        && paths.get(currentPos).stream()
+                            .allMatch(blockPos -> BlockUtil.getFluidWithFlowing(worldObj, blockPos) != null)
+                        && canDrain(currentPos)) {
                         tank.fillInternal(drain, true);
                         progress = 0;
-                        int count = 0;
-                        if (drain.getFluid() == FluidRegistry.WATER) {
-                            for (int x = -1; x <= 1; x++) {
-                                for (int z = -1; z <= 1; z++) {
-                                    BlockPos waterPos = currentPos.add(new BlockPos(x, 0, z));
-                                    if (BlockUtil.getFluid(worldObj, waterPos) == FluidRegistry.WATER) {
-                                        count++;
+                        if (isInfiniteWaterSource) {
+                            if (!FluidUtilBC.areFluidsEqual(drain.getFluid(), FluidRegistry.WATER)) {
+                                // The pump must have re-used the water queue for some other fluid.
+                                isInfiniteWaterSource = false;
+                            }
+                        }
+                        if (!isInfiniteWaterSource) {
+                            BlockUtil.drainBlock(worldObj, currentPos, true);
+                            if (FluidUtilBC.areFluidsEqual(drain.getFluid(), BCEnergyFluids.crudeOil[0])) {
+                                if (oilSpringPos != null) {
+                                    TileEntity tile = worldObj.getTileEntity(oilSpringPos);
+                                    if (tile instanceof TileSpringOil) {
+                                        ((TileSpringOil) tile).onPumpOil(this, currentPos);
                                     }
                                 }
                             }
-                        }
-                        if (count < 4) {
-                            BlockUtil.drainBlock(worldObj, currentPos, true);
                             nextPos();
                         }
                     } else {
@@ -207,16 +272,20 @@ public class TilePump extends TileMiner {
         }
     }
 
+    // NBT
+
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
-        tank.deserializeNBT(nbt.getCompoundTag("tank"));
+        oilSpringPos = NBTUtilBC.readBlockPos(nbt.getTag("oilSpringPos"));
     }
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
         super.writeToNBT(nbt);
-        nbt.setTag("tank", tank.serializeNBT());
+        if (oilSpringPos != null) {
+            nbt.setTag("oilSpringPos", NBTUtilBC.writeBlockPos(oilSpringPos));
+        }
         return nbt;
     }
 
@@ -251,5 +320,11 @@ public class TilePump extends TileMiner {
         super.getDebugInfo(left, right, side);
         left.add("fluid = " + tank.getDebugString());
         left.add("queue size = " + queue.size());
+        left.add("infinite = " + isInfiniteWaterSource);
+    }
+
+    @Override
+    protected long getBatteryCapacity() {
+        return 50 * MjAPI.MJ;
     }
 }

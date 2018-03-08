@@ -3,6 +3,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
+
 package buildcraft.transport.gui;
 
 import net.minecraft.entity.player.EntityPlayer;
@@ -40,8 +41,12 @@ public class GuiDiamondPipe extends GuiBC8<ContainerDiamondPipe> {
     @Override
     protected void drawForegroundLayer() {
         String string = LocaleUtil.localize("gui.pipes.emerald.title");
-        fontRendererObj.drawString(string, rootElement.getX() + 8, rootElement.getY() + 6, 0x404040);
-        fontRendererObj.drawString(LocaleUtil.localize("gui.inventory"), rootElement.getX() + 8, rootElement.getY() + ySize - 97, 0x404040);
+        double titleX = rootElement.getX() + 8;
+        double titleY = rootElement.getY() + 6;
+        fontRendererObj.drawString(string, (int) titleX, (int) titleY, 0x404040);
+
+        double invY = rootElement.getY() + ySize - 97;
+        fontRendererObj.drawString(LocaleUtil.localize("gui.inventory"), (int) titleX, (int) invY, 0x404040);
     }
 
     @Override

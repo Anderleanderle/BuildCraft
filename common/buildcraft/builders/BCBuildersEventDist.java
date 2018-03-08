@@ -7,8 +7,6 @@
 package buildcraft.builders;
 
 import java.lang.ref.WeakReference;
-import java.time.Instant;
-import java.util.Date;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -100,20 +98,19 @@ public enum BCBuildersEventDist {
     public void onRenderTooltipPostText(RenderTooltipEvent.PostText event) {
         Snapshot snapshot = null;
         ItemStack stack = event.getStack();
-        Header header = BCBuildersItems.snapshot.getHeader(stack);
+        Header header = BCBuildersItems.snapshot != null ? BCBuildersItems.snapshot.getHeader(stack) : null;
         if (header != null) {
-            snapshot = ClientSnapshots.INSTANCE.getSnapshot(header);
-        } else {
-            ISchematicBlock<?> schematic = ItemSchematicSingle.getSchematicSafe(stack);
-            if (schematic != null) {
-                // Create a blueprint specific for this given item
-                Blueprint bpt = new Blueprint();
-                bpt.size = new BlockPos(1, 1, 1);
-                bpt.offset = BlockPos.ORIGIN;
-                bpt.data = new int[][][] { { { 0 } } };
-                bpt.palette.add(schematic);
-                bpt.header = new Header(bpt.computeHash(), UUID_SINGLE_SCHEMATIC, Date.from(Instant.EPOCH), "_item");
-                snapshot = bpt;
+            snapshot = ClientSnapshots.INSTANCE.getSnapshot(header.key);
+        } else if (BCBuildersItems.schematicSingle != null) {
+            ISchematicBlock schematicBlock = ItemSchematicSingle.getSchematicSafe(stack);
+            if (schematicBlock != null) {
+                Blueprint blueprint = new Blueprint();
+                blueprint.size = new BlockPos(1, 1, 1);
+                blueprint.offset = BlockPos.ORIGIN;
+                blueprint.data = new int[] {0};
+                blueprint.palette.add(schematicBlock);
+                blueprint.computeKey();
+                snapshot = blueprint;
             }
         }
 

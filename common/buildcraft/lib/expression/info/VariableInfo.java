@@ -26,7 +26,7 @@ import buildcraft.lib.expression.api.IVariableNode;
 import buildcraft.lib.expression.node.value.NodeVariableBoolean;
 import buildcraft.lib.expression.node.value.NodeVariableDouble;
 import buildcraft.lib.expression.node.value.NodeVariableLong;
-import buildcraft.lib.expression.node.value.NodeVariableString;
+import buildcraft.lib.expression.node.value.NodeVariableObject;
 
 public abstract class VariableInfo<N extends IVariableNode> {
     public final N node;
@@ -61,11 +61,11 @@ public abstract class VariableInfo<N extends IVariableNode> {
         ALWAYS
     }
 
-    public static class VariableInfoString extends VariableInfo<NodeVariableString> {
-        public final List<String> possibleValues = new ArrayList<>();
-        public Predicate<String> shouldCacheFunc = possibleValues::contains;
+    public static class VariableInfoObject<T> extends VariableInfo<NodeVariableObject<T>> {
+        public final List<T> possibleValues = new ArrayList<>();
+        public Predicate<T> shouldCacheFunc = possibleValues::contains;
 
-        public VariableInfoString(NodeVariableString node) {
+        public VariableInfoObject(NodeVariableObject<T> node) {
             super(node);
         }
 
@@ -167,20 +167,20 @@ public abstract class VariableInfo<N extends IVariableNode> {
     }
 
     public static class VariableInfoBoolean extends VariableInfo<NodeVariableBoolean> {
-        public enum BooleanPosibilities {
+        public enum BooleanPossibilities {
             FALSE(Boolean.FALSE),
             TRUE(Boolean.TRUE),
             FALSE_TRUE(Boolean.FALSE, Boolean.TRUE);
 
             public final Collection<Boolean> possible;
 
-            BooleanPosibilities(Boolean... possible) {
+            BooleanPossibilities(Boolean... possible) {
                 this.possible = Arrays.asList(possible);
             }
         }
 
         @Nonnull
-        public BooleanPosibilities possibleValues = BooleanPosibilities.FALSE_TRUE;
+        public BooleanPossibilities possibleValues = BooleanPossibilities.FALSE_TRUE;
 
         public VariableInfoBoolean(NodeVariableBoolean node) {
             super(node);

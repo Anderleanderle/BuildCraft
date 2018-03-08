@@ -7,8 +7,9 @@
 package buildcraft.builders.snapshot;
 
 import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Stream;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.Rotation;
@@ -16,64 +17,49 @@ import net.minecraft.util.math.BlockPos;
 
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.enums.EnumSnapshotType;
+import buildcraft.api.filler.IFilledTemplate;
 
-import buildcraft.lib.blockpos.BlockPosRotator;
-import buildcraft.lib.misc.data.Box;
+import buildcraft.lib.misc.VecUtil;
 
 public class Template extends Snapshot {
-    public boolean[][][] data;
+    public BitSet data;
 
+    @Override
     public Template copy() {
         Template template = new Template();
-        template.header = header;
         template.size = size;
         template.facing = facing;
         template.offset = offset;
-        template.data = new boolean[size.getX()][size.getY()][size.getZ()];
-        for (int z = 0; z < size.getZ(); z++) {
-            for (int y = 0; y < size.getY(); y++) {
-                for (int x = 0; x < size.getX(); x++) {
-                    template.data[x][y][z] = data[x][y][z];
-                }
-            }
-        }
+        template.data = (BitSet) data.clone();
+        template.computeKey();
         return template;
+    }
+
+    public FilledTemplate getFilledTemplate() {
+        return new FilledTemplate();
+    }
+
+    public void invert() {
+        data.flip(0, getDataSize());
     }
 
     @Override
     public NBTTagCompound serializeNBT() {
         NBTTagCompound nbt = super.serializeNBT();
-        byte[] serializedData = new byte[size.getX() * size.getY() * size.getZ()];
-        int i = 0;
-        for (int z = 0; z < size.getZ(); z++) {
-            for (int y = 0; y < size.getY(); y++) {
-                for (int x = 0; x < size.getX(); x++) {
-                    serializedData[i++] = data[x][y][z] ? (byte) 1 : (byte) 0;
-                }
-            }
-        }
-        nbt.setByteArray("data", serializedData);
+        nbt.setByteArray("data", data.toByteArray());
         return nbt;
     }
 
     @Override
     public void deserializeNBT(NBTTagCompound nbt) throws InvalidInputDataException {
         super.deserializeNBT(nbt);
-        data = new boolean[size.getX()][size.getY()][size.getZ()];
-        byte[] serializedData = nbt.getByteArray("data");
-        if (serializedData.length != size.getX() * size.getY() * size.getZ()) {
+        data = BitSet.valueOf(nbt.getByteArray("data"));
+        if (data.length() > getDataSize()) {
             throw new InvalidInputDataException(
-                "Serialized data has length of " + serializedData.length +
-                    ", but we expected " + size.getX() * size.getY() * size.getZ() + size.toString()
+                "Serialized data has length of " + data.length() +
+                    ", but we expected at most " +
+                    getDataSize() + " (" + size.toString() + ")"
             );
-        }
-        int i = 0;
-        for (int z = 0; z < size.getZ(); z++) {
-            for (int y = 0; y < size.getY(); y++) {
-                for (int x = 0; x < size.getX(); x++) {
-                    data[x][y][z] = serializedData[i++] != 0;
-                }
-            }
         }
     }
 
@@ -82,40 +68,145 @@ public class Template extends Snapshot {
         return EnumSnapshotType.TEMPLATE;
     }
 
-    public class BuildingInfo {
-        public final BlockPos basePos;
-        public final Rotation rotation;
-        public final Box box;
-        public final List<BlockPos> toBreak = new ArrayList<>();
-        public final List<BlockPos> toPlace = new ArrayList<>();
-
+    public class BuildingInfo extends Snapshot.BuildingInfo {
         public BuildingInfo(BlockPos basePos, Rotation rotation) {
-            this.basePos = basePos;
-            this.rotation = rotation;
-            for (int z = 0; z < getSnapshot().size.getZ(); z++) {
-                for (int y = 0; y < getSnapshot().size.getY(); y++) {
-                    for (int x = 0; x < getSnapshot().size.getX(); x++) {
-                        BlockPos blockPos = BlockPosRotator.rotate(new BlockPos(x, y, z), rotation)
-                            .add(basePos)
-                            .add(BlockPosRotator.rotate(offset, rotation));
-                        if (!data[x][y][z]) {
-                            toBreak.add(blockPos);
-                        } else {
-                            toPlace.add(blockPos);
-                        }
-                    }
-                }
-            }
-            box = new Box();
-            Stream.concat(toBreak.stream(), toPlace.stream()).forEach(box::extendToEncompass);
+            super(basePos, rotation);
         }
 
+        @Override
         public Template getSnapshot() {
             return Template.this;
         }
+    }
 
-        public Box getBox() {
-            return box;
+    public class FilledTemplate implements IFilledTemplate {
+        private final BlockPos max = size.subtract(VecUtil.POS_ONE);
+
+        public Template getTemplate() {
+            return Template.this;
+        }
+
+        private void checkPos(int x, int y, int z) {
+            if (x < 0 || y < 0 || z < 0 || x >= size.getX() || y >= size.getY() || z >= size.getZ()) {
+                throw new IllegalArgumentException("Size: " + size + ", pos: " + new BlockPos(x, y, z));
+            }
+        }
+
+        @Override
+        public BlockPos getSize() {
+            return size;
+        }
+
+        @Override
+        public BlockPos getMax() {
+            return max;
+        }
+
+        @Override
+        public void set(int x, int y, int z, boolean value) {
+            checkPos(x, y, z);
+            data.set(posToIndex(x, y, z), value);
+        }
+
+        @Override
+        public boolean get(int x, int y, int z) {
+            checkPos(x, y, z);
+            return data.get(posToIndex(x, y, z));
+        }
+
+        @Override
+        public void setLineX(int fromX, int toX, int y, int z, boolean value) {
+            checkPos(fromX, y, z);
+            checkPos(toX, y, z);
+            data.set(posToIndex(fromX, y, z), posToIndex(toX, y, z) + 1, value);
+        }
+
+        @Override
+        public void setLineY(int x, int fromY, int toY, int z, boolean value) {
+            checkPos(x, fromY, z);
+            checkPos(x, toY, z);
+            for (int y = fromY; y <= toY; y++) {
+                set(x, y, z, value);
+            }
+        }
+
+        @Override
+        public void setLineZ(int x, int y, int fromZ, int toZ, boolean value) {
+            checkPos(x, y, fromZ);
+            checkPos(x, y, toZ);
+            for (int z = fromZ; z <= toZ; z++) {
+                set(x, y, z, value);
+            }
+        }
+
+        @Override
+        public void setAreaYZ(int x, int fromY, int toY, int fromZ, int toZ, boolean value) {
+            checkPos(x, fromY, fromZ);
+            checkPos(x, toY, toZ);
+            for (int z = fromZ; z <= toZ; z++) {
+                setLineY(x, fromY, toY, z, value);
+            }
+        }
+
+        @Override
+        public void setAreaXZ(int fromX, int toX, int y, int fromZ, int toZ, boolean value) {
+            checkPos(fromX, y, fromZ);
+            checkPos(toX, y, toZ);
+            for (int z = fromZ; z <= toZ; z++) {
+                setLineX(fromX, toX, y, z, true);
+            }
+        }
+
+        @Override
+        public void setAreaXY(int fromX, int toX, int fromY, int toY, int z, boolean value) {
+            checkPos(fromX, fromY, z);
+            checkPos(toX, toY, z);
+            for (int y = fromY; y <= toY; y++) {
+                setLineX(fromX, toX, y, z, true);
+            }
+        }
+
+        @Override
+        public void setPlaneYZ(int x, boolean value) {
+            checkPos(x, 0, 0);
+            setAreaYZ(x, 0, max.getY(), 0, max.getZ(), value);
+        }
+
+        @Override
+        public void setPlaneXZ(int y, boolean value) {
+            checkPos(0, y, 0);
+            setAreaXZ(0, max.getX(), y, 0, max.getZ(), value);
+        }
+
+        @Override
+        public void setPlaneXY(int z, boolean value) {
+            checkPos(0, 0, z);
+            data.set(posToIndex(0, 0, z), posToIndex(max.getX(), max.getY(), z) + 1, value);
+        }
+
+        @Override
+        public void setAll(boolean value) {
+            data.set(0, getDataSize(), value);
+        }
+
+        @Override
+        public String toString() {
+            List<String> zParts = new ArrayList<>();
+            for (int z = 0; z < getSize().getZ(); z++) {
+                List<String> yParts = new ArrayList<>();
+                for (int y = 0; y < getSize().getY(); y++) {
+                    List<String> xParts = new ArrayList<>();
+                    for (int x = 0; x < getSize().getX(); x++) {
+                        xParts.add(get(x, y, z) ? "#" : " ");
+                    }
+                    yParts.add(String.join("", xParts));
+                }
+                zParts.add(String.join("\n", yParts));
+            }
+            return String.join(
+                "\n" + String.join("", Collections.nCopies(getSize().getX(), "-")) + "\n",
+                zParts
+            );
         }
     }
 }

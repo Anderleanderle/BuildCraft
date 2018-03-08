@@ -8,10 +8,7 @@ package buildcraft.builders.container;
 
 import java.io.IOException;
 
-import javax.annotation.Nullable;
-
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
@@ -24,7 +21,6 @@ import buildcraft.lib.misc.data.IdAllocator;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.tile.TileBC_Neptune;
 
-import buildcraft.builders.item.ItemSnapshot;
 import buildcraft.builders.snapshot.Snapshot;
 import buildcraft.builders.tile.TileElectronicLibrary;
 
@@ -36,36 +32,11 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
         super(player, tile);
         addFullPlayerInventory(138);
 
-        addSlotToContainer(new SlotOutput(tile.invDownOut, 0, 175, 57) {
-            @Override
-            public int getSlotStackLimit() {
-                return 1;
-            }
-        });
-        addSlotToContainer(new SlotBase(tile.invDownIn, 0, 219, 57) {
-            @Override
-            public boolean isItemValid(@Nullable ItemStack stack) {
-                return stack.getItem() instanceof ItemSnapshot && ItemSnapshot.EnumItemSnapshotType.getFromStack(stack).used;
-            }
+        addSlotToContainer(new SlotOutput(tile.invDownOut, 0, 175, 57));
+        addSlotToContainer(new SlotBase(tile.invDownIn, 0, 219, 57));
 
-            @Override
-            public int getSlotStackLimit() {
-                return 1;
-            }
-        });
-
-        addSlotToContainer(new SlotBase(tile.invUpIn, 0, 175, 79) {
-            @Override
-            public boolean isItemValid(@Nullable ItemStack stack) {
-                return stack.getItem() instanceof ItemSnapshot;
-            }
-        });
-        addSlotToContainer(new SlotOutput(tile.invUpOut, 0, 219, 79) {
-            @Override
-            public int getSlotStackLimit() {
-                return 1;
-            }
-        });
+        addSlotToContainer(new SlotBase(tile.invUpIn, 0, 175, 79));
+        addSlotToContainer(new SlotOutput(tile.invUpOut, 0, 219, 79));
     }
 
     @Override
@@ -78,7 +49,7 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
         return true;
     }
 
-    public void sendSelectedToServer(Snapshot.Header selected) {
+    public void sendSelectedToServer(Snapshot.Key selected) {
         sendMessage(ID_SELECTED, buffer -> {
             buffer.writeBoolean(selected != null);
             if (selected != null) {
@@ -93,7 +64,7 @@ public class ContainerElectronicLibrary extends ContainerBCTile<TileElectronicLi
         if (side == Side.SERVER) {
             if (id == ID_SELECTED) {
                 if (buffer.readBoolean()) {
-                    tile.selected = new Snapshot.Header(buffer);
+                    tile.selected = new Snapshot.Key(buffer);
                 } else {
                     tile.selected = null;
                 }

@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.profiler.Profiler;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumFacing.Axis;
 import net.minecraft.util.math.Vec3d;
@@ -46,6 +47,9 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
             return;
         }
 
+        Profiler prof = Minecraft.getMinecraft().mcProfiler;
+        prof.startSection("calc");
+
         boolean[] sides = new boolean[6];
         Arrays.fill(sides, true);
 
@@ -62,9 +66,11 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
         fluidBuffer.begin(GL11.GL_QUADS, DefaultVertexFormats.BLOCK);
         fluidBuffer.setTranslation(x, y, z);
 
+        boolean gas = forRender.getFluid().isGaseous(forRender);
         boolean horizontal = false;
-        boolean vertical = flow.pipe.isConnected(EnumFacing.UP);
+        boolean vertical = flow.pipe.isConnected(gas ? EnumFacing.DOWN : EnumFacing.UP);
 
+        prof.endStartSection("build");
         for (EnumFacing face : EnumFacing.VALUES) {
             double size = ((Pipe) flow.pipe).getConnectedDist(face);
             double amount = amounts[face.getIndex()];
@@ -121,9 +127,12 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
             perc = Math.sqrt(perc);
             double minXZ = 0.5 - 0.24 * perc;
             double maxXZ = 0.5 + 0.24 * perc;
+            
+            double yMin = gas ? 0.26 : horizPos;
+            double yMax = gas ? 1 - horizPos : 0.74;
 
-            Vec3d min = new Vec3d(minXZ, horizPos, minXZ);
-            Vec3d max = new Vec3d(maxXZ, 0.74, maxXZ);
+            Vec3d min = new Vec3d(minXZ, yMin, minXZ);
+            Vec3d max = new Vec3d(maxXZ, yMax, maxXZ);
             min = min.add(offset);
             max = max.add(offset);
 
@@ -137,12 +146,14 @@ public enum PipeFlowRendererFluids implements IPipeFlowRenderer<PipeFlowFluids> 
         GlStateManager.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE_MINUS_SRC_ALPHA);
         GlStateManager.enableCull();
 
+        prof.endStartSection("draw");
         fluidBuffer.setTranslation(0, 0, 0);
         Tessellator.getInstance().draw();
 
         RenderHelper.enableStandardItemLighting();
 
         FluidRenderer.vertex.lighti(0xF, 0xF);
+        prof.endSection();
 
     }
 

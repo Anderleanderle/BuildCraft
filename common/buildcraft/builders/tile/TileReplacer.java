@@ -22,6 +22,7 @@ import buildcraft.lib.tile.item.ItemHandlerSimple;
 
 import buildcraft.builders.BCBuildersItems;
 import buildcraft.builders.item.ItemSchematicSingle;
+import buildcraft.builders.item.ItemSnapshot;
 import buildcraft.builders.snapshot.Blueprint;
 import buildcraft.builders.snapshot.GlobalSavedDataSnapshots;
 import buildcraft.builders.snapshot.SchematicBlockManager;
@@ -31,9 +32,27 @@ import buildcraft.builders.snapshot.Snapshot.Header;
 public class TileReplacer extends TileBC_Neptune implements ITickable {
     public static final IdAllocator IDS = TileBC_Neptune.IDS.makeChild("replacer");
 
-    public final ItemHandlerSimple invSnapshot = itemManager.addInvHandler("snapshot", 1, ItemHandlerManager.EnumAccess.NONE);
-    public final ItemHandlerSimple invSchematicFrom = itemManager.addInvHandler("schematicFrom", 1, ItemHandlerManager.EnumAccess.NONE);
-    public final ItemHandlerSimple invSchematicTo = itemManager.addInvHandler("schematicTo", 1, ItemHandlerManager.EnumAccess.NONE);
+    public final ItemHandlerSimple invSnapshot = itemManager.addInvHandler(
+        "snapshot",
+        1,
+        (slot, stack) -> stack.getItem() instanceof ItemSnapshot &&
+            ItemSnapshot.EnumItemSnapshotType.getFromStack(stack) == ItemSnapshot.EnumItemSnapshotType.BLUEPRINT_USED,
+        ItemHandlerManager.EnumAccess.NONE
+    );
+    public final ItemHandlerSimple invSchematicFrom = itemManager.addInvHandler(
+        "schematicFrom",
+        1,
+        (slot, stack) -> stack.getItem() instanceof ItemSchematicSingle &&
+            stack.getItemDamage() == ItemSchematicSingle.DAMAGE_USED,
+        ItemHandlerManager.EnumAccess.NONE
+    );
+    public final ItemHandlerSimple invSchematicTo = itemManager.addInvHandler(
+        "schematicTo",
+        1,
+        (slot, stack) -> stack.getItem() instanceof ItemSchematicSingle &&
+            stack.getItemDamage() == ItemSchematicSingle.DAMAGE_USED,
+        ItemHandlerManager.EnumAccess.NONE
+    );
 
     @Override
     public void update() {
@@ -45,30 +64,32 @@ public class TileReplacer extends TileBC_Neptune implements ITickable {
             !(invSchematicTo.getStackInSlot(0) == null)) {
             Header header = BCBuildersItems.snapshot.getHeader(invSnapshot.getStackInSlot(0));
             if (header != null) {
-                GlobalSavedDataSnapshots store = GlobalSavedDataSnapshots.get(worldObj);
-                Snapshot snapshot = store.getSnapshotByHeader(header);
+                Snapshot snapshot = GlobalSavedDataSnapshots.get(worldObj).getSnapshot(header.key);
                 if (snapshot instanceof Blueprint) {
                     Blueprint blueprint = (Blueprint) snapshot;
                     try {
-                        ISchematicBlock<?> from = SchematicBlockManager.readFromNBT(
+                        ISchematicBlock from = SchematicBlockManager.readFromNBT(
                             NBTUtilBC.getItemData(invSchematicFrom.getStackInSlot(0))
                                 .getCompoundTag(ItemSchematicSingle.NBT_KEY)
                         );
-                        ISchematicBlock<?> to = SchematicBlockManager.readFromNBT(
+                        ISchematicBlock to = SchematicBlockManager.readFromNBT(
                             NBTUtilBC.getItemData(invSchematicTo.getStackInSlot(0))
                                 .getCompoundTag(ItemSchematicSingle.NBT_KEY)
-                        );
+                        ); 
                         Blueprint newBlueprint = blueprint.copy();
                         newBlueprint.replace(from, to);
-                        Header nHeader = new Header(newBlueprint.computeHash(), getOwner().getId(), new Date(), header.name);
-                        newBlueprint.header = nHeader;
-                        store.snapshots.add(newBlueprint);
-                        store.markDirty();
+                        newBlueprint.computeKey();
+                        GlobalSavedDataSnapshots.get(worldObj).addSnapshot(newBlueprint);
                         invSnapshot.setStackInSlot(
                             0,
                             BCBuildersItems.snapshot.getUsed(
                                 EnumSnapshotType.BLUEPRINT,
-                                newBlueprint.header
+                                new Header(
+                                    blueprint.key,
+                                    getOwner().getId(),
+                                    new Date(),
+                                    header.name
+                                )
                             )
                         );
                         invSchematicFrom.setStackInSlot(0, null);

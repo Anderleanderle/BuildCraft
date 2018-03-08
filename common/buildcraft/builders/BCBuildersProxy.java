@@ -16,8 +16,11 @@ import net.minecraftforge.fml.common.network.IGuiHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import buildcraft.lib.client.render.DetatchedRenderer;
+import buildcraft.lib.client.render.DetachedRenderer;
+import buildcraft.lib.net.MessageManager;
+import buildcraft.lib.net.MessageManager.MessageId;
 
+import buildcraft.builders.client.render.RenderArchitectTable;
 import buildcraft.builders.client.render.RenderArchitectTables;
 import buildcraft.builders.client.render.RenderBuilder;
 import buildcraft.builders.client.render.RenderFiller;
@@ -26,14 +29,16 @@ import buildcraft.builders.container.ContainerArchitectTable;
 import buildcraft.builders.container.ContainerBuilder;
 import buildcraft.builders.container.ContainerElectronicLibrary;
 import buildcraft.builders.container.ContainerFiller;
-import buildcraft.builders.container.ContainerFillingPlanner;
+import buildcraft.builders.container.ContainerFillerPlanner;
 import buildcraft.builders.container.ContainerReplacer;
 import buildcraft.builders.gui.GuiArchitectTable;
 import buildcraft.builders.gui.GuiBuilder;
 import buildcraft.builders.gui.GuiElectronicLibrary;
 import buildcraft.builders.gui.GuiFiller;
-import buildcraft.builders.gui.GuiFillingPlanner;
+import buildcraft.builders.gui.GuiFillerPlanner;
 import buildcraft.builders.gui.GuiReplacer;
+import buildcraft.builders.snapshot.MessageSnapshotRequest;
+import buildcraft.builders.snapshot.MessageSnapshotResponse;
 import buildcraft.builders.tile.TileArchitectTable;
 import buildcraft.builders.tile.TileBuilder;
 import buildcraft.builders.tile.TileElectronicLibrary;
@@ -82,8 +87,8 @@ public abstract class BCBuildersProxy implements IGuiHandler {
                 return new ContainerReplacer(player, replacer);
             }
         }
-        if (id == BCBuildersGuis.FILLING_PLANNER.ordinal()) {
-            return new ContainerFillingPlanner(player);
+        if (id == BCBuildersGuis.FILLER_PLANNER.ordinal()) {
+            return new ContainerFillerPlanner(player);
         }
         return null;
     }
@@ -92,10 +97,9 @@ public abstract class BCBuildersProxy implements IGuiHandler {
     public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
         return null;
     }
-    
 
     public void fmlPreInit() {
-        
+
     }
 
     public void fmlInit() {
@@ -104,7 +108,12 @@ public abstract class BCBuildersProxy implements IGuiHandler {
 
     @SideOnly(Side.SERVER)
     public static class ServerProxy extends BCBuildersProxy {
-
+        @Override
+        public void fmlPreInit() {
+            MessageManager.addType(MessageId.BC_BUILDERS_SNAPSHOT_REQUEST, MessageSnapshotRequest.class,
+                MessageSnapshotRequest.HANDLER, Side.SERVER);
+            MessageManager.addTypeSent(MessageId.BC_BUILDERS_SNAPSHOT_REPLY, MessageSnapshotResponse.class, Side.CLIENT);
+        }
     }
 
     @SideOnly(Side.CLIENT)
@@ -142,8 +151,8 @@ public abstract class BCBuildersProxy implements IGuiHandler {
                     return new GuiReplacer(new ContainerReplacer(player, replacer));
                 }
             }
-            if (id == BCBuildersGuis.FILLING_PLANNER.ordinal()) {
-                return new GuiFillingPlanner(new ContainerFillingPlanner(player));
+            if (id == BCBuildersGuis.FILLER_PLANNER.ordinal()) {
+                return new GuiFillerPlanner(new ContainerFillerPlanner(player));
             }
             return null;
         }
@@ -154,18 +163,21 @@ public abstract class BCBuildersProxy implements IGuiHandler {
                 Minecraft.getMinecraft().getFramebuffer().enableStencil();
             }
             BCBuildersSprites.fmlPreInit();
+            MessageManager.addType(MessageId.BC_BUILDERS_SNAPSHOT_REQUEST, MessageSnapshotRequest.class,
+                MessageSnapshotRequest.HANDLER, Side.SERVER);
+            MessageManager.addType(MessageId.BC_BUILDERS_SNAPSHOT_REPLY, MessageSnapshotResponse.class,
+                MessageSnapshotResponse.HANDLER, Side.CLIENT);
         }
 
         @Override
         public void fmlInit() {
             super.fmlInit();
+            ClientRegistry.bindTileEntitySpecialRenderer(TileArchitectTable.class, new RenderArchitectTable());
             ClientRegistry.bindTileEntitySpecialRenderer(TileBuilder.class, new RenderBuilder());
             ClientRegistry.bindTileEntitySpecialRenderer(TileFiller.class, new RenderFiller());
             ClientRegistry.bindTileEntitySpecialRenderer(TileQuarry.class, new RenderQuarry());
-            DetatchedRenderer.INSTANCE.addRenderer(
-                DetatchedRenderer.RenderMatrixType.FROM_WORLD_ORIGIN,
-                RenderArchitectTables.INSTANCE
-            );
+            DetachedRenderer.INSTANCE.addRenderer(DetachedRenderer.RenderMatrixType.FROM_WORLD_ORIGIN,
+                RenderArchitectTables.INSTANCE);
         }
     }
 }

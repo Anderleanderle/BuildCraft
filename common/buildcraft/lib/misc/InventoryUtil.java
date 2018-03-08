@@ -13,6 +13,7 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -53,7 +54,11 @@ public class InventoryUtil {
     }
 
     public static void drop(World world, BlockPos pos, @Nullable ItemStack stack) {
-        drop(world, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, stack);
+        Block.spawnAsEntity(world, pos, stack);
+    }
+
+    public static void drop(World world, Vec3d vec, @Nullable ItemStack stack) {
+        drop(world, vec.xCoord, vec.yCoord, vec.zCoord, stack);
     }
 
     public static void drop(World world, double x, double y, double z, ItemStack stack) {

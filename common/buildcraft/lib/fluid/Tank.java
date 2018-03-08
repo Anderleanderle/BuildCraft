@@ -1,7 +1,9 @@
-/* Copyright (c) 2016 SpaceToad and the BuildCraft team
+/*
+ * Copyright (c) 2016 SpaceToad and the BuildCraft team
  * 
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package buildcraft.lib.fluid;
 
 import java.util.HashMap;
@@ -16,16 +18,20 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.SoundCategory;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.util.text.TextFormatting;
 
-import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTank;
 import net.minecraftforge.fluids.FluidUtil;
+<<<<<<< HEAD
+import net.minecraftforge.fluids.capability.IFluidHandlerItem;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
+=======
 import net.minecraftforge.fluids.capability.IFluidHandler;
+>>>>>>> 8.0.x-1.10.2-WIP
 
 import buildcraft.api.core.IFluidFilter;
 import buildcraft.api.core.IFluidHandlerAdv;
@@ -34,15 +40,15 @@ import buildcraft.lib.gui.ContainerBC_Neptune;
 import buildcraft.lib.gui.elem.ToolTip;
 import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.misc.LocaleUtil;
+import buildcraft.lib.misc.SoundUtil;
 import buildcraft.lib.misc.StackUtil;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.net.cache.BuildCraftObjectCaches;
 import buildcraft.lib.net.cache.NetworkedFluidStackCache;
 
-/** Provides a useful implementation of a fluid tank that can save + load, and has a few helper funtions.
- * 
- * Can optionally specify a filter to only allow a limited types of fluids in the tank. */
-public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializable<NBTTagCompound> {
+/** Provides a useful implementation of a fluid tank that can save + load, and has a few helper functions. Can
+ * optionally specify a filter to only allow a limited types of fluids in the tank. */
+public class Tank extends FluidTank implements IFluidHandlerAdv {
     public static final String DEFAULT_HELP_KEY = "buildcraft.help.tank.generic";
 
     public int colorRenderCache = 0xFFFFFF;
@@ -60,8 +66,8 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
     @Nonnull
     private final Predicate<FluidStack> filter;
 
-    private NetworkedFluidStackCache.Link clientFluid = null;
-    private int clientAmount = 0;
+    NetworkedFluidStackCache.Link clientFluid = null;
+    int clientAmount = 0;
 
     public ElementHelpInfo helpInfo;
 
@@ -81,7 +87,8 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
         this.name = name;
         this.tile = tile;
         this.filter = filter == null ? ((f) -> true) : filter;
-        helpInfo = new ElementHelpInfo("buildcraft.help.tank.title." + name, 0xFF_00_00_00 | name.hashCode(), DEFAULT_HELP_KEY);
+        helpInfo = new ElementHelpInfo("buildcraft.help.tank.title." + name, 0xFF_00_00_00 | name.hashCode(),
+            DEFAULT_HELP_KEY);
     }
 
     @Nonnull
@@ -104,47 +111,38 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
         return fluidStack != null ? fluidStack.getFluid() : null;
     }
 
-    @Override
     public NBTTagCompound serializeNBT() {
-        NBTTagCompound nbt = new NBTTagCompound();
-        writeToNBT(nbt);
-        return nbt;
-    }
-
-    @Override
-    public void deserializeNBT(NBTTagCompound nbt) {
-        readFromNBT(nbt);
+        return writeToNBT(new NBTTagCompound());
     }
 
     @Override
     public final NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-        NBTTagCompound tankData = new NBTTagCompound();
-        super.writeToNBT(tankData);
-        writeTankToNBT(tankData);
-        nbt.setTag(name, tankData);
+        super.writeToNBT(nbt);
+        writeTankToNBT(nbt);
         return nbt;
     }
 
     @Override
     public final FluidTank readFromNBT(NBTTagCompound nbt) {
         if (nbt.hasKey(name)) {
-            // allow to read empty tanks
-            setFluid(null);
-
+            // Old style of saving + loading
             NBTTagCompound tankData = nbt.getCompoundTag(name);
             super.readFromNBT(tankData);
             readTankFromNBT(tankData);
+        } else {
+            super.readFromNBT(nbt);
+            readTankFromNBT(nbt);
         }
         return this;
     }
 
     /** Writes some additional information to the nbt, for example {@link SingleUseTank} will write out the filtering
      * fluid. */
-    public void writeTankToNBT(NBTTagCompound nbt) {}
+    protected void writeTankToNBT(NBTTagCompound nbt) {}
 
     /** Reads some additional information to the nbt, for example {@link SingleUseTank} will read in the filtering
      * fluid. */
-    public void readTankFromNBT(NBTTagCompound nbt) {}
+    protected void readTankFromNBT(NBTTagCompound nbt) {}
 
     public ToolTip getToolTip() {
         return toolTip;
@@ -155,10 +153,14 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
         int amount = clientAmount;
         FluidStack fluidStack = clientFluid == null ? null : clientFluid.get().copy();
         if (fluidStack != null && amount > 0) {
-            // toolTip.add(TextFormatting.WHITE + fluidStack.getFluid().getLocalizedName(fluidStack));
-            toolTip.add(LocaleUtil.localizeFluidStatic(new FluidStack(fluidStack, amount), getCapacity()));
-        } else {
-            toolTip.add(LocaleUtil.localizeFluidStatic(null, getCapacity()));
+            toolTip.add(fluidStack.getLocalizedName());
+        }
+        toolTip.add(TextFormatting.GRAY + LocaleUtil.localizeFluidStaticAmount(amount, getCapacity()));
+        FluidStack serverFluid = getFluid();
+        if (serverFluid != null && serverFluid.amount > 0) {
+            toolTip.add(TextFormatting.RED + "BUG: Server-side fluid on client!");
+            toolTip.add(serverFluid.getLocalizedName());
+            toolTip.add(LocaleUtil.localizeFluidStaticAmount(serverFluid.amount, getCapacity()));
         }
     }
 
@@ -188,9 +190,7 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
 
     @Override
     public void setFluid(FluidStack fluid) {
-        if (fluid == null || canFillFluidType(fluid)) {
-            super.setFluid(fluid);
-        }
+        super.setFluid(fluid);
     }
 
     @Override
@@ -199,7 +199,10 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
     }
 
     public String getContentsString() {
-        return LocaleUtil.localizeFluidStatic(fluid, capacity);
+        if (fluid != null) {
+            return fluid.getLocalizedName() + LocaleUtil.localizeFluidStaticAmount(this);
+        }
+        return LocaleUtil.localizeFluidStaticAmount(0, getCapacity());
     }
 
     public void writeToBuffer(PacketBufferBC buffer) {
@@ -212,6 +215,7 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
         buffer.writeInt(getFluidAmount());
     }
 
+    @SideOnly(Side.CLIENT)
     public void readFromBuffer(PacketBufferBC buffer) {
         if (buffer.readBoolean()) {
             clientFluid = BuildCraftObjectCaches.CACHE_FLUIDS.client().retrieve(buffer.readInt());
@@ -247,12 +251,24 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
         if (held == null) {
             return;
         }
+        ItemStack stack = transferStackToTank(container, held);
+        player.inventory.setItemStack(stack);
+        player.inventoryContainer.detectAndSendChanges();
+    }
 
+    /** Attempts to transfer the given stack to this tank.
+     * 
+     * @return The left over item after attempting to add the stack to this tank. */
+    public ItemStack transferStackToTank(ContainerBC_Neptune container, ItemStack stack) {
+        EntityPlayer player = container.player;
         // first try to fill this tank from the item
 
-        boolean hasFilled = false;
+        if (!player.isServerWorld()) {
+            return stack;
+        }
 
-        ItemStack copy = held.copy();
+        ItemStack original = stack;
+        ItemStack copy = stack.copy();
         copy.stackSize = 1;
         int space = capacity - getFluidAmount();
 
@@ -262,52 +278,37 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
         FluidGetResult result = map(copy, space);
         if (result != null && result.fluidStack != null && result.fluidStack.amount > 0) {
             if (isCreative) {
-                held = copy;// so we don't change the stack held by the player.
+                stack = copy;// so we don't change the stack held by the player.
             }
-            int potential = held.stackSize;
-            // Insert a single item until a fluid was not accepted.
-            for (int p = 0; p < potential; p++) {
-                int accepted = fill(result.fluidStack, false);
-                if (isCreative ? (accepted > 0) : (accepted == result.fluidStack.amount)) {
-                    hasFilled = true;
-                    int reallyAccepted = fill(result.fluidStack, true);
-                    if (reallyAccepted != accepted) {
-                        throw new IllegalStateException("We seem to be buggy! (accepted = " + accepted + ", reallyAccepted = " + reallyAccepted + ")");
-                    }
-                    held.stackSize --;
-                    if (isSurvival) {
-                        if (held.stackSize == 0) {
-                            held = result.itemStack;
-                            break;
-                        } else if (!(result.itemStack == null)) {
-                            player.inventory.addItemStackToInventory(result.itemStack);
-                            player.inventoryContainer.detectAndSendChanges();
-                        }
-                    } else if (held.stackSize == 0) {
-                        break;
-                    }
-                } else {
-                    break;
+            int accepted = fill(result.fluidStack, false);
+            if (isCreative ? (accepted > 0) : (accepted == result.fluidStack.amount)) {
+                int reallyAccepted = fill(result.fluidStack, true);
+                if (reallyAccepted != accepted) {
+                    throw new IllegalStateException(
+                        "We seem to be buggy! (accepted = " + accepted + ", reallyAccepted = " + reallyAccepted + ")");
                 }
-            }
-            if (isSurvival) {
-                player.inventory.setItemStack(held == null ? StackUtil.EMPTY : held);
-                ((EntityPlayerMP) player).updateHeldItem();
-            }
-            if (hasFilled) {
+                stack.stackSize --;
                 FluidStack fl = getFluid();
                 if (fl != null) {
-                    SoundEvent sound = fl.getFluid().getEmptySound(container.player.worldObj, container.player.getPosition());
-                    container.player.worldObj.playSound(null, player.getPosition(), sound, SoundCategory.BLOCKS, 1, 1);
+                    SoundUtil.playBucketEmpty(player.worldObj, player.getPosition(), fl);
                 }
-                return;
+                if (isSurvival) {
+                    if (stack == null) {
+                        return result.itemStack;
+                    } else if (result.itemStack != null) {
+                        player.inventory.addItemStackToInventory(result.itemStack);
+                        player.inventoryContainer.detectAndSendChanges();
+                        return stack;
+                    }
+                }
+                return original;
             }
         }
         // Now try to drain the fluid into the item
-        IFluidHandler fluidHandler = FluidUtil.getFluidHandler(held.copy());
-        if (fluidHandler == null) return;
+        IFluidHandler fluidHandler = FluidUtil.getFluidHandler(stack.copy());
+        if (fluidHandler == null) return stack;
         FluidStack drained = drain(capacity, false);
-        if (drained == null || drained.amount <= 0) return;
+        if (drained == null || drained.amount <= 0) return stack;
         int filled = fluidHandler.fill(drained, true);
         if (filled > 0) {
             FluidStack reallyDrained = drain(filled, true);
@@ -316,13 +317,13 @@ public class Tank extends FluidTank implements IFluidHandlerAdv, INBTSerializabl
                     + drained + ", filled = " + filled + ", reallyDrained = " + reallyDrained + " )");
             }
             if (isSurvival) {
-                ItemStack filledContainer = FluidContainerRegistry.drainFluidContainer(held.copy());
+                ItemStack filledContainer = FluidContainerRegistry.drainFluidContainer(stack.copy());
                 player.inventory.setItemStack(filledContainer);
                 ((EntityPlayerMP) player).updateHeldItem();
             }
-            SoundEvent sound = reallyDrained.getFluid().getFillSound(container.player.worldObj, container.player.getPosition());
-            container.player.worldObj.playSound(null, player.getPosition(), sound, SoundCategory.BLOCKS, 1, 1);
+            SoundUtil.playBucketFill(player.worldObj, player.getPosition(), reallyDrained);
         }
+        return stack;
     }
 
     /** Maps the given stack to a fluid result.

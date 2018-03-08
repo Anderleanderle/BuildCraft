@@ -3,6 +3,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
+
 package buildcraft.core.statements;
 
 import net.minecraft.util.EnumFacing;
@@ -39,13 +40,12 @@ public class ActionRedstoneOutput extends BCStatement implements IActionInternal
 
     @Override
     public IStatementParameter createParameter(int index) {
-        IStatementParameter param = null;
-
-        if (index == 0) {
-            param = new StatementParamGateSideOnly();
+        switch (index) {
+            case 0:
+                return StatementParamGateSideOnly.ANY;
+            default:
+                return null;
         }
-
-        return param;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class ActionRedstoneOutput extends BCStatement implements IActionInternal
 
     protected boolean isSideOnly(IStatementParameter[] parameters) {
         if (parameters != null && parameters.length >= (getRGSOSlot() + 1) && parameters[getRGSOSlot()] instanceof StatementParamGateSideOnly) {
-            return ((StatementParamGateSideOnly) parameters[getRGSOSlot()]).isOn;
+            return ((StatementParamGateSideOnly) parameters[getRGSOSlot()]).isSpecific;
         }
 
         return false;
@@ -82,7 +82,7 @@ public class ActionRedstoneOutput extends BCStatement implements IActionInternal
 
     @Override
     @SideOnly(Side.CLIENT)
-    public SpriteHolder getSpriteHolder() {
+    public SpriteHolder getSprite() {
         return BCCoreSprites.ACTION_REDSTONE;
     }
 }

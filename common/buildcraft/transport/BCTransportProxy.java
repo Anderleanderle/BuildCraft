@@ -24,6 +24,9 @@ import buildcraft.api.transport.pipe.PipeApiClient;
 import buildcraft.api.transport.pipe.PipeBehaviour;
 import buildcraft.api.transport.pluggable.PipePluggable;
 
+import buildcraft.lib.net.MessageManager;
+import buildcraft.lib.net.MessageManager.MessageId;
+
 import buildcraft.transport.client.PipeRegistryClient;
 import buildcraft.transport.container.ContainerDiamondPipe;
 import buildcraft.transport.container.ContainerDiamondWoodPipe;
@@ -39,11 +42,13 @@ import buildcraft.transport.item.ItemPluggableFacade;
 import buildcraft.transport.pipe.behaviour.PipeBehaviourDiamond;
 import buildcraft.transport.pipe.behaviour.PipeBehaviourEmzuli;
 import buildcraft.transport.pipe.behaviour.PipeBehaviourWoodDiamond;
-import buildcraft.transport.plug.FacadeStateManager.FacadePhasedState;
-import buildcraft.transport.plug.FacadeStateManager.FullFacadeInstance;
+import buildcraft.transport.plug.FacadeInstance;
+import buildcraft.transport.plug.FacadePhasedState;
 import buildcraft.transport.plug.PluggableGate;
 import buildcraft.transport.tile.TileFilteredBuffer;
 import buildcraft.transport.tile.TilePipeHolder;
+import buildcraft.transport.wire.MessageWireSystems;
+import buildcraft.transport.wire.MessageWireSystemsPowered;
 
 public abstract class BCTransportProxy implements IGuiHandler {
     @SidedProxy(modId = BCTransport.MODID)
@@ -137,19 +142,31 @@ public abstract class BCTransportProxy implements IGuiHandler {
     @SideOnly(Side.SERVER)
     public static class ServerProxy extends BCTransportProxy {
 
+        @Override
+        public void fmlPreInit() {
+            super.fmlPreInit();
+
+            MessageManager.addTypeSent(MessageId.BC_SILICON_WIRE_NETWORK, MessageWireSystems.class, Side.CLIENT);
+            MessageManager.addTypeSent(MessageId.BC_SILICON_WIRE_SWITCH, MessageWireSystemsPowered.class, Side.CLIENT);
+        }
     }
 
     @SideOnly(Side.CLIENT)
     public static class ClientProxy extends BCTransportProxy {
         @Override
         public void fmlPreInit() {
+            super.fmlPreInit();
             BCTransportSprites.fmlPreInit();
             BCTransportModels.fmlPreInit();
             PipeApiClient.registry = PipeRegistryClient.INSTANCE;
+
+            MessageManager.addType(MessageId.BC_SILICON_WIRE_NETWORK, MessageWireSystems.class, MessageWireSystems.HANDLER, Side.CLIENT);
+            MessageManager.addType(MessageId.BC_SILICON_WIRE_SWITCH, MessageWireSystemsPowered.class, MessageWireSystemsPowered.HANDLER, Side.CLIENT);
         }
 
         @Override
         public void fmlInit() {
+            super.fmlInit();
             BCTransportModels.fmlInit();
         }
 
@@ -170,7 +187,7 @@ public abstract class BCTransportProxy implements IGuiHandler {
                 return -1;
             }, BCTransportBlocks.pipeHolder);
             Minecraft.getMinecraft().getItemColors().registerItemColorHandler((item, tintIndex) -> {
-                FullFacadeInstance states = ItemPluggableFacade.getStates(item);
+                FacadeInstance states = ItemPluggableFacade.getStates(item);
                 FacadePhasedState state = states.getCurrentStateForStack();
                 return Minecraft.getMinecraft().getBlockColors().getColor(state.stateInfo.state);
             }, BCTransportItems.plugFacade);

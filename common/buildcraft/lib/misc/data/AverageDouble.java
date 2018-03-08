@@ -3,6 +3,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
+
 package buildcraft.lib.misc.data;
 
 import net.minecraft.nbt.NBTTagCompound;
@@ -38,7 +39,7 @@ public class AverageDouble implements INBTSerializable<NBTTagCompound> {
     }
 
     private void internalTick(double value) {
-        pos = ++pos % precise;
+        pos = (pos + 1) % precise;
         double oldValue = data[pos];
         data[pos] = value;
         if (pos == 0) {

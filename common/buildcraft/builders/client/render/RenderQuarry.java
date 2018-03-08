@@ -22,9 +22,9 @@ import net.minecraft.util.math.Vec3d;
 
 import buildcraft.api.properties.BuildCraftProperties;
 
-import buildcraft.lib.client.render.laser.LaserBoxRenderer;
 import buildcraft.lib.client.render.laser.LaserData_BC8;
 import buildcraft.lib.client.render.laser.LaserRenderer_BC8;
+import buildcraft.lib.client.render.laser.RenderLaserBox;
 import buildcraft.lib.client.sprite.SpriteHolderRegistry;
 import buildcraft.lib.misc.SpriteUtil;
 import buildcraft.lib.misc.VecUtil;
@@ -104,13 +104,23 @@ public class RenderQuarry extends TileEntitySpecialRenderer<TileQuarry> {
 
             profiler.startSection("laser");
             if (tile.currentTask != null && tile.currentTask instanceof TileQuarry.TaskBreakBlock) {
-                TileQuarry.TaskBreakBlock currentTask1 = (TileQuarry.TaskBreakBlock) tile.currentTask;
-                BlockPos pos = currentTask1.breakPos;
+                TileQuarry.TaskBreakBlock taskBreakBlock = (TileQuarry.TaskBreakBlock) tile.currentTask;
+                BlockPos pos = taskBreakBlock.breakPos;
 
                 if (tile.drillPos == null) {
-                    LaserRenderer_BC8.renderLaserStatic(new LaserData_BC8(LASER, VecUtil.convertCenter(tile.getPos()), VecUtil.convertCenter(pos), 1 / 16D));
+                    if (taskBreakBlock.clientPower != 0) {
+                        // Don't render a laser before we have any power
+                        Vec3d from = VecUtil.convertCenter(tile.getPos());
+                        Vec3d to = VecUtil.convertCenter(pos);
+                        LaserData_BC8 laser = new LaserData_BC8(LASER, from, to, 1 / 16.0);
+                        LaserRenderer_BC8.renderLaserStatic(laser);
+                    }
                 } else {
-                    yOffset = (double) currentTask1.getPower() / currentTask1.getTarget();
+                    long power = (long) (
+                        taskBreakBlock.prevClientPower +
+                            (taskBreakBlock.clientPower - taskBreakBlock.prevClientPower) * (double) partialTicks
+                    );
+                    yOffset = (double) power / taskBreakBlock.getTarget();
                     if (yOffset < 0.9) {
                         yOffset = 1 - yOffset / 0.9;
                     } else {
@@ -150,7 +160,7 @@ public class RenderQuarry extends TileEntitySpecialRenderer<TileQuarry> {
                         new Vec3d(interpolatedPos.xCoord + 0.5, interpolatedPos.yCoord + yOffset, interpolatedPos.zCoord + 0.5),//
                         1 / 16D, true, true, 0));
             } else {
-                LaserBoxRenderer.renderLaserBoxStatic(tile.frameBox, BuildCraftLaserManager.STRIPES_WRITE);
+                RenderLaserBox.renderStatic(tile.frameBox, BuildCraftLaserManager.STRIPES_WRITE, true);
             }
             profiler.endSection();
         }
@@ -160,9 +170,9 @@ public class RenderQuarry extends TileEntitySpecialRenderer<TileQuarry> {
 
         if (tile.frameBox.isInitialized() && false) {
             TileQuarry.TaskAddFrame currentTask = (TileQuarry.TaskAddFrame) tile.currentTask;
-            int index = tile.getFramePositions().indexOf(currentTask.framePos);
+            int index = tile.framePoses.indexOf(currentTask.framePos);
             if (index > 1) {
-                double progress = (double) currentTask.getPower() / currentTask.getTarget() * (index - 1) / tile.getFramePositions().size();
+                double progress = (double) currentTask.getPower() / currentTask.getTarget() * (index - 1) / tile.framePoses.size();
                 double progress1 = (progress >= 0 && progress <= 0.25) ? progress * 4 ://
                     (progress >= 0.25 && progress <= 0.5) ? 1 ://
                         (progress >= 0.5 && progress <= 0.75) ? 1 - (progress - 0.5) * 4 ://

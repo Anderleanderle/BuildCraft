@@ -17,6 +17,7 @@ import net.minecraftforge.fml.relauncher.Side;
 
 import buildcraft.lib.BCLib;
 import buildcraft.lib.net.MessageManager;
+import buildcraft.lib.net.MessageManager.MessageId;
 import buildcraft.lib.registry.RegistryHelper;
 import buildcraft.lib.registry.TagManager;
 import buildcraft.lib.registry.TagManager.EnumTagType;
@@ -27,10 +28,12 @@ import buildcraft.robotics.zone.MessageZoneMapRequest;
 import buildcraft.robotics.zone.MessageZoneMapResponse;
 
 //@formatter:off
-@Mod(modid = BCRobotics.MODID,
-name = "BuildCraft Robotics",
-version = BCLib.VERSION,
-dependencies = "required-after:buildcraftcore@[" + BCLib.VERSION + "]")
+@Mod(
+    modid = BCRobotics.MODID,
+    name = "BuildCraft Robotics",
+    version = BCLib.VERSION,
+    dependencies = "required-after:buildcraftcore@[" + BCLib.VERSION + "]"
+)
 //@formatter:on
 public class BCRobotics {
     public static final String MODID = "buildcraftrobotics";
@@ -45,10 +48,9 @@ public class BCRobotics {
         BCRoboticsItems.preInit();
         BCRoboticsBlocks.preInit();
 
-        NetworkRegistry.INSTANCE.registerGuiHandler(INSTANCE, BCRoboticsProxy.getProxy());
+        BCRoboticsProxy.getProxy().fmlPreInit();
 
-        MessageManager.addMessageType(MessageZoneMapRequest.class, MessageZoneMapRequest.HANDLER, Side.SERVER);
-        MessageManager.addMessageType(MessageZoneMapResponse.class, MessageZoneMapResponse.HANDLER, Side.CLIENT);
+        NetworkRegistry.INSTANCE.registerGuiHandler(INSTANCE, BCRoboticsProxy.getProxy());
     }
 
     @Mod.EventHandler

@@ -46,7 +46,7 @@ public class BCSiliconRecipes {
             builder.registerRotated();
         }
 
-        if (BCItems.SILICON_REDSTONE_CLIPSET != null) {
+        if (BCItems.SILICON_REDSTONE_CHIPSET != null) {
             addChipsetAssembly(1, null, EnumRedstoneChipset.RED);
             addChipsetAssembly(2, "ingotIron", EnumRedstoneChipset.IRON);
             addChipsetAssembly(4, "ingotGold", EnumRedstoneChipset.GOLD);
@@ -140,7 +140,7 @@ public class BCSiliconRecipes {
         }
 
         String name = String.format("chipset-%s", type);
-        AssemblyRecipe recp = new AssemblyRecipe(name, multiplier * 10_000 * MjAPI.MJ, inputs.build(), output);
+        AssemblyRecipe recp = new AssemblyRecipe(name, multiplier * 10_000L * MjAPI.MJ, inputs.build(), output);
         AssemblyRecipeRegistry.INSTANCE.addRecipe(recp);
     }
 }

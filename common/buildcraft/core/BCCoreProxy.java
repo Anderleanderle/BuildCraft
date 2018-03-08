@@ -4,6 +4,8 @@
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.core;
 
+import java.util.List;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 
@@ -13,14 +15,19 @@ import net.minecraftforge.fml.common.network.IGuiHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import buildcraft.lib.client.render.DetatchedRenderer;
-import buildcraft.lib.client.render.DetatchedRenderer.RenderMatrixType;
+import buildcraft.lib.client.render.DetachedRenderer;
+import buildcraft.lib.client.render.DetachedRenderer.RenderMatrixType;
+import buildcraft.lib.net.MessageManager;
+import buildcraft.lib.net.MessageManager.MessageId;
 
-import buildcraft.core.client.BuildCraftLaserManager;
 import buildcraft.core.client.RenderTickListener;
-import buildcraft.core.client.render.RenderVolumeInWorld;
+import buildcraft.core.client.render.RenderVolumeBoxes;
 import buildcraft.core.list.ContainerList;
 import buildcraft.core.list.GuiList;
+import buildcraft.core.marker.volume.ClientVolumeBoxes;
+import buildcraft.core.marker.volume.MessageVolumeBoxes;
+import buildcraft.core.marker.volume.VolumeBox;
+import buildcraft.core.marker.volume.WorldSavedDataVolumeBoxes;
 
 public abstract class BCCoreProxy implements IGuiHandler {
     @SidedProxy(modId = BCCore.MODID)
@@ -49,9 +56,16 @@ public abstract class BCCoreProxy implements IGuiHandler {
 
     public void fmlPostInit() {}
 
+    public List<VolumeBox> getVolumeBoxes(World world) {
+        return WorldSavedDataVolumeBoxes.get(world).volumeBoxes;
+    }
+
     @SideOnly(Side.SERVER)
     public static class ServerProxy extends BCCoreProxy {
-
+        @Override
+        public void fmlPreInit() {
+            MessageManager.addTypeSent(MessageId.BC_CORE_VOLUME_BOX, MessageVolumeBoxes.class, Side.CLIENT);
+        }
     }
 
     @SideOnly(Side.CLIENT)
@@ -69,14 +83,24 @@ public abstract class BCCoreProxy implements IGuiHandler {
             super.fmlPreInit();
             BCCoreSprites.fmlPreInit();
             BCCoreModels.fmlPreInit();
-            BuildCraftLaserManager.fmlPreInit();
-            DetatchedRenderer.INSTANCE.addRenderer(RenderMatrixType.FROM_WORLD_ORIGIN, RenderVolumeInWorld.INSTANCE);
+            DetachedRenderer.INSTANCE.addRenderer(RenderMatrixType.FROM_WORLD_ORIGIN, RenderVolumeBoxes.INSTANCE);
+            MessageManager.addType(
+                MessageId.BC_CORE_VOLUME_BOX,
+                MessageVolumeBoxes.class,
+                MessageVolumeBoxes.HANDLER,
+                Side.CLIENT
+            );
         }
 
         @Override
         public void fmlInit() {
             BCCoreModels.fmlInit();
             MinecraftForge.EVENT_BUS.register(RenderTickListener.class);
+        }
+
+        @Override
+        public List<VolumeBox> getVolumeBoxes(World world) {
+            return world.isRemote ? ClientVolumeBoxes.INSTANCE.volumeBoxes : super.getVolumeBoxes(world);
         }
     }
 }

@@ -33,6 +33,7 @@ public class InjectableWrapper implements IItemTransactor {
     @Override
     public ItemStack insert(@Nullable ItemStack stack, boolean allOrNone, boolean simulate) {
         if (allOrNone) {
+            stack = stack.copy();
             ItemStack leftOver = injectable.injectItem(stack, false, from, null, 0);
             if (leftOver == null) {
                 ItemStack reallyLeftOver = injectable.injectItem(stack, !simulate, from, null, 0);

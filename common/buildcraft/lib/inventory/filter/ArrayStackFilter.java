@@ -3,6 +3,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
+
 package buildcraft.lib.inventory.filter;
 
 import java.util.Arrays;
@@ -57,7 +58,7 @@ public class ArrayStackFilter implements IStackFilter {
 
     public boolean hasFilter() {
         for (ItemStack filter : stacks) {
-            if (filter != null) {
+            if (!filter.isEmpty()) {
                 return true;
             }
         }

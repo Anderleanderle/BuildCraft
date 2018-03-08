@@ -19,7 +19,8 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import buildcraft.lib.client.render.laser.LaserData_BC8;
 import buildcraft.lib.misc.MessageUtil;
@@ -40,7 +41,8 @@ public class Lock {
         this.targets.addAll(Arrays.asList(targets));
     }
 
-    public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
+    public NBTTagCompound writeToNBT() {
+        NBTTagCompound nbt = new NBTTagCompound();
         NBTTagCompound causeTag = new NBTTagCompound();
         causeTag.setTag("type", NBTUtilBC.writeEnum(Cause.EnumCause.getForClass(cause.getClass())));
         causeTag.setTag("data", cause.writeToNBT(new NBTTagCompound()));
@@ -62,7 +64,7 @@ public class Lock {
             throw new RuntimeException(e);
         }
         cause.readFromNBT(causeTag.getCompoundTag("data"));
-        NBTUtilBC.readCompoundList(nbt.getTagList("targets", Constants.NBT.TAG_COMPOUND)).map(targetTag -> {
+        NBTUtilBC.readCompoundList(nbt.getTag("targets")).map(targetTag -> {
             Target target;
             try {
                 target = NBTUtilBC.readEnum(targetTag.getTag("type"), Target.EnumTarget.class).clazz.newInstance();
@@ -265,14 +267,23 @@ public class Lock {
             }
 
             public enum EnumType {
-                STRIPES_WRITE(BuildCraftLaserManager.STRIPES_WRITE),
-                STRIPES_READ(BuildCraftLaserManager.STRIPES_READ);
+                STRIPES_WRITE {
+                    @SideOnly(Side.CLIENT)
+                    @Override
+                    public LaserData_BC8.LaserType getLaserType() {
+                        return BuildCraftLaserManager.STRIPES_WRITE;
+                    }
+                },
+                STRIPES_READ {
+                    @SideOnly(Side.CLIENT)
+                    @Override
+                    public LaserData_BC8.LaserType getLaserType() {
+                        return BuildCraftLaserManager.STRIPES_READ;
+                    }
+                };
 
-                public final LaserData_BC8.LaserType laserType;
-
-                EnumType(LaserData_BC8.LaserType laserType) {
-                    this.laserType = laserType;
-                }
+                @SideOnly(Side.CLIENT)
+                public abstract LaserData_BC8.LaserType getLaserType();
             }
         }
 
