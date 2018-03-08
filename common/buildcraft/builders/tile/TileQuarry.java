@@ -182,14 +182,14 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
     }
 
     @Override
-    public void onPlacedBy(EntityLivingBase placer, ItemStack stack) {
+    public void onPlacedBy(EntityLivingBase placer, @Nullable ItemStack stack) {
         super.onPlacedBy(placer, stack);
-        if (placer.world.isRemote) {
+        if (placer.worldObj.isRemote) {
             return;
         }
-        EnumFacing facing = world.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING);
+        EnumFacing facing = worldObj.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING);
         BlockPos areaPos = pos.offset(facing.getOpposite());
-        TileEntity tile = world.getTileEntity(areaPos);
+        TileEntity tile = worldObj.getTileEntity(areaPos);
         BlockPos min, max;
         if (tile instanceof IAreaProvider) {
             IAreaProvider provider = (IAreaProvider) tile;
@@ -270,18 +270,18 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
     }
 
     private boolean canMine(BlockPos blockPos) {
-        if (world.getBlockState(blockPos).getBlockHardness(world, blockPos) < 0) {
+        if (worldObj.getBlockState(blockPos).getBlockHardness(worldObj, blockPos) < 0) {
             return false;
         }
-        Fluid fluid = BlockUtil.getFluidWithFlowing(world, blockPos);
+        Fluid fluid = BlockUtil.getFluidWithFlowing(worldObj, blockPos);
         return fluid == null || fluid.getViscosity() <= 1000;
     }
 
     private boolean canMoveThrough(BlockPos blockPos) {
-        if (world.isAirBlock(blockPos)) {
+        if (worldObj.isAirBlock(blockPos)) {
             return true;
         }
-        Fluid fluid = BlockUtil.getFluidWithFlowing(world, blockPos);
+        Fluid fluid = BlockUtil.getFluidWithFlowing(worldObj, blockPos);
         return fluid != null && fluid.getViscosity() <= 1000;
     }
 
@@ -298,15 +298,15 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
         frameBreakBlockPoses.remove(blockPos);
         framePlaceFramePoses.remove(blockPos);
         if (shouldBeFrame(blockPos)) {
-            if (world.getBlockState(blockPos).getBlock() != BCBuildersBlocks.frame) {
-                if (!world.isAirBlock(blockPos)) {
+            if (worldObj.getBlockState(blockPos).getBlock() != BCBuildersBlocks.frame) {
+                if (!worldObj.isAirBlock(blockPos)) {
                     frameBreakBlockPoses.add(blockPos);
                 } else {
                     framePlaceFramePoses.add(blockPos);
                 }
             }
         } else {
-            if (!world.isAirBlock(blockPos)) {
+            if (!worldObj.isAirBlock(blockPos)) {
                 frameBreakBlockPoses.add(blockPos);
             }
         }
@@ -320,7 +320,7 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
 
     @Override
     public void onLoad() {
-        if (!world.isRemote) {
+        if (!worldObj.isRemote) {
             updatePoses();
         }
     }
@@ -329,8 +329,8 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
     public void validate() {
         super.validate();
         BCBuildersEventDist.INSTANCE.validateQuarry(this);
-        if (!world.isRemote) {
-            world.addEventListener(worldEventListener);
+        if (!worldObj.isRemote) {
+            worldObj.addEventListener(worldEventListener);
         }
     }
 
@@ -338,8 +338,8 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
     public void invalidate() {
         super.invalidate();
         BCBuildersEventDist.INSTANCE.invalidateQuarry(this);
-        if (!world.isRemote) {
-            world.removeEventListener(worldEventListener);
+        if (!worldObj.isRemote) {
+            worldObj.removeEventListener(worldEventListener);
             ChunkLoaderManager.releaseChunksFor(this);
         }
     }
@@ -377,7 +377,7 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
         firstChecked = false;
         frameBreakBlockPoses.clear();
         framePlaceFramePoses.clear();
-        IBlockState state = world.getBlockState(pos);
+        IBlockState state = worldObj.getBlockState(pos);
         if (state.getBlock() == BCBuildersBlocks.quarry && frameBox.isInitialized()) {
             List<BlockPos> blocksInArea = frameBox.getBlocksInArea();
             frameBoxPosesCount = blocksInArea.size();
@@ -389,7 +389,7 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
 
     @Override
     public void update() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             prevClientDrillPos = clientDrillPos;
             clientDrillPos = drillPos;
             if (currentTask != null) {
@@ -774,13 +774,13 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
 
         @Override
         public long getTarget() {
-            return BlockUtil.computeBlockBreakPower(world, breakPos);
+            return BlockUtil.computeBlockBreakPower(worldObj, breakPos);
         }
 
         @Override
         protected boolean onReceivePower() {
-            if (!world.isAirBlock(breakPos)) {
-                world.sendBlockBreakProgress(breakPos.hashCode(), breakPos, (int) (power * 9 / getTarget()));
+            if (!worldObj.isAirBlock(breakPos)) {
+                worldObj.sendBlockBreakProgress(breakPos.hashCode(), breakPos, (int) (power * 9 / getTarget()));
                 return false;
             } else {
                 return true;
@@ -789,31 +789,31 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
 
         @Override
         protected boolean finish() {
-            EntityPlayer fake = BuildCraftAPI.fakePlayerProvider.getFakePlayer((WorldServer) world, getOwner(), pos);
+            EntityPlayer fake = BuildCraftAPI.fakePlayerProvider.getFakePlayer((WorldServer) worldObj, getOwner(), pos);
 
-            IBlockState state = world.getBlockState(breakPos);
+            IBlockState state = worldObj.getBlockState(breakPos);
             if (!canMine(breakPos)) {
                 return true;
             }
 
-            BlockEvent.BreakEvent breakEvent = new BlockEvent.BreakEvent(world, breakPos, state, fake);
+            BlockEvent.BreakEvent breakEvent = new BlockEvent.BreakEvent(worldObj, breakPos, state, fake);
             MinecraftForge.EVENT_BUS.post(breakEvent);
             if (!breakEvent.isCanceled()) {
                 // The drill pos will be null if we are making the frame: this is when we want to destroy the block, not
                 // drop its contents
-                world.sendBlockBreakProgress(breakPos.hashCode(), breakPos, -1);
+                worldObj.sendBlockBreakProgress(breakPos.hashCode(), breakPos, -1);
                 if (drillPos != null) {
-                    world.destroyBlock(breakPos, true);
-                    for (EntityItem entity : world.getEntitiesWithinAABB(EntityItem.class,
+                    worldObj.destroyBlock(breakPos, true);
+                    for (EntityItem entity : worldObj.getEntitiesWithinAABB(EntityItem.class,
                         new AxisAlignedBB(breakPos).expandXyz(1))) {
                         TransactorEntityItem transactor = new TransactorEntityItem(entity);
                         ItemStack stack;
-                        while (!(stack = transactor.extract(StackFilter.ALL, 0, Integer.MAX_VALUE, false)).isEmpty()) {
-                            InventoryUtil.addToBestAcceptor(world, pos, null, stack);
+                        while ((stack = transactor.extract(StackFilter.ALL, 0, Integer.MAX_VALUE, false)) != null) {
+                            InventoryUtil.addToBestAcceptor(worldObj, pos, null, stack);
                         }
                     }
                 } else {
-                    world.destroyBlock(breakPos, false);
+                    worldObj.destroyBlock(breakPos, false);
                 }
                 return true;
             } else {
@@ -877,13 +877,13 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
 
         @Override
         protected boolean onReceivePower() {
-            return !world.isAirBlock(framePos);
+            return !worldObj.isAirBlock(framePos);
         }
 
         @Override
         protected boolean finish() {
-            if (world.isAirBlock(framePos)) {
-                world.setBlockState(framePos, BCBuildersBlocks.frame.getDefaultState());
+            if (worldObj.isAirBlock(framePos)) {
+                worldObj.setBlockState(framePos, BCBuildersBlocks.frame.getDefaultState());
             }
             return true;
         }

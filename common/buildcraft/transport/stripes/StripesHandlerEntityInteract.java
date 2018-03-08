@@ -38,8 +38,8 @@ public enum StripesHandlerEntityInteract implements IStripesHandlerItem {
         );
         Collections.shuffle(entities);
         for (EntityLivingBase entity : entities) {
-            if (player.interactOn(entity, EnumHand.MAIN_HAND) == EnumActionResult.SUCCESS) {
-                return true;
+            if (player.interact(entity, stack, EnumHand.MAIN_HAND) == EnumActionResult.SUCCESS) {
+            	return true;
             }
         }
         return false;

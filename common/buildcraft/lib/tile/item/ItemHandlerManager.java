@@ -20,7 +20,6 @@ import javax.annotation.Nonnull;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.NonNullList;
 
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
@@ -118,7 +117,7 @@ public class ItemHandlerManager implements ICapabilityProvider, INBTSerializable
         return addInvHandler(key, handler, access, parts);
     }
 
-    public void addDrops(NonNullList<ItemStack> toDrop) {
+    public void addDrops(List<ItemStack> toDrop) {
         for (IItemHandlerModifiable itemHandler : handlersToDrop) {
             InventoryUtil.addAll(itemHandler, toDrop);
         }

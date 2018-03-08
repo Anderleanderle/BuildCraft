@@ -6,6 +6,7 @@
 
 package buildcraft.energy.generation;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,6 +34,6 @@ public class GenLayerAddOilOcean extends GenLayerBiomeReplacer {
         if (biome == null) {
             return false;
         }
-        return BiomeDictionary.getTypes(biome).containsAll(REQUIRED_TYPES);
+        return new ArrayList<BiomeDictionary.Type>(Arrays.asList(BiomeDictionary.getTypesForBiome(biome))).containsAll(REQUIRED_TYPES);
     }
 }

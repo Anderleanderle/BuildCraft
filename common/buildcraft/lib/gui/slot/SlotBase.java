@@ -6,7 +6,7 @@
 
 package buildcraft.lib.gui.slot;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
@@ -30,7 +30,7 @@ public class SlotBase extends SlotItemHandler {
     }
 
     @Override
-    public boolean isItemValid(@Nonnull ItemStack stack) {
+    public boolean isItemValid(@Nullable ItemStack stack) {
         return itemHandler.canSet(handlerIndex, stack);
     }
 

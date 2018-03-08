@@ -25,7 +25,7 @@ import net.minecraftforge.common.util.Constants;
 
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.enums.EnumSnapshotType;
-
+import buildcraft.lib.blockpos.BlockPosRotator;
 import buildcraft.lib.misc.HashUtil;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.RotationUtil;
@@ -265,7 +265,7 @@ public abstract class Snapshot {
         @SuppressWarnings("WeakerAccess")
         public Header(PacketBufferBC buffer) {
             key = new Key(buffer);
-            owner = buffer.readUniqueId();
+            owner = buffer.readUuid();
             created = new Date(buffer.readLong());
             name = buffer.readString();
         }
@@ -281,7 +281,7 @@ public abstract class Snapshot {
 
         public void writeToByteBuf(PacketBufferBC buffer) {
             key.writeToByteBuf(buffer);
-            buffer.writeUniqueId(owner);
+            buffer.writeUuid(owner);
             buffer.writeLong(created.getTime());
             buffer.writeString(name);
         }
@@ -325,22 +325,21 @@ public abstract class Snapshot {
 
         protected BuildingInfo(BlockPos basePos, Rotation rotation) {
             this.basePos = basePos;
-            this.offsetPos = basePos.add(offset.rotate(rotation));
+            this.offsetPos = basePos.add(BlockPosRotator.rotate(offset, rotation));
             this.rotation = rotation;
             this.box.extendToEncompass(toWorld(BlockPos.ORIGIN));
             this.box.extendToEncompass(toWorld(size.subtract(VecUtil.POS_ONE)));
         }
 
         public BlockPos toWorld(BlockPos blockPos) {
-            return blockPos
-                .rotate(rotation)
+            return BlockPosRotator.rotate(blockPos, rotation)
                 .add(offsetPos);
         }
 
         public BlockPos fromWorld(BlockPos blockPos) {
-            return blockPos
-                .subtract(offsetPos)
-                .rotate(RotationUtil.invert(rotation));
+            return BlockPosRotator.rotate(blockPos
+            	.subtract(offsetPos), 
+                RotationUtil.invert(rotation));
         }
 
         public abstract Snapshot getSnapshot();

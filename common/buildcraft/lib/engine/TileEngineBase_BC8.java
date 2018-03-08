@@ -25,7 +25,6 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 
-import buildcraft.api.core.BCLog;
 import buildcraft.api.enums.EnumPowerStage;
 import buildcraft.api.mj.IMjConnector;
 import buildcraft.api.mj.IMjReceiver;
@@ -37,7 +36,6 @@ import buildcraft.api.tiles.IDebuggable;
 import buildcraft.lib.block.VanillaRotationHandlers;
 import buildcraft.lib.misc.LocaleUtil;
 import buildcraft.lib.misc.NBTUtilBC;
-import buildcraft.lib.misc.StringUtilBC;
 import buildcraft.lib.misc.collect.OrderedEnumMap;
 import buildcraft.lib.misc.data.ModelVariableData;
 import buildcraft.lib.net.PacketBufferBC;
@@ -156,7 +154,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
                     // makeTileCache();
                     sendNetworkUpdate(NET_RENDER_DATA);
                     redrawBlock();
-                    world.notifyNeighborsRespectDebug(getPos(), getBlockType(), true);
+                    worldObj.notifyNeighborsRespectDebug(getPos(), getBlockType());
                     return EnumActionResult.SUCCESS;
                 }
                 return EnumActionResult.FAIL;
@@ -166,7 +164,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
     }
 
     private boolean isFacingReceiver(EnumFacing dir) {
-        TileEntity neighbour = world.getTileEntity(getPos().offset(dir));
+        TileEntity neighbour = worldObj.getTileEntity(getPos().offset(dir));
         if (neighbour == null) return false;
         IMjConnector other = neighbour.getCapability(MjAPI.CAP_CONNECTOR, dir.getOpposite());
         if (other == null) return false;
@@ -192,7 +190,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
 
     protected Biome getBiome() {
         // TODO: Cache this!
-        return world.getBiome(getPos());
+        return worldObj.getBiome(getPos());
     }
 
     /** @return The heat of the current biome, in celsius. */
@@ -216,7 +214,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
     }
 
     public final EnumPowerStage getPowerStage() {
-        if (!world.isRemote) {
+        if (!worldObj.isRemote) {
             EnumPowerStage newStage = computePowerStage();
 
             if (powerStage != newStage) {
@@ -245,7 +243,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
     }
 
     public double getPistonSpeed() {
-        if (!world.isRemote) {
+        if (!worldObj.isRemote) {
             return Math.max(0.16 * getHeatLevel(), 0.01);
         }
 
@@ -273,7 +271,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
 
         boolean overheat = getPowerStage() == EnumPowerStage.OVERHEAT;
 
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             lastProgress = progress;
 
             if (isPumping) {
@@ -290,7 +288,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
         }
 
         lastPower = 0;
-        isRedstonePowered = world.isBlockIndirectlyGettingPowered(getPos()) > 0;
+        isRedstonePowered = worldObj.isBlockIndirectlyGettingPowered(getPos()) > 0;
 
         if (!isRedstonePowered) {
             if (power > MjAPI.MJ) {
@@ -420,7 +418,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
 
     /** Temp! This should be replaced with a tile buffer! */
     public ITileBuffer getTileBuffer(EnumFacing side) {
-        TileEntity tile = world.getTileEntity(getPos().offset(side));
+        TileEntity tile = worldObj.getTileEntity(getPos().offset(side));
         return () -> tile;
     }
 

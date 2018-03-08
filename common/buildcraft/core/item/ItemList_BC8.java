@@ -6,7 +6,7 @@ package buildcraft.core.item;
 
 import java.util.List;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -39,9 +39,9 @@ public class ItemList_BC8 extends ItemBC_Neptune implements IList {
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
+    public ActionResult<ItemStack> onItemRightClick(ItemStack stack, World world, EntityPlayer player, EnumHand hand) {
         BCCoreGuis.LIST.openGUI(player);
-        return ActionResult.newResult(EnumActionResult.SUCCESS, player.getHeldItem(hand));
+        return ActionResult.newResult(EnumActionResult.SUCCESS, stack);
     }
 
     @Override
@@ -53,13 +53,13 @@ public class ItemList_BC8 extends ItemBC_Neptune implements IList {
 
     @Override
     public int getMetadata(ItemStack stack) {
-        return ListHandler.hasItems(StackUtil.asNonNull(stack)) ? 1 : 0;
+        return ListHandler.hasItems((stack)) ? 1 : 0;
     }
 
     @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List<String> tooltip, boolean advanced) {
-        String name = getName(StackUtil.asNonNull(stack));
+        String name = getName((stack));
         if (StringUtils.isNullOrEmpty(name)) return;
         tooltip.add(TextFormatting.ITALIC + name);
     }
@@ -67,18 +67,18 @@ public class ItemList_BC8 extends ItemBC_Neptune implements IList {
     // IList
 
     @Override
-    public String getName(@Nonnull ItemStack stack) {
+    public String getName(@Nullable ItemStack stack) {
         return NBTUtilBC.getItemData(stack).getString("label");
     }
 
     @Override
-    public boolean setName(@Nonnull ItemStack stack, String name) {
+    public boolean setName(@Nullable ItemStack stack, String name) {
         NBTUtilBC.getItemData(stack).setString("label", name);
         return true;
     }
 
     @Override
-    public boolean matches(@Nonnull ItemStack stackList, @Nonnull ItemStack item) {
+    public boolean matches(@Nullable ItemStack stackList, @Nullable ItemStack item) {
         return ListHandler.matches(stackList, item);
     }
 }

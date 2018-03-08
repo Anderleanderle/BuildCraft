@@ -124,14 +124,14 @@ public class TileFiller extends TileBC_Neptune
     @Override
     public void onPlacedBy(EntityLivingBase placer, ItemStack stack) {
         super.onPlacedBy(placer, stack);
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
-        IBlockState blockState = world.getBlockState(pos);
-        WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(world);
+        IBlockState blockState = worldObj.getBlockState(pos);
+        WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(worldObj);
         BlockPos offsetPos = pos.offset(blockState.getValue(BlockBCBase_Neptune.PROP_FACING).getOpposite());
         VolumeBox volumeBox = volumeBoxes.getVolumeBoxAt(offsetPos);
-        TileEntity tile = world.getTileEntity(offsetPos);
+        TileEntity tile = worldObj.getTileEntity(offsetPos);
         if (volumeBox != null) {
             addon = (AddonFillerPlanner) volumeBox.addons
                 .values()
@@ -184,7 +184,7 @@ public class TileFiller extends TileBC_Neptune
                                 int slot,
                                 @Nonnull ItemStack before,
                                 @Nonnull ItemStack after) {
-        if (!world.isRemote) {
+        if (!worldObj.isRemote) {
             if (handler == invResources) {
                 Optional.ofNullable(getBuilder()).ifPresent(SnapshotBuilder::resourcesChanged);
             }
@@ -194,7 +194,7 @@ public class TileFiller extends TileBC_Neptune
 
     @Override
     public void update() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             if (isValid()) {
                 builder.tick();
             }
@@ -244,7 +244,7 @@ public class TileFiller extends TileBC_Neptune
                 buffer.writeBoolean(markerBox);
                 buffer.writeBoolean(addon != null);
                 if (addon != null) {
-                    buffer.writeUniqueId(addon.volumeBox.id);
+                    buffer.writeUuid(addon.volumeBox.id);
                     buffer.writeEnumValue(addon.getSlot());
                 }
             } else if (id == NET_CAN_EXCAVATE) {
@@ -276,14 +276,14 @@ public class TileFiller extends TileBC_Neptune
                 box.readData(buffer);
                 markerBox = buffer.readBoolean();
                 if (buffer.readBoolean()) {
-                    UUID volumeBoxId = buffer.readUniqueId();
-                    VolumeBox volumeBox = world.isRemote
+                    UUID volumeBoxId = buffer.readUuid();
+                    VolumeBox volumeBox = worldObj.isRemote
                         ?
                         ClientVolumeBoxes.INSTANCE.volumeBoxes.stream()
                             .filter(localVolumeBox -> localVolumeBox.id.equals(volumeBoxId))
                             .findFirst()
                             .orElseThrow(NullPointerException::new)
-                        : WorldSavedDataVolumeBoxes.get(world).getVolumeBoxFromId(volumeBoxId);
+                        : WorldSavedDataVolumeBoxes.get(worldObj).getVolumeBoxFromId(volumeBoxId);
                     addon = (AddonFillerPlanner) volumeBox
                         .addons
                         .get(buffer.readEnumValue(EnumAddonSlot.class));
@@ -322,7 +322,7 @@ public class TileFiller extends TileBC_Neptune
     }
 
     public void onStatementChange() {
-        if (!world.isRemote) {
+        if (!worldObj.isRemote) {
             createAndSendMessage(NET_PATTERN, patternStatement::writeToBuffer);
         }
         finished = false;
@@ -362,7 +362,7 @@ public class TileFiller extends TileBC_Neptune
         mode = Optional.ofNullable(NBTUtilBC.readEnum(nbt.getTag("mode"), Mode.class)).orElse(Mode.ON);
         box.initialize(nbt.getCompoundTag("box"));
         if (nbt.hasKey("addonSlot")) {
-            addon = (AddonFillerPlanner) WorldSavedDataVolumeBoxes.get(world)
+            addon = (AddonFillerPlanner) WorldSavedDataVolumeBoxes.get(worldObj)
                 .getVolumeBoxFromId(nbt.getUniqueId("addonVolumeBoxId"))
                 .addons
                 .get(NBTUtilBC.readEnum(nbt.getTag("addonSlot"), EnumAddonSlot.class));
@@ -409,7 +409,7 @@ public class TileFiller extends TileBC_Neptune
 
     @Override
     public World getWorldBC() {
-        return world;
+        return worldObj;
     }
 
     public int getCountToPlace() {
@@ -469,7 +469,7 @@ public class TileFiller extends TileBC_Neptune
 
     @Override
     public World getFillerWorld() {
-        return world;
+        return worldObj;
     }
 
     @Override
@@ -478,7 +478,7 @@ public class TileFiller extends TileBC_Neptune
     }
 
     public boolean isValid() {
-        return hasBox() && (world.isRemote || (addon != null ? addon.buildingInfo : buildingInfo) != null);
+        return hasBox() && (worldObj.isRemote || (addon != null ? addon.buildingInfo : buildingInfo) != null);
     }
 
     @Override

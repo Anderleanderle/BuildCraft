@@ -32,7 +32,7 @@ public enum StripesHandlerPlaceBlock implements IStripesHandlerItem {
             return false;
         }
         stack.getItem().onItemUse(
-            player,
+            stack, player,
             world,
             pos.offset(direction),
             EnumHand.MAIN_HAND,

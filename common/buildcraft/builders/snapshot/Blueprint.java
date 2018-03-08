@@ -31,7 +31,7 @@ import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.enums.EnumSnapshotType;
 import buildcraft.api.schematics.ISchematicBlock;
 import buildcraft.api.schematics.ISchematicEntity;
-
+import buildcraft.lib.blockpos.BlockPosRotator;
 import buildcraft.lib.misc.NBTUtilBC;
 
 public class Blueprint extends Snapshot {

@@ -6,7 +6,7 @@
 
 package buildcraft.core.item;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -35,17 +35,17 @@ public class ItemGoggles extends ItemArmor implements IItemBuildCraft, ISpecialA
     }
 
     @Override
-    public ArmorProperties getProperties(EntityLivingBase player, @Nonnull ItemStack armor, DamageSource source, double damage, int slot) {
+    public ArmorProperties getProperties(EntityLivingBase player, @Nullable ItemStack armor, DamageSource source, double damage, int slot) {
         return HELMET_PROPERTIES;
     }
 
     @Override
-    public int getArmorDisplay(EntityPlayer player, @Nonnull ItemStack armor, int slot) {
+    public int getArmorDisplay(EntityPlayer player, @Nullable ItemStack armor, int slot) {
         return 0;
     }
 
     @Override
-    public void damageArmor(EntityLivingBase entity, @Nonnull ItemStack stack, DamageSource source, int damage, int slot) {
+    public void damageArmor(EntityLivingBase entity, @Nullable ItemStack stack, DamageSource source, int damage, int slot) {
         // Invulnerable goggles
     }
 }

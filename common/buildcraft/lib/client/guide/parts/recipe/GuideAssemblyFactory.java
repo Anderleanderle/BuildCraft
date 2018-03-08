@@ -40,9 +40,9 @@ public class GuideAssemblyFactory implements GuidePartFactory {
         return Arrays.deepHashCode(new Object[] { input, output, mjCost });
     }
 
-    // public static GuideAssemblyFactory create(@Nonnull ItemStack stack) {
+    // public static GuideAssemblyFactory create(@Nullable ItemStack stack) {
     // for (IRecipe recipe : CraftingManager.getInstance().getRecipeList()) {
-    // if (OreDictionary.itemMatches(stack, StackUtil.asNonNull(recipe.getRecipeOutput()), false)) {
+    // if (OreDictionary.itemMatches(stack, (recipe.getRecipeOutput()), false)) {
     // GuideAssemblyFactory val = getFactory(recipe);
     // if (val != null) {
     // return val;

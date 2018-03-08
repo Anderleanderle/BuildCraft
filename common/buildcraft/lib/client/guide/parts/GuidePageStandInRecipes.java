@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
@@ -22,7 +23,7 @@ public class GuidePageStandInRecipes extends GuidePage {
     }
 
     @Nonnull
-    public static GuidePageFactory createFactory(@Nonnull ItemStack stack) {
+    public static GuidePageFactory createFactory(@Nullable ItemStack stack) {
         List<GuidePartFactory> factories = XmlPageLoader.loadAllCrafting(stack);
         return (gui) -> {
             List<GuidePart> parts = new ArrayList<>();

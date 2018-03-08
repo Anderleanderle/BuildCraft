@@ -154,11 +154,11 @@ public class PipeBehaviourObsidian extends PipeBehaviour implements IMjRedstoneR
 
             int max = power == 0 ? 1 : (int) (power / powerReqPerItem);
             ItemStack extracted = transactor.extract(StackFilter.ALL, 1, max, simulate);
-            if (!extracted.isEmpty()) {
+            if (extracted != null) {
                 if (!simulate) {
                     flowItem.insertItemsForce(extracted, faceFrom, null, INSERT_SPEED);
                 }
-                return power - powerReqPerItem * extracted.getCount();
+                return power - powerReqPerItem * extracted.stackSize;
             }
         }
         if (flowFluid != null) {

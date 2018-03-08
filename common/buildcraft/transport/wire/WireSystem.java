@@ -167,8 +167,8 @@ public class WireSystem {
     }
 
     public boolean isPlayerWatching(EntityPlayerMP player) {
-        if (player.world instanceof WorldServer) {
-            WorldServer world = (WorldServer) player.world;
+        if (player.worldObj instanceof WorldServer) {
+            WorldServer world = (WorldServer) player.worldObj;
             return getChunkPoses().stream().map(chunkPos -> world.getPlayerChunkMap().getEntry(chunkPos.chunkXPos, chunkPos.chunkZPos)).filter(Objects::nonNull).anyMatch(
                 playerChunkMapEntry -> playerChunkMapEntry.hasPlayerMatching(Predicates.equalTo(player)));
         }

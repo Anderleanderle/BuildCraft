@@ -7,7 +7,7 @@ package buildcraft.builders.item;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
 
@@ -38,7 +38,6 @@ import buildcraft.lib.item.ItemBC_Neptune;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.SoundUtil;
 import buildcraft.lib.misc.StackUtil;
-
 import buildcraft.builders.snapshot.SchematicBlockManager;
 
 public class ItemSchematicSingle extends ItemBC_Neptune {
@@ -65,8 +64,8 @@ public class ItemSchematicSingle extends ItemBC_Neptune {
     }
 
     @Override
-    public ActionResult<ItemStack> onItemRightClick(World world, EntityPlayer player, EnumHand hand) {
-        ItemStack stack = StackUtil.asNonNull(player.getHeldItem(hand));
+    public ActionResult<ItemStack> onItemRightClick(ItemStack stack, World world, EntityPlayer player, EnumHand hand) {
+        //ItemStack stack = (player.getHeldItem(hand));
         if (world.isRemote) {
             return new ActionResult<>(EnumActionResult.PASS, stack);
         }
@@ -83,13 +82,13 @@ public class ItemSchematicSingle extends ItemBC_Neptune {
     }
 
     @Override
-    public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand) {
+    public EnumActionResult onItemUseFirst(ItemStack stack, EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand) {
         if (world.isRemote) {
             return EnumActionResult.PASS;
         }
-        ItemStack stack = player.getHeldItem(hand);
+        //ItemStack stack = player.getHeldItem(hand);
         if (player.isSneaking()) {
-            NBTTagCompound itemData = NBTUtilBC.getItemData(StackUtil.asNonNull(stack));
+            NBTTagCompound itemData = NBTUtilBC.getItemData(stack);
             itemData.removeTag(NBT_KEY);
             if (itemData.hasNoTags()) {
                 stack.setTagCompound(null);
@@ -119,7 +118,7 @@ public class ItemSchematicSingle extends ItemBC_Neptune {
             if (!replaceable) {
                 placePos = placePos.offset(side);
             }
-            if (!world.mayPlace(world.getBlockState(pos).getBlock(), placePos, false, side, null)) {
+            if (!world.canBlockBePlaced(world.getBlockState(pos).getBlock(), placePos, false, side, null, stack)) {
                 return EnumActionResult.FAIL;
             }
             if (replaceable && !world.isAirBlock(placePos)) {
@@ -155,43 +154,41 @@ public class ItemSchematicSingle extends ItemBC_Neptune {
                                     return EnumActionResult.SUCCESS;
                                 }
                             } else {
-                                player.sendStatusMessage(
+                                player.addChatMessage(
                                     new TextComponentString(
                                         "Not enough items. Total needed: " +
                                             StackUtil.mergeSameItems(requiredItems).stream()
                                                 .map(s -> s.getTextComponent().getFormattedText() + " x " + s.getCount())
                                                 .collect(Collectors.joining(", "))
-                                    ),
-                                    true
+                                    )
                                 );
                             }
                         } else {
-                            player.sendStatusMessage(
-                                new TextComponentString("Schematic requires fluids"),
-                                true
+                            player.addChatMessage(
+                                new TextComponentString("Schematic requires fluids")
                             );
                         }
                     }
                 }
             } catch (InvalidInputDataException e) {
-                player.sendStatusMessage(
-                    new TextComponentString("Invalid schematic: " + e.getMessage()),
-                    true
-                );
+                //player.sendStatusMessage(new TextComponentString("Invalid schematic: " + e.getMessage()), true);
+                player.addChatMessage(new TextComponentString("Invalid schematic: " + e.getMessage()));
                 e.printStackTrace();
             }
             return EnumActionResult.FAIL;
         }
     }
 
-    public static ISchematicBlock getSchematic(@Nonnull ItemStack stack) throws InvalidInputDataException {
-        if (stack.getItem() instanceof ItemSchematicSingle) {
-            return SchematicBlockManager.readFromNBT(NBTUtilBC.getItemData(stack).getCompoundTag(NBT_KEY));
-        }
+    public static ISchematicBlock getSchematic(@Nullable ItemStack stack) throws InvalidInputDataException {
+    	if (stack != null) {
+	        if (stack.getItem() instanceof ItemSchematicSingle) {
+	            return SchematicBlockManager.readFromNBT(NBTUtilBC.getItemData(stack).getCompoundTag(NBT_KEY));
+	        }
+    	}
         return null;
     }
 
-    public static ISchematicBlock getSchematicSafe(@Nonnull ItemStack stack) {
+    public static ISchematicBlock getSchematicSafe(@Nullable ItemStack stack) {
         try {
             return getSchematic(stack);
         } catch (InvalidInputDataException e) {

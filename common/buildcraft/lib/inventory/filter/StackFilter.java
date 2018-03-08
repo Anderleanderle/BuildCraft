@@ -6,7 +6,7 @@
 
 package buildcraft.lib.inventory.filter;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntityFurnace;
@@ -19,17 +19,17 @@ public enum StackFilter implements IStackFilter {
 
     ALL {
         @Override
-        public boolean matches(@Nonnull ItemStack stack) {
+        public boolean matches(@Nullable ItemStack stack) {
             return true;
         }
     },
     FUEL {
         @Override
-        public boolean matches(@Nonnull ItemStack stack) {
+        public boolean matches(@Nullable ItemStack stack) {
             return TileEntityFurnace.getItemBurnTime(stack) > 0;
         }
     };
 
     @Override
-    public abstract boolean matches(@Nonnull ItemStack stack);
+    public abstract boolean matches(@Nullable ItemStack stack);
 }

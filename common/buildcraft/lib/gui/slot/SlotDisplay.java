@@ -24,11 +24,6 @@ public class SlotDisplay extends Slot {
     }
 
     @Override
-    public ItemStack onTake(EntityPlayer player, ItemStack stack) {
-        return ItemStack.EMPTY;
-    }
-
-    @Override
     public boolean isItemValid(ItemStack stack) {
         return false;
     }
@@ -54,11 +49,11 @@ public class SlotDisplay extends Slot {
 
     @Override
     public int getItemStackLimit(ItemStack stack) {
-        return getStack().getCount();
+        return getStack().stackSize;
     }
 
     @Override
     public int getSlotStackLimit() {
-        return getStack().getCount();
+        return getStack().stackSize;
     }
 }

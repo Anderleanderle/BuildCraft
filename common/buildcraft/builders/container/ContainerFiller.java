@@ -7,6 +7,7 @@
 package buildcraft.builders.container;
 
 import java.io.IOException;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 
@@ -78,11 +79,11 @@ public class ContainerFiller extends ContainerBCTile<TileFiller> implements ICon
     public void valuesChanged() {
         if (tile.addon != null) {
             tile.addon.updateBuildingInfo();
-            if (!player.world.isRemote) {
-                WorldSavedDataVolumeBoxes.get(getPlayer().world).markDirty();
+            if (!player.worldObj.isRemote) {
+                WorldSavedDataVolumeBoxes.get(getPlayer().worldObj).markDirty();
             }
         }
-        if (!player.world.isRemote) {
+        if (!player.worldObj.isRemote) {
             tile.onStatementChange();
         }
     }

@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
@@ -45,7 +46,6 @@ import buildcraft.lib.client.guide.data.JsonContents;
 import buildcraft.lib.client.guide.data.JsonEntry;
 import buildcraft.lib.client.guide.loader.IPageLoader;
 import buildcraft.lib.client.guide.loader.MarkdownPageLoader;
-import buildcraft.lib.client.guide.loader.XmlPageLoader;
 import buildcraft.lib.client.guide.parts.GuidePageFactory;
 import buildcraft.lib.client.guide.parts.GuidePageStandInRecipes;
 import buildcraft.lib.misc.LocaleUtil;
@@ -224,7 +224,7 @@ public enum GuideManager implements IResourceManagerReloadListener {
         return pages.get(entry.page);
     }
 
-    public PageEntry getEntryFor(@Nonnull ItemStack stack) {
+    public PageEntry getEntryFor(@Nullable ItemStack stack) {
         for (PageEntry entry : entries) {
             if (entry.stackMatches(stack)) {
                 return entry;
@@ -234,7 +234,7 @@ public enum GuideManager implements IResourceManagerReloadListener {
     }
 
     @Nonnull
-    public GuidePageFactory getPageFor(@Nonnull ItemStack stack) {
+    public GuidePageFactory getPageFor(@Nullable ItemStack stack) {
         PageEntry entry = getEntryFor(stack);
         if (entry != null) {
             GuidePageFactory factory = getFactoryFor(entry);

@@ -23,14 +23,14 @@ public final class CraftingUtil {
     public static IRecipe findMatchingRecipe(InventoryCrafting par1InventoryCrafting, World par2World) {
         // Begin repair recipe handler
         int itemNum = 0;
-        ItemStack item1 = ItemStack.EMPTY;
-        ItemStack item2 = ItemStack.EMPTY;
+        ItemStack item1 = null;
+        ItemStack item2 = null;
         int slot;
 
         for (slot = 0; slot < par1InventoryCrafting.getSizeInventory(); ++slot) {
             ItemStack itemInSlot = par1InventoryCrafting.getStackInSlot(slot);
 
-            if (!itemInSlot.isEmpty()) {
+            if (!(itemInSlot == null)) {
                 if (itemNum == 0) {
                     item1 = itemInSlot;
                 }
@@ -43,7 +43,7 @@ public final class CraftingUtil {
             }
         }
 
-        if (itemNum == 2 && item1.getItem() == item2.getItem() && item1.getCount() == 1 && item2.getCount() == 1 && item1.getItem().isRepairable()) {
+        if (itemNum == 2 && item1.getItem() == item2.getItem() && item1.stackSize == 1 && item2.stackSize == 1 && item1.getItem().isRepairable()) {
             int item1Durability = item1.getMaxDamage() - item1.getItemDamage();
             int item2Durability = item2.getMaxDamage() - item2.getItemDamage();
             int repairAmt = item1Durability + item2Durability + item1.getMaxDamage() * 5 / 100;

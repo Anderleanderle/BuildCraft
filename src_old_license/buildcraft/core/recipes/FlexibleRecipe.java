@@ -30,7 +30,7 @@ public class FlexibleRecipe<T> implements IFlexibleRecipe<T>, IFlexibleRecipeVie
 
     public T output = null;
 
-    public ArrayList<ItemStack> inputItems = new ArrayList<>();
+    public ArrayList<ItemStack> inputItems = new ArrayList<ItemStack>();
     public ArrayList<List<ItemStack>> inputItemsWithAlternatives = new ArrayList<>();
 
     public ArrayList<FluidStack> inputFluids = new ArrayList<>();

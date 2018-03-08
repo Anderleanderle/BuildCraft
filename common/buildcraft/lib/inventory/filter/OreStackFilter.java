@@ -9,10 +9,10 @@ package buildcraft.lib.inventory.filter;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.annotation.Nonnull;
-
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
+import java.util.List;
+
+import javax.annotation.Nullable;
 
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -31,7 +31,7 @@ public class OreStackFilter implements IStackFilter {
     }
 
     @Override
-    public boolean matches(@Nonnull ItemStack stack) {
+    public boolean matches(@Nullable ItemStack stack) {
         int[] ids = OreDictionary.getOreIDs(stack);
 
         if (ids.length == 0) {
@@ -52,7 +52,7 @@ public class OreStackFilter implements IStackFilter {
     }
 
     @Override
-    public NonNullList<ItemStack> getExamples() {
+    public List<ItemStack> getExamples() {
         return Arrays.stream(ores).map(OreDictionary::getOres).flatMap(Collection::stream).distinct().collect(StackUtil.nonNullListCollector());
     }
 

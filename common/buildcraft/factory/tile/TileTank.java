@@ -72,9 +72,9 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
 
     @Override
     public void update() {
-        smoothedTank.tick(world);
+        smoothedTank.tick(worldObj);
 
-        if (!world.isRemote) {
+        if (!worldObj.isRemote) {
             int compLevel = getComparatorLevel();
             if (compLevel != lastComparatorLevel) {
                 lastComparatorLevel = compLevel;
@@ -88,7 +88,7 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
     @Override
     public void onPlacedBy(EntityLivingBase placer, ItemStack stack) {
         super.onPlacedBy(placer, stack);
-        if (!placer.world.isRemote) {
+        if (!placer.worldObj.isRemote) {
             List<TileTank> tanks = getTanks();
             FluidStack fluid = null;
             for (TileTank tile : tanks) {
@@ -174,7 +174,7 @@ public class TileTank extends TileBC_Neptune implements ITickable, IDebuggable, 
     // Tank helper methods
 
     private TileTank getTank(BlockPos at) {
-        TileEntity tile = world.getTileEntity(at);
+        TileEntity tile = worldObj.getTileEntity(at);
         if (tile instanceof TileTank) {
             return (TileTank) tile;
         }

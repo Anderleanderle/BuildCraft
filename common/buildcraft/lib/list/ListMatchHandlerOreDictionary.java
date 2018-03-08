@@ -6,13 +6,14 @@
 
 package buildcraft.lib.list;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
 
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -32,7 +33,7 @@ public class ListMatchHandlerOreDictionary extends ListMatchHandler {
     }
 
     @Override
-    public boolean matches(Type type, @Nonnull ItemStack stack, @Nonnull ItemStack target, boolean precise) {
+    public boolean matches(Type type, @Nullable ItemStack stack, @Nullable ItemStack target, boolean precise) {
         int[] oreIds = OreDictionary.getOreIDs(stack);
 
         if (oreIds.length == 0) {
@@ -81,7 +82,7 @@ public class ListMatchHandlerOreDictionary extends ListMatchHandler {
     }
 
     @Override
-    public boolean isValidSource(Type type, @Nonnull ItemStack stack) {
+    public boolean isValidSource(Type type, @Nullable ItemStack stack) {
         if (OreDictionary.getOreIDs(stack).length > 0) {
             return true;
         }
@@ -105,14 +106,14 @@ public class ListMatchHandlerOreDictionary extends ListMatchHandler {
     }
 
     @Override
-    public NonNullList<ItemStack> getClientExamples(Type type, @Nonnull ItemStack stack) {
+    public List<ItemStack> getClientExamples(Type type, @Nullable ItemStack stack) {
         int[] oreIds = OreDictionary.getOreIDs(stack);
-        NonNullList<ItemStack> stacks = NonNullList.create();
+        List<ItemStack> stacks = new ArrayList<ItemStack>();
 
         if (oreIds.length == 0) {
             // No ore IDs? Time for the best effort plan of METADATA!
             if (type == Type.TYPE) {
-                NonNullList<ItemStack> tempStack = NonNullList.create();
+                List<ItemStack> tempStack = new ArrayList<ItemStack>();
                 stack.getItem().getSubItems(stack.getItem(), CreativeTabs.MISC, tempStack);
                 for (ItemStack is : tempStack) {
                     if (is.getItem() == stack.getItem()) {
@@ -144,7 +145,7 @@ public class ListMatchHandlerOreDictionary extends ListMatchHandler {
             }
         }
 
-        NonNullList<ItemStack> wildcard = NonNullList.create();
+        List<ItemStack> wildcard = new ArrayList<ItemStack>();
 
         for (ItemStack is : stacks) {
             if (is != null && is.getItemDamage() == OreDictionary.WILDCARD_VALUE && is.getHasSubtypes()) {
@@ -152,7 +153,7 @@ public class ListMatchHandlerOreDictionary extends ListMatchHandler {
             }
         }
         for (ItemStack is : wildcard) {
-            NonNullList<ItemStack> wll = NonNullList.create();
+            List<ItemStack> wll = new ArrayList<ItemStack>();
             is.getItem().getSubItems(is.getItem(), CreativeTabs.MISC, wll);
             if (wll.size() > 0) {
                 stacks.remove(is);

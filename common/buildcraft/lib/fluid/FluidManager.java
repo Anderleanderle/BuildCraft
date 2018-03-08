@@ -49,10 +49,12 @@ public class FluidManager {
 
     @SideOnly(Side.CLIENT)
     public static void postRegisterFluid(BCFluid fluid) {
+    	/* TODO Check if this works
         ModelResourceLocation modelLocation = new ModelResourceLocation(Loader.instance().activeModContainer().getModId() + ":fluid_" + fluid.getName());
         Item item = ItemBlock.getItemFromBlock(fluid.getBlock());
         ModelBakery.registerItemVariants(item);
         ModelLoader.setCustomMeshDefinition(item, stack -> modelLocation);
+        */
         ModelLoader.setCustomStateMapper(fluid.getBlock(), new StateMap.Builder().ignore(BlockFluidBase.LEVEL).build());
     }
 }

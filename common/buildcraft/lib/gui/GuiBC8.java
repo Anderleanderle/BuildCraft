@@ -102,7 +102,7 @@ public abstract class GuiBC8<C extends ContainerBC_Neptune> extends GuiContainer
     }
 
     public FontRenderer getFontRenderer() {
-        return fontRenderer;
+        return fontRendererObj;
     }
 
     public float getLastPartialTicks() {
@@ -113,12 +113,12 @@ public abstract class GuiBC8<C extends ContainerBC_Neptune> extends GuiContainer
 
     public void drawTexturedModalRect(double posX, double posY, double textureX, double textureY, double width,
         double height) {
-        int x = MathHelper.floor(posX);
-        int y = MathHelper.floor(posY);
-        int u = MathHelper.floor(textureX);
-        int v = MathHelper.floor(textureY);
-        int w = MathHelper.floor(width);
-        int h = MathHelper.floor(height);
+        int x = MathHelper.floor_double(posX);
+        int y = MathHelper.floor_double(posY);
+        int u = MathHelper.floor_double(textureX);
+        int v = MathHelper.floor_double(textureY);
+        int w = MathHelper.floor_double(width);
+        int h = MathHelper.floor_double(height);
         drawTexturedModalRect(x, y, u, v, w, h);
     }
 
@@ -308,12 +308,12 @@ public abstract class GuiBC8<C extends ContainerBC_Neptune> extends GuiContainer
 
     private int drawTooltip(ToolTip tooltip, double x, double y) {
         return 4 + GuiUtil.drawHoveringText(tooltip, (int) Math.round(x), (int) Math.round(y), width, height, -1,
-            mc.fontRenderer);
+            mc.fontRendererObj);
     }
 
     public void drawProgress(GuiRectangle rect, GuiIcon icon, double widthPercent, double heightPercent) {
-        int nWidth = MathHelper.ceil(rect.width * Math.abs(widthPercent));
-        int nHeight = MathHelper.ceil(rect.height * Math.abs(heightPercent));
+        int nWidth = MathHelper.ceiling_double_int(rect.width * Math.abs(widthPercent));
+        int nHeight = MathHelper.ceiling_double_int(rect.height * Math.abs(heightPercent));
         icon.offset(widthPercent > 0 ? 0 : rect.width - nWidth, heightPercent > 0 ? 0 : rect.height - nHeight)
             .drawCutInside(new GuiRectangle(widthPercent > 0 ? rect.x : rect.x + (rect.width - nWidth),
                 heightPercent > 0 ? rect.y : rect.y + (rect.height - nHeight), nWidth, nHeight).offset(rootElement));

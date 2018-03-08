@@ -14,9 +14,16 @@ public class BCEnergyWorldGen {
     public static void preInit() {
         GameRegistry.register(BiomeOilOcean.INSTANCE);
         GameRegistry.register(BiomeOilDesert.INSTANCE);
-        BiomeDictionary.addTypes(BiomeOilOcean.INSTANCE, BiomeDictionary.Type.OCEAN);
-        BiomeDictionary.addTypes(BiomeOilDesert.INSTANCE, BiomeDictionary.Type.HOT, BiomeDictionary.Type.DRY,
-            BiomeDictionary.Type.SANDY);
+        BiomeDictionary.registerBiomeType(
+                BiomeOilOcean.INSTANCE,
+                BiomeDictionary.Type.OCEAN
+        );
+        BiomeDictionary.registerBiomeType(
+                BiomeOilDesert.INSTANCE,
+                BiomeDictionary.Type.HOT,
+                BiomeDictionary.Type.DRY,
+                BiomeDictionary.Type.SANDY
+        );
 
         if (BCCoreConfig.worldGen && BCEnergyConfig.enableOilGeneration) {
             GameRegistry.registerWorldGenerator(OilGenerator.INSTANCE, 0);

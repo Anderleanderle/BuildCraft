@@ -22,8 +22,6 @@ import net.minecraft.inventory.ClickType;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
-
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.items.IItemHandler;
@@ -104,16 +102,16 @@ public abstract class ContainerBC_Neptune extends Container {
         ItemStack playerStack = player.inventory.getItemStack();
         if (slot instanceof IPhantomSlot) {
             IPhantomSlot phantom = (IPhantomSlot) slot;
-            if (playerStack.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
-            } else if (!StackUtil.canMerge(playerStack, StackUtil.asNonNull(slot.getStack()))) {
+            if (playerStack == null) {
+                slot.putStack(null);
+            } else if (!StackUtil.canMerge(playerStack, (slot.getStack()))) {
                 ItemStack copy = playerStack.copy();
-                copy.setCount(1);
+                copy.stackSize = (1);
                 slot.putStack(copy);
             } else if (phantom.canAdjustCount()) {
                 ItemStack stack = slot.getStack();
-                if (stack.getCount() < stack.getMaxStackSize()) {
-                    stack.grow(1);
+                if (stack.stackSize < stack.getMaxStackSize()) {
+                    stack.stackSize ++;
                     slot.putStack(stack);
                 }
             }
@@ -124,7 +122,7 @@ public abstract class ContainerBC_Neptune extends Container {
 
     @Override
     public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
-        ItemStack itemstack = ItemStack.EMPTY;
+        ItemStack itemstack = null;
         Slot slot = this.inventorySlots.get(index);
         Slot firstSlot = this.inventorySlots.get(0);
         int playerInventorySize = 36;
@@ -132,31 +130,31 @@ public abstract class ContainerBC_Neptune extends Container {
 
         if (slot != null && slot.getHasStack()) {
             ItemStack itemstack1 = slot.getStack();
-            itemstack = itemstack1.copy();
+            itemstack = itemstack == null ? itemstack1.copy() : null;
 
-            if (inventorySlots.size() == playerInventorySize) return ItemStack.EMPTY;
+            if (inventorySlots.size() == playerInventorySize) return null;
             if (playerInventoryFirst) {
                 if (index < playerInventorySize) {
                     if (!this.mergeItemStack(itemstack1, playerInventorySize, this.inventorySlots.size(), false)) {
-                        return ItemStack.EMPTY;
+                        return null;
                     }
                 } else if (!this.mergeItemStack(itemstack1, 0, playerInventorySize, true)) {
-                    return ItemStack.EMPTY;
+                    return null;
                 }
             } else {
                 if (index < this.inventorySlots.size() - playerInventorySize) {
                     if (!this.mergeItemStack(itemstack1, this.inventorySlots.size() - playerInventorySize,
                         this.inventorySlots.size(), false)) {
-                        return ItemStack.EMPTY;
+                        return null;
                     }
                 } else if (!this.mergeItemStack(itemstack1, 0, this.inventorySlots.size() - playerInventorySize,
                     true)) {
-                    return ItemStack.EMPTY;
+                    return null;
                 }
             }
 
-            if (itemstack1.isEmpty()) {
-                slot.putStack(ItemStack.EMPTY);
+            if (itemstack1 == null) {
+                slot.putStack(null);
             } else {
                 slot.onSlotChanged();
             }
@@ -193,14 +191,14 @@ public abstract class ContainerBC_Neptune extends Container {
     }
 
     public final void sendMessage(int id) {
-        Side side = player.world.isRemote ? Side.CLIENT : Side.SERVER;
+        Side side = player.worldObj.isRemote ? Side.CLIENT : Side.SERVER;
         sendMessage(id, (buffer) -> writeMessage(id, buffer, side));
     }
 
     public final void sendMessage(int id, IPayloadWriter writer) {
         PacketBufferBC payload = PacketBufferBC.write(writer);
         MessageContainer message = new MessageContainer(windowId, id, payload);
-        if (player.world.isRemote) {
+        if (player.worldObj.isRemote) {
             MessageManager.sendToServer(message);
         } else {
             MessageManager.sendTo(message, (EntityPlayerMP) player);
@@ -241,8 +239,8 @@ public abstract class ContainerBC_Neptune extends Container {
     }
 
     private void readSingleSetPhantom(PacketBufferBC buffer, MessageContext ctx) throws IOException {
-        int idx = buffer.readVarInt();
-        ItemStack stack = buffer.readItemStack();
+        int idx = buffer.readVarIntFromBuffer();
+        ItemStack stack = buffer.readItemStackFromBuffer();
         if (idx >= 0 && idx < inventorySlots.size()) {
             Slot s = inventorySlots.get(idx);
             if (s instanceof SlotPhantom) {
@@ -254,7 +252,7 @@ public abstract class ContainerBC_Neptune extends Container {
                     // log rather than throw an exception because of bugged/naughty clients
                     String s2 = "[lib.container] Received an illegal phantom slot setting request! ";
                     s2 += "[The item handler disallowed the replacement] (Client = ";
-                    s2 += ctx.getServerHandler().player.getName() + ", slot_index = " + idx;
+                    s2 += ctx.getServerHandler().playerEntity.getName() + ", slot_index = " + idx;
                     s2 += ", stack = " + stack + ")";
                     BCLog.logger.warn(s2);
                 }
@@ -265,7 +263,7 @@ public abstract class ContainerBC_Neptune extends Container {
         // log rather than throw an exception because of bugged/naughty clients
         String s2 = "[lib.container] Received an illegal phantom slot setting request! ";
         s2 += "[Didn't find a phantom slot for the given index] (Client = ";
-        s2 += ctx.getServerHandler().player.getName() + ", slot_index = " + idx;
+        s2 += ctx.getServerHandler().playerEntity.getName() + ", slot_index = " + idx;
         s2 += ", stack = " + stack + ")";
         BCLog.logger.warn(s2);
     }
@@ -286,7 +284,7 @@ public abstract class ContainerBC_Neptune extends Container {
                 + "size of the inventory! (list = " + stacks + ", handler = " + handler + ")");
         }
         int[] indexes = new int[stacks.size()];
-        NonNullList<ItemStack> destinationStacks = NonNullList.create();
+        List<ItemStack> destinationStacks = new ArrayList<ItemStack>();
         int i2 = 0;
         for (int i = 0; i < stacks.size(); i++) {
             ItemStack stack = stacks.get(i);
@@ -326,12 +324,12 @@ public abstract class ContainerBC_Neptune extends Container {
 
     private void sendSetPhantomSlot(int phIndex, ItemStack to) {
         sendMessage(NET_SET_PHANTOM, (buffer) -> {
-            buffer.writeVarInt(phIndex);
-            buffer.writeItemStack(to);
+            buffer.writeVarIntToBuffer(phIndex);
+            buffer.writeItemStackToBuffer(to);
         });
     }
 
-    private void sendSetPhantomSlots(int[] indexes, NonNullList<ItemStack> stacks) {
+    private void sendSetPhantomSlots(int[] indexes, List<ItemStack> stacks) {
         if (indexes.length != stacks.size()) {
             throw new IllegalArgumentException("Sizes don't match! (" + indexes.length + " vs " + stacks.size() + ")");
         }
@@ -340,8 +338,8 @@ public abstract class ContainerBC_Neptune extends Container {
             for (int i = 0; i < indexes.length; i++) {
                 int index = indexes[i];
                 ItemStack stack = stacks.get(i);
-                buffer.writeVarInt(index);
-                buffer.writeItemStack(stack);
+                buffer.writeVarIntToBuffer(index);
+                buffer.writeItemStackToBuffer(stack);
             }
         });
     }

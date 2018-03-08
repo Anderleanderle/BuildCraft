@@ -140,7 +140,7 @@ public class ContainerGate extends ContainerBC_Neptune {
                 int numTriggers = buffer.readInt();
                 int numActions = buffer.readInt();
                 for (int i = 0; i < numTriggers; i++) {
-                    String tag = buffer.readString(256);
+                    String tag = buffer.readStringFromBuffer(256);
                     EnumPipePart part = buffer.readEnumValue(EnumPipePart.class);
                     TriggerWrapper wrapper = TriggerWrapper.wrap(StatementManager.statements.get(tag), part.face);
                     if (gate.isValidTrigger(wrapper)) {
@@ -148,7 +148,7 @@ public class ContainerGate extends ContainerBC_Neptune {
                     }
                 }
                 for (int i = 0; i < numActions; i++) {
-                    String tag = buffer.readString(256);
+                    String tag = buffer.readStringFromBuffer(256);
                     EnumPipePart part = buffer.readEnumValue(EnumPipePart.class);
                     ActionWrapper wrapper = ActionWrapper.wrap(StatementManager.statements.get(tag), part.face);
                     if (gate.isValidAction(wrapper)) {

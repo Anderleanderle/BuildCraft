@@ -73,7 +73,7 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 {
 
     @Override
     public boolean onActivated(EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
-        if (!world.isRemote) {
+        if (!worldObj.isRemote) {
             BCEnergyGuis.ENGINE_STONE.openGUI(player, getPos());
         }
         return true;
@@ -109,7 +109,7 @@ public class TileEngineStone_BC8 extends TileEngineBase_BC8 {
 
                 ItemStack fuel = invFuel.extractItem(0, 1, false);
                 ItemStack container = fuel.getItem().getContainerItem(fuel);
-                if (!container.isEmpty()) {
+                if (!(container == null)) {
                     ItemStack leftover = invFuel.insert(container, false, false);
                     InventoryUtil.addToBestAcceptor(getWorld(), getPos(), null, leftover);
                 }

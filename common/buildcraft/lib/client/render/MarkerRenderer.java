@@ -15,11 +15,11 @@ import buildcraft.lib.marker.MarkerSubCache;
 
 public enum MarkerRenderer implements IDetachedRenderer {
     INSTANCE;
-
+	
     @Override
     public void render(EntityPlayer player, float partialTicks) {
         for (MarkerCache<? extends MarkerSubCache<?>> cache : MarkerCache.CACHES) {
-            for (MarkerConnection<?> connection : cache.getSubCache(player.world).getConnections()) {
+            for (MarkerConnection<?> connection : cache.getSubCache(player.worldObj).getConnections()) {
                 connection.renderInWorld();
             }
         }

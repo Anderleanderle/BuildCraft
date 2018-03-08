@@ -108,7 +108,7 @@ public class MessageManager {
         return (message, context) -> {
             if (context.side == Side.SERVER) {
                 // Bad/Buggy client
-                EntityPlayerMP player = context.getServerHandler().player;
+                EntityPlayerMP player = context.getServerHandler().playerEntity;
                 BCLog.logger
                     .warn("[lib.messages] The client " + player.getName() + " (ID = " + player.getGameProfile().getId()
                         + ") sent an invalid message " + clazz + ", when they should only receive them!");
@@ -123,10 +123,10 @@ public class MessageManager {
     public static <I extends IMessage> IMessageHandler<I, ?> wrapHandler(IMessageHandler<I, ?> handler) {
         return (message, context) -> {
             EntityPlayer player = BCLibProxy.getProxy().getPlayerForContext(context);
-            if (player == null || player.world == null) {
+            if (player == null || player.worldObj == null) {
                 return null;
             }
-            BCLibProxy.getProxy().addScheduledTask(player.world, () -> {
+            BCLibProxy.getProxy().addScheduledTask(player.worldObj, () -> {
                 IMessage reply = handler.onMessage(message, context);
                 if (reply != null) {
                     MessageUtil.sendReturnMessage(context, reply);

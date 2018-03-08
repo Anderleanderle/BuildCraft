@@ -56,7 +56,7 @@ public enum FakePlayerProvider implements IFakePlayerProvider {
             profile = NULL_PROFILE;
         }
         FakePlayerBC player = players.computeIfAbsent(profile, p -> new FakePlayerBC(world, p));
-        player.world = world;
+        player.worldObj = world;
         player.posX = pos.getX();
         player.posY = pos.getY();
         player.posZ = pos.getZ();
@@ -64,6 +64,6 @@ public enum FakePlayerProvider implements IFakePlayerProvider {
     }
 
     public void unloadWorld(WorldServer world) {
-        players.values().removeIf(entry -> entry.world == world);
+        players.values().removeIf(entry -> entry.worldObj == world);
     }
 }

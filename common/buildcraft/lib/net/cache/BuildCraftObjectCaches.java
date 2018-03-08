@@ -11,7 +11,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Supplier;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
@@ -45,12 +45,12 @@ public class BuildCraftObjectCaches {
     }
 
     /** @see NetworkedObjectCache.ServerView#store(Object) */
-    public static int storeItemStack(@Nonnull ItemStack stack) {
+    public static int storeItemStack(@Nullable ItemStack stack) {
         return CACHE_ITEMS.server().store(new ItemStackKey(stack));
     }
 
     /** @see NetworkedObjectCache.ServerView#getId(Object) */
-    public static int getItemStackId(@Nonnull ItemStack stack) {
+    public static int getItemStackId(@Nullable ItemStack stack) {
         return CACHE_ITEMS.server().getId(new ItemStackKey(stack));
     }
 

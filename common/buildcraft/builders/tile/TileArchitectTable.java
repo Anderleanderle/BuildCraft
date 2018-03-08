@@ -13,6 +13,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -112,14 +114,14 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
     @Override
     public void onPlacedBy(EntityLivingBase placer, ItemStack stack) {
         super.onPlacedBy(placer, stack);
-        if (placer.world.isRemote) {
+        if (placer.worldObj.isRemote) {
             return;
         }
-        WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(world);
-        IBlockState blockState = world.getBlockState(pos);
+        WorldSavedDataVolumeBoxes volumeBoxes = WorldSavedDataVolumeBoxes.get(worldObj);
+        IBlockState blockState = worldObj.getBlockState(pos);
         BlockPos offsetPos = pos.offset(blockState.getValue(BlockArchitectTable.PROP_FACING).getOpposite());
         VolumeBox volumeBox = volumeBoxes.getVolumeBoxAt(offsetPos);
-        TileEntity tile = world.getTileEntity(offsetPos);
+        TileEntity tile = worldObj.getTileEntity(offsetPos);
         if (volumeBox != null) {
             box.reset();
             box.setMin(volumeBox.box.min());
@@ -146,9 +148,9 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
             provider.removeFromWorld();
         } else {
             isValid = false;
-            IBlockState state = world.getBlockState(pos);
+            IBlockState state = worldObj.getBlockState(pos);
             state = state.withProperty(BlockArchitectTable.PROP_VALID, Boolean.FALSE);
-            world.setBlockState(pos, state);
+            worldObj.setBlockState(pos, state);
         }
     }
 
@@ -156,14 +158,14 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
     public void update() {
         deltaManager.tick();
 
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             if (box.isInitialized()) {
                 ClientArchitectTables.BOXES.put(box.getBoundingBox(), ClientArchitectTables.START_BOX_VALUE);
             }
             return;
         }
 
-        if (!invSnapshotIn.getStackInSlot(0).isEmpty() && invSnapshotOut.getStackInSlot(0).isEmpty() && isValid) {
+        if (!(invSnapshotIn.getStackInSlot(0) == null) && invSnapshotOut.getStackInSlot(0) == null && isValid) {
             if (!scanning) {
                 snapshotType = ItemSnapshot.EnumItemSnapshotType.getFromStack(
                     invSnapshotIn.getStackInSlot(0)
@@ -210,7 +212,7 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
         BlockPos worldScanPos = boxIterator.getCurrent();
         BlockPos schematicPos = worldScanPos.subtract(box.min());
         if (snapshotType == EnumSnapshotType.TEMPLATE) {
-            templateScannedBlocks.set(Snapshot.posToIndex(box.size(), schematicPos), !world.isAirBlock(worldScanPos));
+            templateScannedBlocks.set(Snapshot.posToIndex(box.size(), schematicPos), !worldObj.isAirBlock(worldScanPos));
         }
         if (snapshotType == EnumSnapshotType.BLUEPRINT) {
             ISchematicBlock schematicBlock = readSchematicBlock(worldScanPos);
@@ -237,19 +239,19 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
 
     private ISchematicBlock readSchematicBlock(BlockPos worldScanPos) {
         return SchematicBlockManager.getSchematicBlock(new SchematicBlockContext(
-            world,
+            worldObj,
             box.min(),
             worldScanPos,
-            world.getBlockState(worldScanPos),
-            world.getBlockState(worldScanPos).getBlock()
+            worldObj.getBlockState(worldScanPos),
+            worldObj.getBlockState(worldScanPos).getBlock()
         ));
     }
 
     private void scanEntities() {
-        world.getEntitiesWithinAABB(Entity.class, box.getBoundingBox()).stream()
+        worldObj.getEntitiesWithinAABB(Entity.class, box.getBoundingBox()).stream()
             .map(entity ->
                 SchematicEntityManager.getSchematicEntity(new SchematicEntityContext(
-                    world,
+                    worldObj,
                     box.min(),
                     entity
                 ))
@@ -278,11 +280,11 @@ public class TileArchitectTable extends TileBC_Neptune implements ITickable, IDe
             ((Blueprint) snapshot).entities.addAll(blueprintScannedEntities);
         }
         snapshot.computeKey();
-        GlobalSavedDataSnapshots.get(world).addSnapshot(snapshot);
+        GlobalSavedDataSnapshots.get(worldObj).addSnapshot(snapshot);
         ItemStack stackIn = invSnapshotIn.getStackInSlot(0);
-        stackIn.setCount(stackIn.getCount() - 1);
-        if (stackIn.getCount() == 0) {
-            stackIn = ItemStack.EMPTY;
+        stackIn.stackSize = stackIn.stackSize - 1;
+        if (stackIn.stackSize == 0) {
+            stackIn = null;
         }
         invSnapshotIn.setStackInSlot(0, stackIn);
         invSnapshotOut.setStackInSlot(

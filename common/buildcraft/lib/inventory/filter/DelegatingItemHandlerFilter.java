@@ -6,7 +6,7 @@
 
 package buildcraft.lib.inventory.filter;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
@@ -24,7 +24,7 @@ public class DelegatingItemHandlerFilter implements IStackFilter {
     }
 
     @Override
-    public boolean matches(@Nonnull ItemStack stack) {
+    public boolean matches(@Nullable ItemStack stack) {
         for (int slot = 0; slot < handler.getSlots(); slot++) {
             if (perStackFilter.matches(handler.getStackInSlot(slot), stack)) {
                 return true;

@@ -6,7 +6,7 @@
 
 package buildcraft.lib.list;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
@@ -15,7 +15,7 @@ import buildcraft.api.lists.ListRegistry;
 
 public class ListMatchHandlerClass extends ListMatchHandler {
     @Override
-    public boolean matches(Type type, @Nonnull ItemStack stack, @Nonnull ItemStack target, boolean precise) {
+    public boolean matches(Type type, @Nullable ItemStack stack, @Nullable ItemStack target, boolean precise) {
         if (type == Type.TYPE) {
             Class<?> kl = stack.getItem().getClass();
             return ListRegistry.itemClassAsType.contains(kl) && kl.equals(target.getClass());
@@ -24,7 +24,7 @@ public class ListMatchHandlerClass extends ListMatchHandler {
     }
 
     @Override
-    public boolean isValidSource(Type type, @Nonnull ItemStack stack) {
+    public boolean isValidSource(Type type, @Nullable ItemStack stack) {
         if (type == Type.TYPE) {
             Class<?> kl = stack.getItem().getClass();
             return ListRegistry.itemClassAsType.contains(kl);

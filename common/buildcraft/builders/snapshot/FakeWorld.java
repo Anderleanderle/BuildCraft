@@ -177,6 +177,7 @@ public class FakeWorld extends World {
                 return original;
             }
 
+            /*
             @Override
             public boolean isFixedBiome() {
                 return true;
@@ -186,6 +187,7 @@ public class FakeWorld extends World {
             public Biome getFixedBiome() {
                 return BIOME;
             }
+            */
         };
     }
 }

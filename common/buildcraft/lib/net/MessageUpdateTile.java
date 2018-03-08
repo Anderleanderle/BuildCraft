@@ -62,10 +62,10 @@ public class MessageUpdateTile implements IMessage {
 
     public static final IMessageHandler<MessageUpdateTile, IMessage> HANDLER = (message, ctx) -> {
         EntityPlayer player = BCLibProxy.getProxy().getPlayerForContext(ctx);
-        if (player == null || player.world == null) {
+        if (player == null || player.worldObj == null) {
             return null;
         }
-        TileEntity tile = player.world.getTileEntity(message.pos);
+        TileEntity tile = player.worldObj.getTileEntity(message.pos);
         if (tile instanceof IPayloadReceiver) {
             try {
                 return ((IPayloadReceiver) tile).receivePayload(ctx, message.payload);

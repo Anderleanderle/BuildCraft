@@ -39,17 +39,17 @@ public enum StripesHandlerMinecartDestroy implements IStripesHandlerBlock {
                 EntityMinecartContainer container = (EntityMinecartContainer) cart;
                 for (int i = 0; i < container.getSizeInventory(); i++) {
                     ItemStack s = container.getStackInSlot(i);
-                    if (!s.isEmpty()) {
+                    if (!(s == null)) {
                         container.setInventorySlotContents(i, StackUtil.EMPTY);
                         // Safety check
-                        if (container.getStackInSlot(i).isEmpty()) {
+                        if (container.getStackInSlot(i) == null) {
                             activator.sendItem(s, direction);
                         }
                     }
                 }
             }
             cart.setDead();
-            activator.sendItem(StackUtil.asNonNull(cart.getCartItem()), direction);
+            activator.sendItem(cart.getCartItem(), direction);
             return true;
         }
         return false;

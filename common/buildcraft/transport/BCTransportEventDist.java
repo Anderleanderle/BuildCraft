@@ -28,7 +28,7 @@ public enum BCTransportEventDist {
 
     @SubscribeEvent
     public void onChunkWatch(ChunkWatchEvent event) {
-        WorldSavedDataWireSystems.get(event.getPlayer().world).changedPlayers.add(event.getPlayer());
+        WorldSavedDataWireSystems.get(event.getPlayer().worldObj).changedPlayers.add(event.getPlayer());
     }
 
     @SubscribeEvent

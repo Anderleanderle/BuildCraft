@@ -127,13 +127,13 @@ public class MessageUtil {
     }
 
     public static void writeBlockPos(PacketBuffer buffer, BlockPos pos) {
-        buffer.writeVarInt(pos.getX());
-        buffer.writeVarInt(pos.getY());
-        buffer.writeVarInt(pos.getZ());
+        buffer.writeVarIntToBuffer(pos.getX());
+        buffer.writeVarIntToBuffer(pos.getY());
+        buffer.writeVarIntToBuffer(pos.getZ());
     }
 
     public static BlockPos readBlockPos(PacketBuffer buffer) {
-        return new BlockPos(buffer.readVarInt(), buffer.readVarInt(), buffer.readVarInt());
+        return new BlockPos(buffer.readVarIntFromBuffer(), buffer.readVarIntFromBuffer(), buffer.readVarIntFromBuffer());
     }
 
     public static void writeVec3d(PacketBuffer buffer, Vec3d vec) {
@@ -149,7 +149,7 @@ public class MessageUtil {
     public static void writeGameProfile(PacketBuffer buffer, GameProfile profile) {
         if (profile != null && profile.isComplete()) {
             buffer.writeBoolean(true);
-            buffer.writeUniqueId(profile.getId());
+            buffer.writeUuid(profile.getId());
             buffer.writeString(profile.getName());
         } else {
             buffer.writeBoolean(false);
@@ -158,8 +158,8 @@ public class MessageUtil {
 
     public static GameProfile readGameProfile(PacketBuffer buffer) {
         if (buffer.readBoolean()) {
-            UUID uuid = buffer.readUniqueId();
-            String name = buffer.readString(256);
+            UUID uuid = buffer.readUuid();
+            String name = buffer.readStringFromBuffer(256);
             GameProfile profile = new GameProfile(uuid, name);
             if (profile.isComplete()) {
                 return profile;
@@ -170,13 +170,13 @@ public class MessageUtil {
 
     /** Writes a block state using the block ID and its metadata. Not suitable for full states. */
     public static void writeBlockState(PacketBuffer buf, IBlockState state) {
-        buf.writeVarInt(Block.REGISTRY.getIDForObject(state.getBlock()));
-        buf.writeVarInt(state.getBlock().getMetaFromState(state));
+        buf.writeVarIntToBuffer(Block.REGISTRY.getIDForObject(state.getBlock()));
+        buf.writeVarIntToBuffer(state.getBlock().getMetaFromState(state));
     }
 
     public static IBlockState readBlockState(PacketBuffer buf) {
-        int id = buf.readVarInt();
-        int meta = buf.readVarInt();
+        int id = buf.readVarIntFromBuffer();
+        int meta = buf.readVarIntFromBuffer();
         Block block = Block.REGISTRY.getObjectById(id);
         return block.getStateFromMeta(meta);
     }

@@ -48,7 +48,7 @@ public class GuiUtil {
             public void refresh() {
                 delegate().clear();
                 ItemStack stack = stackRef.get();
-                if (!stack.isEmpty()) {
+                if (!(stack == null)) {
                     EntityPlayer player = gui.container.player;
                     boolean advanced = gui.mc.gameSettings.advancedItemTooltips;
                     delegate().addAll(stack.getTooltip(player, advanced));
@@ -71,8 +71,8 @@ public class GuiUtil {
         RenderHelper.enableGUIStandardItemLighting();
         Minecraft mc = Minecraft.getMinecraft();
         RenderItem itemRender = mc.getRenderItem();
-        itemRender.renderItemAndEffectIntoGUI(mc.player, stack, x, y);
-        itemRender.renderItemOverlayIntoGUI(mc.fontRenderer, stack, x, y, null);
+        itemRender.renderItemAndEffectIntoGUI(mc.thePlayer, stack, x, y);
+        itemRender.renderItemOverlayIntoGUI(mc.fontRendererObj, stack, x, y, null);
         RenderHelper.disableStandardItemLighting();
     }
 

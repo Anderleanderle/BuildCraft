@@ -30,8 +30,8 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 
 import net.minecraftforge.fml.common.Loader;
@@ -41,6 +41,7 @@ import buildcraft.lib.BCLib;
 import buildcraft.lib.misc.BlockUtil;
 import buildcraft.lib.misc.JsonUtil;
 
+//TODO Check if this works
 public class RulesLoader {
     private static final Gson GSON = JsonUtil.registerNbtSerializersDeserializers(new GsonBuilder())
         .registerTypeAdapter(
@@ -148,7 +149,7 @@ public class RulesLoader {
                                         )
                                             .map(nameValue -> nameValue.split("="))
                                             .allMatch(nameValue ->
-                                                blockState.getPropertyKeys().stream()
+                                                blockState.getPropertyNames().stream()
                                                     .filter(property -> property.getName().equals(nameValue[0]))
                                                     .findFirst()
                                                     .map(property ->
@@ -175,13 +176,13 @@ public class RulesLoader {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public static Set<JsonRule> getRules(ResourceLocation entityId, NBTTagCompound tileNbt) {
+    public static Set<JsonRule> getRules(Entity entity, NBTTagCompound tileNbt) {
         // noinspection ConstantConditions
         return RulesLoader.RULES.stream()
             .filter(rule -> rule.selectors != null)
             .filter(rule ->
                 rule.selectors.stream()
-                    .anyMatch(selector -> selector.matches(entityId.toString()::equals, tileNbt))
+                    .anyMatch(selector -> selector.matches(entity.getName()::equals, tileNbt))
             )
             .collect(Collectors.toCollection(HashSet::new));
     }

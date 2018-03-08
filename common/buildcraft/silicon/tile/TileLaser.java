@@ -88,19 +88,19 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable,
 
     private void findPossibleTargets() {
         targetPositions.clear();
-        IBlockState state = world.getBlockState(pos);
+        IBlockState state = worldObj.getBlockState(pos);
         if (state.getBlock() != BCSiliconBlocks.laser) {
             return;
         }
         EnumFacing face = state.getValue(BuildCraftProperties.BLOCK_FACING_6);
 
-        VolumeUtil.iterateCone(world, pos, face, TARGETING_RANGE, true, (w, s, p, visible) -> {
+        VolumeUtil.iterateCone(worldObj, pos, face, TARGETING_RANGE, true, (w, s, p, visible) -> {
             if (!visible) {
                 return;
             }
-            IBlockState stateAt = world.getBlockState(p);
+            IBlockState stateAt = worldObj.getBlockState(p);
             if (stateAt.getBlock() instanceof ILaserTargetBlock) {
-                TileEntity tileAt = world.getTileEntity(p);
+                TileEntity tileAt = worldObj.getTileEntity(p);
                 if (tileAt instanceof ILaserTarget) {
                     targetPositions.add(p);
 
@@ -120,12 +120,12 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable,
             targetPos = null;
             return;
         }
-        targetPos = targetsNeedingPower.get(world.rand.nextInt(targetsNeedingPower.size()));
+        targetPos = targetsNeedingPower.get(worldObj.rand.nextInt(targetsNeedingPower.size()));
     }
 
     private boolean isPowerNeededAt(BlockPos position) {
         if (position != null) {
-            TileEntity tile = world.getTileEntity(position);
+            TileEntity tile = worldObj.getTileEntity(position);
             if (tile instanceof ILaserTarget) {
                 ILaserTarget target = (ILaserTarget) tile;
                 return target.getRequiredLaserPower() > 0;
@@ -136,8 +136,8 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable,
 
     private ILaserTarget getTarget() {
         if (targetPos != null) {
-            if (world.getTileEntity(targetPos) instanceof ILaserTarget) {
-                return (ILaserTarget) world.getTileEntity(targetPos);
+            if (worldObj.getTileEntity(targetPos) instanceof ILaserTarget) {
+                return (ILaserTarget) worldObj.getTileEntity(targetPos);
             }
         }
         return null;
@@ -147,9 +147,9 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable,
         if (targetPos != null) {
             laserPos = new Vec3d(targetPos)
                 .addVector(
-                    (5 + world.rand.nextInt(6) + 0.5) / 16D,
+                    (5 + worldObj.rand.nextInt(6) + 0.5) / 16D,
                     9 / 16D,
-                    (5 + world.rand.nextInt(6) + 0.5) / 16D
+                    (5 + worldObj.rand.nextInt(6) + 0.5) / 16D
                 );
         } else {
             laserPos = null;
@@ -166,9 +166,9 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable,
 
     @Override
     public void update() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             // set laser render position on client side
-            if (clientLaserMoveInterval.markTimeIfDelay(world) || targetPos == null) {
+            if (clientLaserMoveInterval.markTimeIfDelay(worldObj) || targetPos == null) {
                 updateLaser();
             }
             return;
@@ -187,7 +187,7 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable,
             targetPos = null;
         }
 
-        if (serverTargetMoveInterval.markTimeIfDelay(world) || !isPowerNeededAt(targetPos)) {
+        if (serverTargetMoveInterval.markTimeIfDelay(worldObj) || !isPowerNeededAt(targetPos)) {
             randomlyChooseTargetPos();
         }
 
@@ -281,16 +281,16 @@ public class TileLaser extends TileBC_Neptune implements ITickable, IDebuggable,
     @Override
     public void validate() {
         super.validate();
-        if (!world.isRemote) {
-            LocalBlockUpdateNotifier.instance(world).registerSubscriberForUpdateNotifications(this);
+        if (!worldObj.isRemote) {
+            LocalBlockUpdateNotifier.instance(worldObj).registerSubscriberForUpdateNotifications(this);
         }
     }
 
     @Override
     public void invalidate() {
         super.invalidate();
-        if (!world.isRemote) {
-            LocalBlockUpdateNotifier.instance(world).removeSubscriberFromUpdateNotifications(this);
+        if (!worldObj.isRemote) {
+            LocalBlockUpdateNotifier.instance(worldObj).removeSubscriberFromUpdateNotifications(this);
         }
     }
 

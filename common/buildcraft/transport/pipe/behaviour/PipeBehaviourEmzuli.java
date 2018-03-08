@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumDyeColor;
@@ -154,7 +154,7 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood {
         return extracted;
     }
 
-    private boolean filterMatches(@Nonnull ItemStack stack) {
+    private boolean filterMatches(@Nullable ItemStack stack) {
         if (currentSlot == null) return false;
         ItemStack current = invFilters.getStackInSlot(currentSlot.ordinal());
         if (StackUtil.isMatchingItemOrList(current, stack)) {
@@ -190,7 +190,7 @@ public class PipeBehaviourEmzuli extends PipeBehaviourWood {
         int i = SlotIndex.VALUES.length;
         while (i-- > 0) {
             current = current.next();
-            if (activeSlots.contains(current) && !invFilters.getStackInSlot(current.ordinal()).isEmpty()) {
+            if (activeSlots.contains(current) && !(invFilters.getStackInSlot(current.ordinal()) == null)) {
                 return current;
             }
         }

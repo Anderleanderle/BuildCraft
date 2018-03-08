@@ -19,7 +19,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.IStringSerializable;
-import net.minecraft.util.NonNullList;
 
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fml.relauncher.Side;
@@ -52,16 +51,18 @@ public class ItemSnapshot extends ItemBC_Neptune {
     }
 
     public Header getHeader(ItemStack stack) {
-        if (stack.getItem() instanceof ItemSnapshot) {
-            if (EnumItemSnapshotType.getFromStack(stack).used) {
-                NBTTagCompound nbt = stack.getTagCompound();
-                if (nbt != null) {
-                    if (nbt.hasKey("header", Constants.NBT.TAG_COMPOUND)) {
-                        return new Header(nbt.getCompoundTag("header"));
-                    }
-                }
-            }
-        }
+    	if (stack != null) {
+	        if (stack.getItem() instanceof ItemSnapshot) {
+	            if (EnumItemSnapshotType.getFromStack(stack).used) {
+	                NBTTagCompound nbt = stack.getTagCompound();
+	                if (nbt != null) {
+	                    if (nbt.hasKey("header", Constants.NBT.TAG_COMPOUND)) {
+	                        return new Header(nbt.getCompoundTag("header"));
+	                    }
+	                }
+	            }
+	        }
+    	}
         return null;
     }
 
@@ -71,7 +72,7 @@ public class ItemSnapshot extends ItemBC_Neptune {
     }
 
     @Override
-    public void getSubItems(Item item, CreativeTabs tab, NonNullList<ItemStack> subItems) {
+    public void getSubItems(Item item, CreativeTabs tab, List<ItemStack> subItems) {
         Arrays.stream(EnumSnapshotType.values()).map(this::getClean).forEach(subItems::add);
     }
 
@@ -99,7 +100,7 @@ public class ItemSnapshot extends ItemBC_Neptune {
             tooltip.add(LocaleUtil.localize("item.blueprint.blank"));
         } else {
             tooltip.add(header.name);
-            EntityPlayer owner = header.getOwnerPlayer(player.world);
+            EntityPlayer owner = header.getOwnerPlayer(player.worldObj);
             if (owner != null) {
                 tooltip.add(LocaleUtil.localize("item.blueprint.author") + " " + owner.getName());
             }

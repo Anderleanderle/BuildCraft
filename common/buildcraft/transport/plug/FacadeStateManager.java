@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -30,7 +30,6 @@ import net.minecraft.block.BlockStainedGlass;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -108,14 +107,14 @@ public enum FacadeStateManager implements IFacadeRegistry {
             NBTTagCompound nbt = message.getNBTValue();
             String regName = nbt.getString(FacadeAPI.NBT_CUSTOM_BLOCK_REG_KEY);
             int meta = nbt.getInteger(FacadeAPI.NBT_CUSTOM_BLOCK_META);
-            ItemStack stack = new ItemStack(nbt.getCompoundTag(FacadeAPI.NBT_CUSTOM_ITEM_STACK));
+            ItemStack stack = ItemStack.loadItemStackFromNBT(nbt.getCompoundTag(FacadeAPI.NBT_CUSTOM_ITEM_STACK));
             if (regName.isEmpty()) {
                 BCLog.logger.warn("[facade.imc] Received an invalid IMC message from " + message.getSender() + " - "
                     + id + " should have a registry name for the block, stored as "
                     + FacadeAPI.NBT_CUSTOM_BLOCK_REG_KEY);
                 return;
             }
-            if (stack.isEmpty()) {
+            if (stack == null) {
                 BCLog.logger.warn("[facade.imc] Received an invalid IMC message from " + message.getSender() + " - "
                     + id + " should have a valid ItemStack stored in " + FacadeAPI.NBT_CUSTOM_ITEM_STACK);
                 return;
@@ -175,7 +174,7 @@ public enum FacadeStateManager implements IFacadeRegistry {
         return STR_SUCCESS;
     }
 
-    @Nonnull
+    @Nullable
     private static ItemStack getRequiredStack(IBlockState state) {
         ItemStack stack = customBlocks.get(state);
         if (stack != null) {
@@ -183,7 +182,7 @@ public enum FacadeStateManager implements IFacadeRegistry {
         }
         Block block = state.getBlock();
         Item item = Item.getItemFromBlock(block);
-        if (item == Items.AIR || item == null) {
+        if (item == Item.getItemFromBlock(Blocks.AIR) || item == null) {
             item = block.getItemDropped(state, new Random(0), 0);
         }
         return new ItemStack(item, 1, block.damageDropped(state));
@@ -251,7 +250,7 @@ public enum FacadeStateManager implements IFacadeRegistry {
                 vars.values().removeIf(Objects::nonNull);
                 FacadeBlockStateInfo info = new FacadeBlockStateInfo(state, stack, ImmutableSet.copyOf(vars.keySet()));
                 validFacadeStates.put(state, info);
-                if (!info.requiredStack.isEmpty()) {
+                if (!(info.requiredStack == null)) {
                     ItemStackKey stackKey = new ItemStackKey(info.requiredStack);
                     stackFacades.computeIfAbsent(stackKey, k -> new ArrayList<>()).add(info);
                 }

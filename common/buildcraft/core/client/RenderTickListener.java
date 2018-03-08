@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Point3f;
@@ -140,21 +140,19 @@ public class RenderTickListener {
 
     private static void renderHeldItemInWorld(float partialTicks) {
         Minecraft mc = Minecraft.getMinecraft();
-        EntityPlayer player = Minecraft.getMinecraft().player;
-        if (player == null) {
-            return;
-        }
-        ItemStack mainHand = StackUtil.asNonNull(player.getHeldItemMainhand());
-        ItemStack offHand = StackUtil.asNonNull(player.getHeldItemOffhand());
-        WorldClient world = mc.world;
+        EntityPlayer player = Minecraft.getMinecraft().thePlayer;
+        if (player == null) return;
+        ItemStack mainHand = (player.getHeldItemMainhand());
+        ItemStack offHand = (player.getHeldItemOffhand());
+        WorldClient world = mc.theWorld;
 
         mc.mcProfiler.startSection("bc");
         mc.mcProfiler.startSection("renderWorld");
 
         DetachedRenderer.fromWorldOriginPre(player, partialTicks);
 
-        Item mainHandItem = mainHand.getItem();
-        Item offHandItem = offHand.getItem();
+        Item mainHandItem = mainHand != null ? mainHand.getItem() : (Item) null;
+        Item offHandItem = offHand != null ? offHand.getItem() : (Item) null;
 
         if (mainHandItem == BCCoreItems.mapLocation) {
             renderMapLocation(mainHand);
@@ -168,7 +166,7 @@ public class RenderTickListener {
         mc.mcProfiler.endSection();
     }
 
-    private static void renderMapLocation(@Nonnull ItemStack stack) {
+    private static void renderMapLocation(@Nullable ItemStack stack) {
         MapLocationType type = MapLocationType.getFromStack(stack);
         if (type == MapLocationType.SPOT) {
             EnumFacing face = ItemMapLocation.getPointFace(stack);

@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -15,8 +16,8 @@ import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.item.crafting.ShapedRecipes;
 import net.minecraft.item.crafting.ShapelessRecipes;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.NonNullList;
 
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
@@ -27,7 +28,6 @@ import buildcraft.api.core.BCLog;
 import buildcraft.lib.client.guide.GuiGuide;
 import buildcraft.lib.client.guide.parts.GuidePartFactory;
 import buildcraft.lib.misc.StackUtil;
-import buildcraft.lib.misc.data.NonNullMatrix;
 import buildcraft.lib.recipe.ChangingItemStack;
 import buildcraft.lib.recipe.IRecipeViewable;
 import buildcraft.lib.recipe.IRecipeViewable.IViewableGrid;
@@ -36,16 +36,18 @@ public class GuideCraftingFactory implements GuidePartFactory {
     private static final Field SHAPED_ORE_RECIPE___WIDTH;
     private static final Field SHAPED_ORE_RECIPE___HEIGHT;
 
-    private final NonNullMatrix<ItemStack> input;
-    private final @Nonnull ItemStack output;
+    private final ItemStack[][] input;
+    private final @Nullable ItemStack output;
     private final int hash;
 
     public GuideCraftingFactory(ItemStack[][] input, ItemStack output) {
-        this.input = new NonNullMatrix<>(input, StackUtil.EMPTY);
-        this.output = StackUtil.asNonNull(output);
+        this.input = input;
+        this.output = output;
         NBTTagList hashNbt = new NBTTagList();
-        for (ItemStack stack : this.input) {
-            hashNbt.appendTag(stack.serializeNBT());
+        for (int x=0; x<this.input.length; x++) {
+        	for (int y=0; y<this.input[x].length; y++) {
+        		hashNbt.appendTag(input[x][y] != null ? input[x][y].serializeNBT() : new NBTTagCompound());
+        	}
         }
         this.hash = hashNbt.hashCode();
     }
@@ -62,9 +64,9 @@ public class GuideCraftingFactory implements GuidePartFactory {
         }
     }
 
-    public static GuidePartFactory create(@Nonnull ItemStack stack) {
+    public static GuidePartFactory create(@Nullable ItemStack stack) {
         for (IRecipe recipe : CraftingManager.getInstance().getRecipeList()) {
-            if (OreDictionary.itemMatches(stack, StackUtil.asNonNull(recipe.getRecipeOutput()), false)) {
+            if (OreDictionary.itemMatches(stack, (recipe.getRecipeOutput()), false)) {
                 GuidePartFactory val = getFactory(recipe);
                 if (val != null) {
                     return val;
@@ -177,7 +179,7 @@ public class GuideCraftingFactory implements GuidePartFactory {
             return ((ItemStack) object).copy();
         }
         if (object instanceof String) {
-            NonNullList<ItemStack> stacks = OreDictionary.getOres((String) object);
+            List<ItemStack> stacks = OreDictionary.getOres((String) object);
             // It will be sorted out below
             object = stacks;
         }
@@ -213,6 +215,7 @@ public class GuideCraftingFactory implements GuidePartFactory {
     public static GuidePartFactory create(Item output) {
         return create(new ItemStack(output));
     }
+    
 
     @Override
     public GuideCrafting createNew(GuiGuide gui) {
@@ -232,13 +235,15 @@ public class GuideCraftingFactory implements GuidePartFactory {
         GuideCraftingFactory other = (GuideCraftingFactory) obj;
         // Shortcut out of this full itemstack comparison as its really expensive
         if (hash != other.hash) return false;
-        if (input.getWidth() != other.input.getWidth() || input.getHeight() != other.input.getHeight()) return false;
-        for (int i = 0; i < input.size(); i++) {
-            ItemStack stackThis = input.get(i);
-            ItemStack stackOther = other.input.get(i);
-            if (!ItemStack.areItemStacksEqual(stackThis, stackOther)) {
-                return false;
-            }
+        if (input.length != other.input.length || input[input.length-1].length != other.input[input.length-1].length) return false;
+        for (int x=0; x<input.length; x++) {
+        	for (int y=0; y<input[x].length; y++){ 
+                ItemStack stackThis = input[x][y];
+                ItemStack stackOther = other.input[x][y];
+                if (!ItemStack.areItemStacksEqual(stackThis, stackOther)) {
+                    return false;
+                }
+        	}
         }
         return ItemStack.areItemStacksEqual(output, other.output);
     }

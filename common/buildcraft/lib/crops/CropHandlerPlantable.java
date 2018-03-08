@@ -20,12 +20,13 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import net.minecraftforge.common.IPlantable;
+
+import java.util.List;
 
 import buildcraft.api.crops.ICropHandler;
 
@@ -87,7 +88,7 @@ public enum CropHandlerPlantable implements ICropHandler {
     }
 
     @Override
-    public boolean harvestCrop(World world, BlockPos pos, NonNullList<ItemStack> drops) {
+    public boolean harvestCrop(World world, BlockPos pos, List<ItemStack> drops) {
 //        if (!world.isRemote) {
 //            IBlockState state = world.getBlockState(pos);
 //            if (BlockUtil.breakBlock((WorldServer) world, pos, drops, pos)) {

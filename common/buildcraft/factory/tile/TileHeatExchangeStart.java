@@ -183,7 +183,7 @@ public class TileHeatExchangeStart extends TileBC_Neptune implements ITickable, 
         smoothedCoolableOut.tick(getWorld());
         findEnd();
         updateProgress();
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             spawnParticles();
             return;
         }

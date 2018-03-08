@@ -69,7 +69,7 @@ public class MessageWireSystemsPowered implements IMessage {
                     WireSystem.WireElement element = elementPowered.getLeft();
                     boolean powered = elementPowered.getRight();
                     if (element.type == WireSystem.WireElement.Type.WIRE_PART) {
-                        TileEntity tile = Minecraft.getMinecraft().world.getTileEntity(element.blockPos);
+                        TileEntity tile = Minecraft.getMinecraft().theWorld.getTileEntity(element.blockPos);
                         if (tile instanceof IPipeHolder) {
                             IPipeHolder holder = (IPipeHolder) tile;
                             IWireManager iWireManager = holder.getWireManager();

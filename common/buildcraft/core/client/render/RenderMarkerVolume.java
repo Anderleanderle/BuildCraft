@@ -48,7 +48,7 @@ public class RenderMarkerVolume extends TileEntitySpecialRenderer<TileMarkerVolu
         Minecraft.getMinecraft().mcProfiler.startSection("marker");
         Minecraft.getMinecraft().mcProfiler.startSection("volume");
 
-        DetachedRenderer.fromWorldOriginPre(Minecraft.getMinecraft().player, partialTicks);
+        DetachedRenderer.fromWorldOriginPre(Minecraft.getMinecraft().thePlayer, partialTicks);
         RenderHelper.disableStandardItemLighting();
         Minecraft.getMinecraft().renderEngine.bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
 

@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
@@ -26,7 +26,7 @@ public class RecipeLookupHelper {
         handlerTypes.put("assembling", GuideAssemblyRecipes.INSTANCE);
     }
 
-    public static List<GuidePartFactory> getAllUsages(@Nonnull ItemStack stack) {
+    public static List<GuidePartFactory> getAllUsages(@Nullable ItemStack stack) {
         List<GuidePartFactory> list = new ArrayList<>();
         for (IStackRecipes handler : handlerTypes.values()) {
             List<GuidePartFactory> recipes = handler.getUsages(stack);
@@ -37,7 +37,7 @@ public class RecipeLookupHelper {
         return list;
     }
 
-    public static List<GuidePartFactory> getAllRecipes(@Nonnull ItemStack stack) {
+    public static List<GuidePartFactory> getAllRecipes(@Nullable ItemStack stack) {
         List<GuidePartFactory> list = new ArrayList<>();
         for (IStackRecipes handler : handlerTypes.values()) {
             List<GuidePartFactory> recipes = handler.getRecipes(stack);

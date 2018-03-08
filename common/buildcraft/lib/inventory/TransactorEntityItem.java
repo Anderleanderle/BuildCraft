@@ -6,7 +6,7 @@
 
 package buildcraft.lib.inventory;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
@@ -25,7 +25,7 @@ public class TransactorEntityItem implements IItemExtractable {
     }
 
     @Override
-    @Nonnull
+    @Nullable
     public ItemStack extract(IStackFilter filter, int min, int max, boolean simulate) {
         if (entity.isDead) {
             return StackUtil.EMPTY;
@@ -37,14 +37,14 @@ public class TransactorEntityItem implements IItemExtractable {
             return StackUtil.EMPTY;
         }
         ItemStack current = entity.getEntityItem();
-        if (current.isEmpty() || current.getCount() < min) {
+        if (current == null || current.stackSize < min) {
             return StackUtil.EMPTY;
         }
         if (filter.matches(current)) {
             current = current.copy();
             ItemStack extracted = current.splitStack(max);
             if (!simulate) {
-                if (current.getCount() == 0) {
+                if (current.stackSize == 0) {
                     entity.setDead();
                 } else {
                     entity.setEntityItemStack(current);

@@ -8,7 +8,6 @@ package buildcraft.builders.tile;
 
 import java.util.Date;
 
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.ITickable;
 
 import buildcraft.api.core.InvalidInputDataException;
@@ -57,15 +56,15 @@ public class TileReplacer extends TileBC_Neptune implements ITickable {
 
     @Override
     public void update() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
-        if (!invSnapshot.getStackInSlot(0).isEmpty() &&
-            !invSchematicFrom.getStackInSlot(0).isEmpty() &&
-            !invSchematicTo.getStackInSlot(0).isEmpty()) {
+        if (!(invSnapshot.getStackInSlot(0) == null) &&
+            !(invSchematicFrom.getStackInSlot(0) == null) &&
+            !(invSchematicTo.getStackInSlot(0) == null)) {
             Header header = BCBuildersItems.snapshot.getHeader(invSnapshot.getStackInSlot(0));
             if (header != null) {
-                Snapshot snapshot = GlobalSavedDataSnapshots.get(world).getSnapshot(header.key);
+                Snapshot snapshot = GlobalSavedDataSnapshots.get(worldObj).getSnapshot(header.key);
                 if (snapshot instanceof Blueprint) {
                     Blueprint blueprint = (Blueprint) snapshot;
                     try {
@@ -76,11 +75,11 @@ public class TileReplacer extends TileBC_Neptune implements ITickable {
                         ISchematicBlock to = SchematicBlockManager.readFromNBT(
                             NBTUtilBC.getItemData(invSchematicTo.getStackInSlot(0))
                                 .getCompoundTag(ItemSchematicSingle.NBT_KEY)
-                        );
+                        ); 
                         Blueprint newBlueprint = blueprint.copy();
                         newBlueprint.replace(from, to);
                         newBlueprint.computeKey();
-                        GlobalSavedDataSnapshots.get(world).addSnapshot(newBlueprint);
+                        GlobalSavedDataSnapshots.get(worldObj).addSnapshot(newBlueprint);
                         invSnapshot.setStackInSlot(
                             0,
                             BCBuildersItems.snapshot.getUsed(
@@ -93,8 +92,8 @@ public class TileReplacer extends TileBC_Neptune implements ITickable {
                                 )
                             )
                         );
-                        invSchematicFrom.setStackInSlot(0, ItemStack.EMPTY);
-                        invSchematicTo.setStackInSlot(0, ItemStack.EMPTY);
+                        invSchematicFrom.setStackInSlot(0, null);
+                        invSchematicTo.setStackInSlot(0, null);
                     } catch (InvalidInputDataException e) {
                         e.printStackTrace();
                     }

@@ -6,10 +6,12 @@
 
 package buildcraft.lib.recipe;
 
-import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
 
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -23,7 +25,7 @@ public final class ChangingItemStack extends ChangingObject<ItemStack>{
     /** Creates a stack list that iterates through all of the given stacks. This does NOT check possible variants.
      * 
      * @param stacks The list to iterate through. */
-    public ChangingItemStack(NonNullList<ItemStack> stacks) {
+    public ChangingItemStack(List<ItemStack> stacks) {
         super(stacks.toArray(new ItemStack[0]));
     }
 
@@ -31,11 +33,11 @@ public final class ChangingItemStack extends ChangingObject<ItemStack>{
      * metadata is equal to {@link OreDictionary#WILDCARD_VALUE}
      * 
      * @param stack the stack to check. */
-    public static ChangingItemStack create(@Nonnull ItemStack stack) {
-        if (stack.isEmpty()) {
+    public static ChangingItemStack create(@Nullable ItemStack stack) {
+        if (stack == null) {
             return new ChangingItemStack(StackUtil.listOf(StackUtil.EMPTY));
         } else if (stack.getItemDamage() == OreDictionary.WILDCARD_VALUE) {
-            NonNullList<ItemStack> subs = NonNullList.create();
+            List<ItemStack> subs = new ArrayList<ItemStack>();
             stack.getItem().getSubItems(stack.getItem(), null, subs);
             return new ChangingItemStack(subs);
         } else {

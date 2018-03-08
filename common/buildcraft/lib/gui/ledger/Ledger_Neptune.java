@@ -182,7 +182,7 @@ public class Ledger_Neptune implements IInteractionElement, IContainingElement {
         }
 
         double maxDiff = Math.max(maxWidth - CLOSED_WIDTH, maxHeight - CLOSED_HEIGHT);
-        double ldgDiff = MathHelper.clamp(maxDiff / 5, 1, 15);
+        double ldgDiff = MathHelper.clamp_double(maxDiff / 5, 1, 15);
 
         // TODO: extract a method
         if (currentWidth < targetWidth) {

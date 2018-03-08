@@ -8,7 +8,7 @@ package buildcraft.core.list;
 
 import java.io.IOException;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -84,21 +84,20 @@ public class ContainerList extends ContainerBC_Neptune {
         return true;
     }
 
-    @Nonnull
     public ItemStack getListItemStack() {
         ItemStack toTry = player.getHeldItemMainhand();
-        if (!toTry.isEmpty() && toTry.getItem() instanceof ItemList_BC8) {
+        if (!(toTry == null) && toTry.getItem() instanceof ItemList_BC8) {
             return toTry;
         }
 
         toTry = player.getHeldItemOffhand();
-        if (!toTry.isEmpty() && toTry.getItem() instanceof ItemList_BC8) {
+        if (!(toTry == null) && toTry.getItem() instanceof ItemList_BC8) {
             return toTry;
         }
         return StackUtil.EMPTY;
     }
 
-    void setStack(final int lineIndex, final int slotIndex, @Nonnull final ItemStack stack) {
+    void setStack(final int lineIndex, final int slotIndex, @Nullable final ItemStack stack) {
         lines[lineIndex].setStack(slotIndex, stack);
         ListHandler.saveLines(getListItemStack(), lines);
     }
@@ -106,7 +105,7 @@ public class ContainerList extends ContainerBC_Neptune {
     public void switchButton(final int lineIndex, final int button) {
         lines[lineIndex].toggleOption(button);
 
-        if (player.world.isRemote) {
+        if (player.worldObj.isRemote) {
             sendMessage(ID_BUTTON, (buffer) -> {
                 buffer.writeByte(lineIndex);
                 buffer.writeByte(button);
@@ -127,7 +126,7 @@ public class ContainerList extends ContainerBC_Neptune {
     public void setLabel(final String text) {
         BCCoreItems.list.setName(getListItemStack(), text);
 
-        if (player.world.isRemote) {
+        if (player.worldObj.isRemote) {
             sendMessage(ID_LABEL, (buffer) -> buffer.writeString(text));
         }
     }
@@ -141,7 +140,7 @@ public class ContainerList extends ContainerBC_Neptune {
                 int button = buffer.readUnsignedByte();
                 switchButton(lineIndex, button);
             } else if (id == ID_LABEL) {
-                setLabel(buffer.readString(1024));
+                setLabel(buffer.readStringFromBuffer(1024));
             }
         }
     }

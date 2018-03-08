@@ -206,11 +206,11 @@ public class VolumeBox {
     }
 
     public void toBytes(PacketBufferBC buf) {
-        buf.writeUniqueId(id);
+        buf.writeUuid(id);
         box.writeData(buf);
         buf.writeBoolean(player != null);
         if (player != null) {
-            buf.writeUniqueId(player);
+            buf.writeUuid(player);
         }
         buf.writeInt(addons.size());
         addons.forEach((slot, addon) -> {
@@ -223,15 +223,15 @@ public class VolumeBox {
     }
 
     public void fromBytes(PacketBufferBC buf) throws IOException {
-        id = buf.readUniqueId();
+        id = buf.readUuid();
         box = new Box();
         box.readData(buf);
-        player = buf.readBoolean() ? buf.readUniqueId() : null;
+        player = buf.readBoolean() ? buf.readUuid() : null;
         Map<EnumAddonSlot, Addon> newAddons = new EnumMap<>(EnumAddonSlot.class);
         int count = buf.readInt();
         for (int i = 0; i < count; i++) {
             EnumAddonSlot slot = buf.readEnumValue(EnumAddonSlot.class);
-            ResourceLocation rl = new ResourceLocation(buf.readString(1024));
+            ResourceLocation rl = new ResourceLocation(buf.readStringFromBuffer(1024));
             Class<? extends Addon> addonClass = AddonsRegistry.INSTANCE.getClassByName(rl);
             try {
                 if (addonClass == null) {

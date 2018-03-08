@@ -70,7 +70,7 @@ public class TileChute extends TileBC_Neptune implements ITickable, IDebuggable 
     }
 
     private void pickupItems(EnumFacing currentSide) {
-        world.getEntitiesWithinAABB(
+        worldObj.getEntitiesWithinAABB(
             EntityItem.class,
             new AxisAlignedBB(pos.offset(currentSide, PICKUP_RADIUS)).expandXyz(PICKUP_RADIUS)
         ).stream()
@@ -86,7 +86,7 @@ public class TileChute extends TileBC_Neptune implements ITickable, IDebuggable 
                     ),
                     true,
                     true
-                ).isEmpty()) {
+            	) == null) {
                     inv.insert(
                         transactor.extract(
                             StackFilter.ALL,
@@ -107,10 +107,10 @@ public class TileChute extends TileBC_Neptune implements ITickable, IDebuggable 
         sides.removeIf(Predicate.isEqual(currentSide));
         Stream.<Pair<EnumFacing, ICapabilityProvider>>concat(
             sides.stream()
-                .map(side -> Pair.of(side, world.getTileEntity(pos.offset(side)))),
+                .map(side -> Pair.of(side, worldObj.getTileEntity(pos.offset(side)))),
             sides.stream()
                 .flatMap(side ->
-                    world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(pos.offset(side))).stream()
+                    worldObj.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(pos.offset(side))).stream()
                         .map(entity -> Pair.of(side, entity))
                 )
         )
@@ -120,13 +120,13 @@ public class TileChute extends TileBC_Neptune implements ITickable, IDebuggable 
                 ItemStack item = inv.extract(
                     stack -> {
                         ItemStack leftOver = transactor.insert(stack.copy(), false, true);
-                        return leftOver.isEmpty() || leftOver.getCount() < stack.getCount();
+                        return leftOver == null || leftOver.stackSize < stack.stackSize;
                     },
                     1,
                     1,
                     false
                 );
-                if (!item.isEmpty()) {
+                if (item != null) {
                     transactor.insert(item, false, false);
                 }
             });
@@ -136,17 +136,17 @@ public class TileChute extends TileBC_Neptune implements ITickable, IDebuggable 
 
     @Override
     public void update() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
 
-        if (!(world.getBlockState(pos).getBlock() instanceof BlockChute)) {
+        if (!(worldObj.getBlockState(pos).getBlock() instanceof BlockChute)) {
             return;
         }
 
         battery.tick(getWorld(), getPos());
 
-        EnumFacing currentSide = world.getBlockState(pos).getValue(BlockBCBase_Neptune.BLOCK_FACING_6);
+        EnumFacing currentSide = worldObj.getBlockState(pos).getValue(BlockBCBase_Neptune.BLOCK_FACING_6);
 
         int target = 100000;
         if (currentSide == EnumFacing.UP) {

@@ -48,7 +48,7 @@ public abstract class PipeBehaviourDiamond extends PipeBehaviour {
 
     @Override
     public boolean onPipeActivate(EntityPlayer player, RayTraceResult trace, float hitX, float hitY, float hitZ, EnumPipePart part) {
-        if (!player.world.isRemote) {
+        if (!player.worldObj.isRemote) {
             BCTransportGuis.PIPE_DIAMOND.openGui(player, pipe.getHolder().getPipePos());
         }
         return true;

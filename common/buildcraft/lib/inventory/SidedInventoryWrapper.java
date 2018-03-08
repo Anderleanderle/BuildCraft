@@ -6,7 +6,7 @@
 
 package buildcraft.lib.inventory;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
@@ -29,9 +29,9 @@ public final class SidedInventoryWrapper extends AbstractInvItemTransactor {
         slots = sided.getSlotsForFace(face);
     }
 
-    @Nonnull
+    @Nullable
     @Override
-    protected ItemStack insert(int externalSlot, @Nonnull ItemStack stack, boolean simulate) {
+    protected ItemStack insert(int externalSlot, @Nullable ItemStack stack, boolean simulate) {
         int sidedSlot = slots[externalSlot];
         if (sided.canInsertItem(sidedSlot, stack, face)) {
             // Delegate to the normal inserter - its just easier.
@@ -40,7 +40,7 @@ public final class SidedInventoryWrapper extends AbstractInvItemTransactor {
         return stack;
     }
 
-    @Nonnull
+    @Nullable
     @Override
     protected ItemStack extract(int externalSlot, IStackFilter filter, int min, int max, boolean simulate) {
         int sidedSlot = slots[externalSlot];

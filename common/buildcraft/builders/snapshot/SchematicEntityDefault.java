@@ -27,22 +27,25 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ResourceLocation;
+//import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Rotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 import net.minecraftforge.fluids.FluidStack;
-
+//import net.minecraftforge.fml.common.registry.EntityRegistry;
 import buildcraft.api.core.InvalidInputDataException;
 import buildcraft.api.schematics.ISchematicEntity;
 import buildcraft.api.schematics.SchematicEntityContext;
 
+import buildcraft.lib.blockpos.BlockPosRotator;
 import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.RotationUtil;
 
+//TODO Check if this works
 public class SchematicEntityDefault implements ISchematicEntity {
+	private Entity entity;
     private NBTTagCompound entityNbt;
     private Vec3d pos;
     private BlockPos hangingPos;
@@ -50,19 +53,24 @@ public class SchematicEntityDefault implements ISchematicEntity {
     private Rotation entityRotation = Rotation.NONE;
 
     public static boolean predicate(SchematicEntityContext context) {
-        ResourceLocation registryName = EntityList.getKey(context.entity);
+        String registryName = context.entity.getName();
         return registryName != null &&
-            RulesLoader.READ_DOMAINS.contains(registryName.getResourceDomain()) &&
+            RulesLoader.READ_DOMAINS.contains(registryName) &&
             RulesLoader.getRules(
-                EntityList.getKey(context.entity),
+                context.entity /* EntityList.getKey(context.entity) */,
                 context.entity.serializeNBT()
             )
                 .stream()
                 .anyMatch(rule -> rule.capture);
+        /*
+            RulesLoader.READ_DOMAINS.contains(registryName) &&
+            RulesLoader.getRules(context.entity).stream().anyMatch(rule -> rule.capture);
+        */
     }
 
     @Override
     public void init(SchematicEntityContext context) {
+    	entity = context.entity;
         entityNbt = context.entity.serializeNBT();
         pos = context.entity.getPositionVector().subtract(new Vec3d(context.basePos));
         if (context.entity instanceof EntityHanging) {
@@ -84,7 +92,7 @@ public class SchematicEntityDefault implements ISchematicEntity {
     @Override
     public List<ItemStack> computeRequiredItems() {
         Set<JsonRule> rules = RulesLoader.getRules(
-            new ResourceLocation(entityNbt.getString("id")),
+            entity /* new ResourceLocation(entityNbt.getString("id")) */,
             entityNbt
         );
         if (rules.isEmpty()) {
@@ -95,7 +103,7 @@ public class SchematicEntityDefault implements ISchematicEntity {
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .flatMap(requiredExtractor -> requiredExtractor.extractItemsFromEntity(entityNbt).stream())
-            .filter(((Predicate<ItemStack>) ItemStack::isEmpty).negate())
+            .filter(((Predicate<ItemStack>) stack -> stack == null).negate())
             .collect(Collectors.toList());
     }
 
@@ -103,7 +111,7 @@ public class SchematicEntityDefault implements ISchematicEntity {
     @Override
     public List<FluidStack> computeRequiredFluids() {
         Set<JsonRule> rules = RulesLoader.getRules(
-            new ResourceLocation(entityNbt.getString("id")),
+        	entity /* new ResourceLocation(entityNbt.getString("id")) */,
             entityNbt
         );
         return rules.stream()
@@ -120,7 +128,7 @@ public class SchematicEntityDefault implements ISchematicEntity {
         SchematicEntityDefault schematicEntity = SchematicEntityManager.createCleanCopy(this);
         schematicEntity.entityNbt = entityNbt;
         schematicEntity.pos = RotationUtil.rotateVec3d(pos, rotation);
-        schematicEntity.hangingPos = hangingPos.rotate(rotation);
+        schematicEntity.hangingPos = BlockPosRotator.rotate(hangingPos, rotation);
         schematicEntity.hangingFacing = rotation.rotate(hangingFacing);
         schematicEntity.entityRotation = entityRotation.add(rotation);
         return schematicEntity;
@@ -129,7 +137,7 @@ public class SchematicEntityDefault implements ISchematicEntity {
     @Override
     public Entity build(World world, BlockPos basePos) {
         Set<JsonRule> rules = RulesLoader.getRules(
-            new ResourceLocation(entityNbt.getString("id")),
+        	entity /* new ResourceLocation(entityNbt.getString("id")) */,
             entityNbt
         );
         NBTTagCompound replaceNbt = rules.stream()
@@ -172,7 +180,7 @@ public class SchematicEntityDefault implements ISchematicEntity {
                     entity.rotationPitch
                 );
             }
-            world.spawnEntity(entity);
+            world.spawnEntityInWorld(entity);
         }
         return entity;
     }

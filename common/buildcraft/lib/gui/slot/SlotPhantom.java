@@ -6,7 +6,7 @@
 
 package buildcraft.lib.gui.slot;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -36,7 +36,7 @@ public class SlotPhantom extends SlotBase implements IPhantomSlot {
     }
 
     @Override
-    public boolean isItemValid(@Nonnull ItemStack stack) {
+    public boolean isItemValid(@Nullable ItemStack stack) {
         return false;
     }
 

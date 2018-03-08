@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
 
@@ -144,16 +144,16 @@ public class TileBuilder extends TileBC_Neptune
     @Override
     protected void onSlotChange(IItemHandlerModifiable handler,
                                 int slot,
-                                @Nonnull ItemStack before,
-                                @Nonnull ItemStack after) {
-        if (!world.isRemote) {
+                                @Nullable ItemStack before,
+                                @Nullable ItemStack after) {
+        if (!worldObj.isRemote) {
             if (handler == invSnapshot) {
                 currentBasePosIndex = 0;
                 snapshot = null;
                 if (after.getItem() instanceof ItemSnapshot) {
                     Snapshot.Header header = BCBuildersItems.snapshot.getHeader(after);
                     if (header != null) {
-                        Snapshot newSnapshot = GlobalSavedDataSnapshots.get(world).getSnapshot(header.key);
+                        Snapshot newSnapshot = GlobalSavedDataSnapshots.get(worldObj).getSnapshot(header.key);
                         if (newSnapshot != null) {
                             snapshot = newSnapshot;
                         }
@@ -190,7 +190,7 @@ public class TileBuilder extends TileBC_Neptune
             if (canGetFacing) {
                 rotation = Arrays.stream(Rotation.values())
                     .filter(r ->
-                        r.rotate(snapshot.facing) == world.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING)
+                        r.rotate(snapshot.facing) == worldObj.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING)
                     )
                     .findFirst()
                     .orElse(null);
@@ -227,7 +227,7 @@ public class TileBuilder extends TileBC_Neptune
                 basePoses.addAll(PositionUtil.getAllOnPath(path.get(i - 1), path.get(i)));
             }
         } else {
-            basePoses.add(pos.offset(world.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING).getOpposite()));
+            basePoses.add(pos.offset(worldObj.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING).getOpposite()));
         }
     }
 
@@ -236,10 +236,10 @@ public class TileBuilder extends TileBC_Neptune
     }
 
     @Override
-    public void onPlacedBy(EntityLivingBase placer, ItemStack stack) {
+    public void onPlacedBy(EntityLivingBase placer, @Nullable ItemStack stack) {
         super.onPlacedBy(placer, stack);
-        EnumFacing facing = world.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING);
-        TileEntity inFront = world.getTileEntity(pos.offset(facing.getOpposite()));
+        EnumFacing facing = worldObj.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING);
+        TileEntity inFront = worldObj.getTileEntity(pos.offset(facing.getOpposite()));
         if (inFront instanceof IPathProvider) {
             IPathProvider provider = (IPathProvider) inFront;
             ImmutableList<BlockPos> copiedPath = ImmutableList.copyOf(provider.getPath());
@@ -253,10 +253,10 @@ public class TileBuilder extends TileBC_Neptune
 
     @Override
     public void update() {
-        world.profiler.startSection("main");
-        world.profiler.startSection("power");
+        worldObj.theProfiler.startSection("main");
+        worldObj.theProfiler.startSection("power");
         battery.tick(getWorld(), getPos());
-        world.profiler.endStartSection("builder");
+        worldObj.theProfiler.endStartSection("builder");
         SnapshotBuilder<?> builder = getBuilder();
         if (builder != null) {
             isDone = builder.tick();
@@ -270,10 +270,10 @@ public class TileBuilder extends TileBC_Neptune
                 }
             }
         }
-        world.profiler.endStartSection("net_update");
+        worldObj.theProfiler.endStartSection("net_update");
         sendNetworkUpdate(NET_RENDER_DATA); // FIXME
-        world.profiler.endSection();
-        world.profiler.endSection();
+        worldObj.theProfiler.endSection();
+        worldObj.theProfiler.endSection();
     }
 
     // Networking
@@ -430,7 +430,7 @@ public class TileBuilder extends TileBC_Neptune
 
     @Override
     public World getWorldBC() {
-        return world;
+        return worldObj;
     }
 
     @Override

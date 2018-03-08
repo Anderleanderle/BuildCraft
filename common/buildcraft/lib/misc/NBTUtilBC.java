@@ -12,11 +12,9 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.Sets;
-
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
@@ -75,8 +73,8 @@ public final class NBTUtilBC {
         return source;
     }
 
-    public static NBTTagCompound getItemData(@Nonnull ItemStack stack) {
-        if (stack.isEmpty()) {
+    public static NBTTagCompound getItemData(@Nullable ItemStack stack) {
+        if (stack == null) {
             return new NBTTagCompound();
         }
         NBTTagCompound nbt = stack.getTagCompound();

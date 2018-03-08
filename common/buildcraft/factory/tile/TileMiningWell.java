@@ -8,11 +8,12 @@ package buildcraft.factory.tile;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.NonNullList;
 import net.minecraft.world.WorldServer;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.BlockEvent;
+
+import java.util.List;
 
 import buildcraft.api.core.BuildCraftAPI;
 import buildcraft.api.core.EnumPipePart;
@@ -35,28 +36,28 @@ public class TileMiningWell extends TileMiner {
     @Override
     protected void mine() {
         if (currentPos != null && canBreak()) {
-            long target = BlockUtil.computeBlockBreakPower(world, currentPos);
+            long target = BlockUtil.computeBlockBreakPower(worldObj, currentPos);
             progress += battery.extractPower(0, target - progress);
             if (progress >= target) {
                 progress = 0;
-                EntityPlayer fakePlayer = BuildCraftAPI.fakePlayerProvider.getFakePlayer((WorldServer) world, getOwner(), pos);
-                BlockEvent.BreakEvent breakEvent = new BlockEvent.BreakEvent(world, currentPos, world.getBlockState(currentPos), fakePlayer);
+                EntityPlayer fakePlayer = BuildCraftAPI.fakePlayerProvider.getFakePlayer((WorldServer) worldObj, getOwner(), pos);
+                BlockEvent.BreakEvent breakEvent = new BlockEvent.BreakEvent(worldObj, currentPos, worldObj.getBlockState(currentPos), fakePlayer);
                 MinecraftForge.EVENT_BUS.post(breakEvent);
                 if (!breakEvent.isCanceled()) {
-                    NonNullList<ItemStack> stacks = BlockUtil.getItemStackFromBlock((WorldServer) world, currentPos, getOwner());
+                    List<ItemStack> stacks = BlockUtil.getItemStackFromBlock((WorldServer) worldObj, currentPos, getOwner());
                     if (stacks != null) {
                         for (ItemStack stack : stacks) {
-                            InventoryUtil.addToBestAcceptor(world, pos, null, stack);
+                            InventoryUtil.addToBestAcceptor(worldObj, pos, null, stack);
                         }
                     }
-                    world.sendBlockBreakProgress(currentPos.hashCode(), currentPos, -1);
-                    world.destroyBlock(currentPos, false);
+                    worldObj.sendBlockBreakProgress(currentPos.hashCode(), currentPos, -1);
+                    worldObj.destroyBlock(currentPos, false);
                 }
                 nextPos();
                 updateLength();
             } else {
-                if (!world.isAirBlock(currentPos)) {
-                    world.sendBlockBreakProgress(currentPos.hashCode(), currentPos, (int) ((progress * 9) / target));
+                if (!worldObj.isAirBlock(currentPos)) {
+                    worldObj.sendBlockBreakProgress(currentPos.hashCode(), currentPos, (int) ((progress * 9) / target));
                 }
             }
         } else {
@@ -66,7 +67,7 @@ public class TileMiningWell extends TileMiner {
     }
 
     private boolean canBreak() {
-        return !world.isAirBlock(currentPos) && !BlockUtil.isUnbreakableBlock(world, currentPos, getOwner());
+        return !worldObj.isAirBlock(currentPos) && !BlockUtil.isUnbreakableBlock(worldObj, currentPos, getOwner());
     }
 
     private void nextPos() {
@@ -74,7 +75,7 @@ public class TileMiningWell extends TileMiner {
             if (canBreak()) {
                 updateLength();
                 return;
-            } else if (!world.isAirBlock(currentPos) && world.getBlockState(currentPos).getBlock() != BCFactoryBlocks.tube) {
+            } else if (!worldObj.isAirBlock(currentPos) && worldObj.getBlockState(currentPos).getBlock() != BCFactoryBlocks.tube) {
                 break;
             }
         }
@@ -92,7 +93,7 @@ public class TileMiningWell extends TileMiner {
     @Override
     public void invalidate() {
         if (currentPos != null) {
-            world.sendBlockBreakProgress(currentPos.hashCode(), currentPos, -1);
+            worldObj.sendBlockBreakProgress(currentPos.hashCode(), currentPos, -1);
         }
         super.invalidate();
     }

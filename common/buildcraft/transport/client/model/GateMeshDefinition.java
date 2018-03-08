@@ -23,7 +23,7 @@ public enum GateMeshDefinition implements ItemMeshDefinition {
 
     @Override
     public ModelResourceLocation getModelLocation(ItemStack stack) {
-        GateVariant var = ItemPluggableGate.getVariant(StackUtil.asNonNull(stack));
+        GateVariant var = ItemPluggableGate.getVariant((stack));
         ResourceLocation loc = LOCATION_BASE;
         String variant = var.getVariantName();
         return new ModelResourceLocation(loc, variant);

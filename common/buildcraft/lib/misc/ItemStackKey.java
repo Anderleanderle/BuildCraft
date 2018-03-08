@@ -6,18 +6,18 @@
 
 package buildcraft.lib.misc;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import net.minecraft.item.ItemStack;
 
 public class ItemStackKey {
     public static final ItemStackKey EMPTY = new ItemStackKey(StackUtil.EMPTY);
 
-    public final @Nonnull ItemStack baseStack;
+    public final @Nullable ItemStack baseStack;
     private final int hash;
 
-    public ItemStackKey(@Nonnull ItemStack stack) {
-        if (stack.isEmpty()) {
+    public ItemStackKey(@Nullable ItemStack stack) {
+        if (stack == null) {
             baseStack = StackUtil.EMPTY;
             hash = 0;
         } else {

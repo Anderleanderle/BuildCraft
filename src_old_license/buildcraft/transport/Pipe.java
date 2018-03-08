@@ -392,7 +392,7 @@ public abstract class Pipe<T extends PipeTransport> implements IDropControlInven
     }
 
     public ArrayList<ItemStack> computeItemDrop() {
-        ArrayList<ItemStack> result = new ArrayList<>();
+        ArrayList<ItemStack> result = new ArrayList<ItemStack>();
 
         for (PipeWire pipeWire : PipeWire.VALUES) {
             if (wireSet[pipeWire.ordinal()]) {

@@ -1,6 +1,7 @@
 [submodule "BuildCraftAPI"]
 	path = BuildCraftAPI
-	url = https://github.com/BuildCraft/BuildCraftAPI.git
+	url = https://github.com/Supermario1313/BuildCraftAPI.git
+	branch = 8.0.x-1.10.2-WIP
 [submodule "BuildCraft-Localization"]
 	path = BuildCraft-Localization
 	url = https://github.com/BuildCraft/BuildCraft-Localization.git
