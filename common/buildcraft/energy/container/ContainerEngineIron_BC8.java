@@ -39,7 +39,7 @@ public class ContainerEngineIron_BC8 extends ContainerBCTile<TileEngineIron_BC8>
     public ItemStack transferStackInSlot(EntityPlayer player, int index) {
         // The only slots are player slots -- try to interact with all of the tanks
 
-        if (!player.world.isRemote) {
+        if (!player.worldObj.isRemote) {
             Slot slot = inventorySlots.get(index);
             ItemStack stack = slot.getStack();
             ItemStack original = stack.copy();
@@ -47,19 +47,19 @@ public class ContainerEngineIron_BC8 extends ContainerBCTile<TileEngineIron_BC8>
             if (!ItemStack.areItemStacksEqual(stack, original)) {
                 slot.putStack(stack);
                 detectAndSendChanges();
-                return ItemStack.EMPTY;
+                return null;
             }
             stack = tile.tankCoolant.transferStackToTank(this, stack);
             if (!ItemStack.areItemStacksEqual(stack, original)) {
                 slot.putStack(stack);
                 detectAndSendChanges();
-                return ItemStack.EMPTY;
+                return null;
             }
             stack = tile.tankResidue.transferStackToTank(this, stack);
             if (!ItemStack.areItemStacksEqual(stack, original)) {
                 slot.putStack(stack);
                 detectAndSendChanges();
-                return ItemStack.EMPTY;
+                return null;
             }
         }
 

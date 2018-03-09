@@ -26,7 +26,6 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
@@ -172,7 +171,7 @@ public class PipeFlowFluids extends PipeFlow implements IFlowFluid, IDebuggable 
     }
 
     @Override
-    public void addDrops(NonNullList<ItemStack> toDrop, int fortune) {
+    public void addDrops(List<ItemStack> toDrop, int fortune) {
         super.addDrops(toDrop, fortune);
         if (currentFluid != null && BCCoreItems.fragileFluidShard != null) {
             int totalAmount = 0;

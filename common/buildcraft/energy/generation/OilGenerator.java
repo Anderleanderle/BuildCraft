@@ -51,7 +51,7 @@ public enum OilGenerator implements IWorldGenerator {
             return;
         }
 
-        world.profiler.startSection("bc_oil");
+        world.theProfiler.startSection("bc_oil");
         int x = chunkX * 16 + 8;
         int z = chunkZ * 16 + 8;
         BlockPos min = new BlockPos(x, 0, z);
@@ -61,10 +61,10 @@ public enum OilGenerator implements IWorldGenerator {
             for (int cdz = -MAX_CHUNK_RADIUS; cdz <= MAX_CHUNK_RADIUS; cdz++) {
                 int cx = chunkX + cdx;
                 int cz = chunkZ + cdz;
-                world.profiler.startSection("scan");
+                world.theProfiler.startSection("scan");
                 List<OilGenStructure> structures = getStructures(world, cx, cz);
                 OilGenStructure.Spring spring = null;
-                world.profiler.endStartSection("gen");
+                world.theProfiler.endStartSection("gen");
                 for (OilGenStructure struct : structures) {
                     struct.generate(world, box);
                     if (struct instanceof OilGenStructure.Spring) {
@@ -78,10 +78,10 @@ public enum OilGenerator implements IWorldGenerator {
                     }
                     spring.generate(world, count);
                 }
-                world.profiler.endSection();
+                world.theProfiler.endSection();
             }
         }
-        world.profiler.endSection();
+        world.theProfiler.endSection();
     }
 
     public static List<OilGenStructure> getStructures(World world, int cx, int cz) {

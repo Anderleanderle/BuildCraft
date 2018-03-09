@@ -237,7 +237,7 @@ public abstract class OilGenStructure {
             } else {
                 BCLog.logger.warn("[energy.gen.oil] Setting the blockstate didn't also set the tile at " + pos);
                 spring = new TileSpringOil();
-                spring.setWorld(world);
+                spring.setWorldObj(world);
                 spring.setPos(pos);
                 world.setTileEntity(pos, spring);
             }

@@ -46,7 +46,7 @@ public class MessageVolumeBoxes implements IMessage {
         PacketBufferBC buf = PacketBufferBC.asPacketBufferBc(buffer);
         buf.writeInt(buffers.size());
         for (PacketBufferBC localBuffer : buffers) {
-            buf.writeVarInt(localBuffer.readableBytes());
+            buf.writeVarIntToBuffer(localBuffer.readableBytes());
             buf.writeBytes(localBuffer, 0, localBuffer.readableBytes());
         }
     }
@@ -57,7 +57,7 @@ public class MessageVolumeBoxes implements IMessage {
         buffers.clear();
         int count = buf.readInt();
         for (int i = 0; i < count; i++) {
-            int bytes = buf.readVarInt();
+            int bytes = buf.readVarIntFromBuffer();
             PacketBufferBC packet = new PacketBufferBC(buf.readBytes(bytes));
             buffers.add(packet);
         }

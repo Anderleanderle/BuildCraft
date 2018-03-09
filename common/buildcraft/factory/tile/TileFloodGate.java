@@ -80,11 +80,11 @@ public class TileFloodGate extends TileBC_Neptune implements ITickable, IDebugga
     }
 
     private void buildQueue() {
-        world.profiler.startSection("prepare");
+        worldObj.theProfiler.startSection("prepare");
         queue.clear();
         paths.clear();
         if (tank.isEmpty()) {
-            world.profiler.endSection();
+            worldObj.theProfiler.endSection();
             return;
         }
         Set<BlockPos> checked = new HashSet<>();
@@ -95,7 +95,7 @@ public class TileFloodGate extends TileBC_Neptune implements ITickable, IDebugga
             nextPosesToCheck.add(offset);
             paths.put(offset, ImmutableList.of(offset));
         }
-        world.profiler.endStartSection("build");
+        worldObj.theProfiler.endStartSection("build");
         outer: while (!nextPosesToCheck.isEmpty()) {
             List<BlockPos> nextPosesToCheckCopy = new ArrayList<>(nextPosesToCheck);
             nextPosesToCheck.clear();
@@ -137,14 +137,14 @@ public class TileFloodGate extends TileBC_Neptune implements ITickable, IDebugga
                 }
             }
         }
-        world.profiler.endSection();
+        worldObj.theProfiler.endSection();
     }
 
     private boolean canFill(BlockPos offsetPos) {
-        if (world.isAirBlock(offsetPos)) {
+        if (worldObj.isAirBlock(offsetPos)) {
             return true;
         }
-        Fluid fluid = BlockUtil.getFluidWithFlowing(world, offsetPos);
+        Fluid fluid = BlockUtil.getFluidWithFlowing(worldObj, offsetPos);
         return fluid != null && FluidUtilBC.areFluidsEqual(fluid, tank.getFluidType())
             && BlockUtil.getFluidWithoutFlowing(getLocalState(offsetPos)) == null;
     }
@@ -153,15 +153,15 @@ public class TileFloodGate extends TileBC_Neptune implements ITickable, IDebugga
         if (canFill(offsetPos)) {
             return true;
         }
-        Fluid fluid = BlockUtil.getFluid(world, offsetPos);
+        Fluid fluid = BlockUtil.getFluid(worldObj, offsetPos);
         return FluidUtilBC.areFluidsEqual(fluid, tank.getFluidType());
     }
 
     private boolean canFillThrough(BlockPos pos) {
-        if (world.isAirBlock(pos)) {
+        if (worldObj.isAirBlock(pos)) {
             return false;
         }
-        Fluid fluid = BlockUtil.getFluidWithFlowing(world, pos);
+        Fluid fluid = BlockUtil.getFluidWithFlowing(worldObj, pos);
         return FluidUtilBC.areFluidsEqual(fluid, tank.getFluidType());
     }
 
@@ -169,7 +169,7 @@ public class TileFloodGate extends TileBC_Neptune implements ITickable, IDebugga
 
     @Override
     public void update() {
-        if (world.isRemote) {
+        if (worldObj.isRemote) {
             return;
         }
 
@@ -198,11 +198,10 @@ public class TileFloodGate extends TileBC_Neptune implements ITickable, IDebugga
                     }
                     if (canFill && canFill(currentPos)) {
                         FakePlayer fakePlayer =
-                            BuildCraftAPI.fakePlayerProvider.getFakePlayer((WorldServer) world, getOwner(), currentPos);
-                        if (FluidUtil.tryPlaceFluid(fakePlayer, world, currentPos, tank, fluid)) {
+                            BuildCraftAPI.fakePlayerProvider.getFakePlayer((WorldServer) worldObj, getOwner(), currentPos);
+                        if (FluidUtil.tryPlaceFluid(fakePlayer, worldObj, fluid, currentPos)) {
                             for (EnumFacing side : EnumFacing.VALUES) {
-                                world.notifyNeighborsOfStateChange(currentPos.offset(side), BCFactoryBlocks.floodGate,
-                                    false);
+                                worldObj.notifyNeighborsOfStateChange(currentPos.offset(side), BCFactoryBlocks.floodGate);
                             }
                             delayIndex = 0;
                             tick = 0;

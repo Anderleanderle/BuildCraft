@@ -14,9 +14,9 @@ import javax.annotation.Nonnull;
 
 import net.minecraft.block.BlockBanner;
 import net.minecraft.block.BlockVine;
-import net.minecraft.item.EnumDyeColor;
-import net.minecraft.item.ItemBanner;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
@@ -105,11 +105,29 @@ public class BCBuilders {
                         @Nonnull
                         @Override
                         public List<ItemStack> computeRequiredItems() {
+                        	ItemStack banner = new ItemStack(Items.BANNER, 1, tileNbt.getInteger("Base"));
+                        	NBTTagCompound tag;
+                        	if (tileNbt.getTagList("Patterns", 10) != null && !tileNbt.getTagList("Patterns", 10).hasNoTags()) {
+                                if (banner.getTagCompound() != null && banner.getTagCompound().hasKey("BlockEntityTag", 10))
+                                {
+                                    tag = banner.getTagCompound().getCompoundTag("BlockEntityTag");
+                                }
+                                else
+                                {
+                                    NBTTagCompound nbttagcompound = new NBTTagCompound();
+                                    banner.setTagInfo("BlockEntityTag", nbttagcompound);
+                                    tag = nbttagcompound;
+                                }
+                                tag.setTag("Patterns", tileNbt.getTagList("Patterns", 10));
+                        	}
                             return Collections.singletonList(
+                            	/*
                                 ItemBanner.makeBanner(
                                     EnumDyeColor.byDyeDamage(tileNbt.getInteger("Base")),
                                     tileNbt.getTagList("Patterns", 10)
                                 )
+                                */
+                            	banner
                             );
                         }
                     };

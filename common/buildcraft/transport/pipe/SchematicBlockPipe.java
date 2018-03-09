@@ -95,7 +95,7 @@ public class SchematicBlockPipe implements ISchematicBlock {
         if (world.setBlockState(blockPos, BCTransportBlocks.pipeHolder.getDefaultState(), 11)) {
             TileEntity tileEntity = TileEntity.create(world, tileNbt);
             if (tileEntity != null) {
-                tileEntity.setWorld(world);
+                tileEntity.setWorldObj(world);
                 world.setTileEntity(blockPos, tileEntity);
                 if (tileRotation != Rotation.NONE) {
                     tileEntity.rotate(tileRotation);
@@ -112,7 +112,7 @@ public class SchematicBlockPipe implements ISchematicBlock {
         if (world.setBlockState(blockPos, BCTransportBlocks.pipeHolder.getDefaultState(), 0)) {
             TileEntity tileEntity = TileEntity.create(world, tileNbt);
             if (tileEntity != null) {
-                tileEntity.setWorld(world);
+                tileEntity.setWorldObj(world);
                 world.setTileEntity(blockPos, tileEntity);
                 if (tileRotation != Rotation.NONE) {
                     tileEntity.rotate(tileRotation);

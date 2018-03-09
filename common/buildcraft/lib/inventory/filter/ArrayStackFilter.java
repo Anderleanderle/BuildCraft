@@ -58,7 +58,7 @@ public class ArrayStackFilter implements IStackFilter {
 
     public boolean hasFilter() {
         for (ItemStack filter : stacks) {
-            if (!filter.isEmpty()) {
+            if (filter != null) {
                 return true;
             }
         }

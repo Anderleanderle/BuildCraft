@@ -63,7 +63,7 @@ public class TileZonePlanner extends TileBC_Neptune implements ITickable, IDebug
             Optional.ofNullable(stack.getTagCompound())
                 .map(tagCompound -> tagCompound.hasKey("chunkMapping"))
                 .orElse(false) &&
-            stack.getCount() == 1,
+            stack.stackSize == 1,
         EnumAccess.NONE
     );
     public final ItemHandlerSimple invInputResult = itemManager.addInvHandler(
@@ -80,7 +80,7 @@ public class TileZonePlanner extends TileBC_Neptune implements ITickable, IDebug
     public final ItemHandlerSimple invOutputMapLocation = itemManager.addInvHandler(
         "outputMapLocation",
         1,
-        (slot, stack) -> stack.getItem() instanceof ItemMapLocation && stack.getCount() == 1,
+        (slot, stack) -> stack.getItem() instanceof ItemMapLocation && stack.stackSize == 1,
         EnumAccess.NONE
     );
     public final ItemHandlerSimple invOutputResult = itemManager.addInvHandler(

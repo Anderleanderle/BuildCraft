@@ -49,7 +49,7 @@ public class ParameterRenderer {
     public static ISimpleDrawable getStackDrawable(IStatementParameter param, boolean orQuestionMark) {
         return (x, y) -> {
             ItemStack stack = param.getItemStack();
-            if (!stack.isEmpty()) {
+            if (stack != null) {
                 GuiUtil.drawItemStackAt(stack, (int) x + 1, (int) y + 1);
             } else if (orQuestionMark) {
                 GuiElementStatement.ICON_SLOT_NOT_SET.drawAt(x + 1, y + 1);

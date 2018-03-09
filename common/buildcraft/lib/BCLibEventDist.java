@@ -189,7 +189,7 @@ public enum BCLibEventDist {
             BuildCraftObjectCaches.onClientTick();
             MessageUtil.postTick();
             Minecraft mc = Minecraft.getMinecraft();
-            EntityPlayerSP player = mc.player;
+            EntityPlayerSP player = mc.thePlayer;
             if (player != null && player.capabilities.isCreativeMode && mc.gameSettings.showDebugInfo) {
                 RayTraceResult mouseOver = mc.objectMouseOver;
                 if (mouseOver != null) {

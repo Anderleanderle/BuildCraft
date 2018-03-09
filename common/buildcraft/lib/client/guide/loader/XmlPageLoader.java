@@ -525,7 +525,7 @@ public enum XmlPageLoader implements IPageLoaderText {
             } catch (NumberFormatException nfe) {
                 BCLog.logger.warn("[lib.guide.loader.xml] " + count + " was not a valid number: " + nfe.getMessage());
             }
-            stack.setCount(stackSize);
+            stack.stackSize = stackSize;
         }
 
         if (data != null) {
@@ -535,7 +535,7 @@ public enum XmlPageLoader implements IPageLoaderText {
                     // Use oredict
                     meta = OreDictionary.WILDCARD_VALUE;
                 }
-                stack = new ItemStack(stack.getItem(), stack.getCount(), meta);
+                stack = new ItemStack(stack.getItem(), stack.stackSize, meta);
             } catch (NumberFormatException nfe) {
                 BCLog.logger.warn("[lib.guide.loader.xml] " + data + " was not a valid number: " + nfe.getMessage());
             }

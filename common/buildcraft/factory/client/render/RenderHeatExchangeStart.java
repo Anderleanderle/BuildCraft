@@ -178,7 +178,7 @@ public class RenderHeatExchangeStart extends TileEntitySpecialRenderer<TileHeatE
 
     private static void renderFlow(Vec3d diff, EnumFacing face, VertexBuffer vb, double s, double e, FluidStack fluid,
         int point, float partialTicks) {
-        double tickTime = Minecraft.getMinecraft().world.getTotalWorldTime();
+        double tickTime = Minecraft.getMinecraft().theWorld.getTotalWorldTime();
         double offset = (tickTime + partialTicks) % 31 / 31.0;
         if (face.getAxisDirection() == AxisDirection.NEGATIVE) {
             offset = -offset;

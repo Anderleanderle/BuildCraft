@@ -44,14 +44,14 @@ public interface IContainerFilling {
     void valuesChanged();
 
     default void init() {
-        if (!getPlayer().world.isRemote) {
+        if (!getPlayer().worldObj.isRemote) {
             MessageUtil.doDelayed(this::sendData);
         }
     }
 
     default void sendData() {
         sendMessage(ContainerBC_Neptune.NET_DATA, buffer -> {
-            (getPlayer().world.isRemote
+            (getPlayer().worldObj.isRemote
                 ? getPatternStatementClient()
                 : getPatternStatement()).writeToBuffer(buffer);
             buffer.writeBoolean(isInverted());

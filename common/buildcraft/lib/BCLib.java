@@ -40,7 +40,7 @@ import buildcraft.lib.registry.TagManager.TagEntry;
     version = BCLib.VERSION,
     updateJSON = "https://mod-buildcraft.com/version/versions.json",
     acceptedMinecraftVersions = "(gradle_replace_mcversion,)",
-    dependencies = "required-after:forge@(gradle_replace_forgeversion,)"
+    dependencies = "required-after:Forge@(gradle_replace_forgeversion,)"
 )
 //@formatter:on
 public class BCLib {

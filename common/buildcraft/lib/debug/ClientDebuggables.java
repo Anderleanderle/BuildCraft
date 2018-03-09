@@ -27,7 +27,7 @@ public class ClientDebuggables {
     @Nullable
     public static IDebuggable getDebuggableObject(RayTraceResult mouseOver) {
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.gameSettings.reducedDebugInfo || mc.player.hasReducedDebug() || !mc.player.capabilities.isCreativeMode
+        if (mc.gameSettings.reducedDebugInfo || mc.thePlayer.hasReducedDebug() || !mc.thePlayer.capabilities.isCreativeMode
             || !mc.gameSettings.showDebugInfo) {
             return null;
         }
@@ -35,7 +35,7 @@ public class ClientDebuggables {
             return null;
         }
         RayTraceResult.Type type = mouseOver.typeOfHit;
-        WorldClient world = mc.world;
+        WorldClient world = mc.theWorld;
         if (world == null) {
             return null;
         }

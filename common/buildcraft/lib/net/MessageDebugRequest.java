@@ -48,11 +48,11 @@ public class MessageDebugRequest implements IMessage {
     }
 
     public static final IMessageHandler<MessageDebugRequest, MessageDebugResponse> HANDLER = (message, ctx) -> {
-        EntityPlayer player = ctx.getServerHandler().player;
+        EntityPlayer player = ctx.getServerHandler().playerEntity;
         if (!player.capabilities.isCreativeMode) {
             return new MessageDebugResponse();
         }
-        TileEntity tile = player.world.getTileEntity(message.pos);
+        TileEntity tile = player.worldObj.getTileEntity(message.pos);
         if (tile instanceof IDebuggable) {
             List<String> left = new ArrayList<>();
             List<String> right = new ArrayList<>();

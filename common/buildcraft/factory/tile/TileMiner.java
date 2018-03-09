@@ -82,7 +82,7 @@ public abstract class TileMiner extends TileBC_Neptune implements ITickable, IDe
 
         battery.tick(getWorld(), getPos());
 
-        if (world.getTotalWorldTime() % 10 == offset) {
+        if (worldObj.getTotalWorldTime() % 10 == offset) {
             sendNetworkUpdate(NET_LED_STATUS);
         }
 
@@ -94,7 +94,7 @@ public abstract class TileMiner extends TileBC_Neptune implements ITickable, IDe
     @Override
     public void onLoad() {
         super.onLoad();
-        offset = world.rand.nextInt(10);
+        offset = worldObj.rand.nextInt(10);
     }
 
     @Override

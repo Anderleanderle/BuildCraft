@@ -38,7 +38,7 @@ public class TileSpringOil extends TileEntity implements IDebuggable {
             return;
         }
         PlayerPumpInfo info = pumpProgress.computeIfAbsent(profile, PlayerPumpInfo::new);
-        info.lastPumpTick = world.getTotalWorldTime();
+        info.lastPumpTick = worldObj.getTotalWorldTime();
         info.sourcesPumped++;
 
         String name = profile.getName();
@@ -83,7 +83,7 @@ public class TileSpringOil extends TileEntity implements IDebuggable {
                 added = true;
             }
             left.add("  " + info.profile.getName() + " = " + info.sourcesPumped + " ( "
-                + (world.getTotalWorldTime() - info.lastPumpTick) / 20 + "s )");
+                + (worldObj.getTotalWorldTime() - info.lastPumpTick) / 20 + "s )");
         }
     }
 

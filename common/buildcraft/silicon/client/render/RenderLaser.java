@@ -62,7 +62,7 @@ public class RenderLaser extends FastTESR<TileLaser> {
     }
 
     private boolean isPlayerWearingGoggles() {
-        Item headArmor = Minecraft.getMinecraft().player.getItemStackFromSlot(EntityEquipmentSlot.HEAD).getItem();
+        Item headArmor = Minecraft.getMinecraft().thePlayer.getItemStackFromSlot(EntityEquipmentSlot.HEAD).getItem();
         return headArmor instanceof ItemGoggles;
     }
 }

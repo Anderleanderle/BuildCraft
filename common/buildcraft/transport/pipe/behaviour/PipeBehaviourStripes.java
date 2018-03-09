@@ -6,6 +6,8 @@
 
 package buildcraft.transport.pipe.behaviour;
 
+import java.util.List;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -15,7 +17,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
@@ -189,7 +190,7 @@ public class PipeBehaviourStripes extends PipeBehaviour implements IStripesActiv
                     BreakEvent breakEvent = new BreakEvent(world, offset, world.getBlockState(offset), fakePlayer);
                     MinecraftForge.EVENT_BUS.post(breakEvent);
                     if (!breakEvent.isCanceled()) {
-                        NonNullList<ItemStack> dropped = BlockUtil.getItemStackFromBlock(server, offset, owner);
+                        List<ItemStack> dropped = BlockUtil.getItemStackFromBlock(server, offset, owner);
                         if (dropped != null) {
                             for (ItemStack stack : dropped) {
                                 sendItem(stack, direction);

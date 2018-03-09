@@ -135,17 +135,17 @@ public class ItemSchematicSingle extends ItemBC_Neptune {
                             if (StackUtil.mergeSameItems(requiredItems).stream().noneMatch(s ->
                                 itemTransactor.extract(
                                     extracted -> StackUtil.canMerge(s, extracted),
-                                    s.getCount(),
-                                    s.getCount(),
+                                    s.stackSize,
+                                    s.stackSize,
                                     true
-                                ).isEmpty()
+                                ) == null
                             )) {
                                 if (schematicBlock.build(world, placePos)) {
                                     StackUtil.mergeSameItems(requiredItems).forEach(s ->
                                         itemTransactor.extract(
                                             extracted -> StackUtil.canMerge(s, extracted),
-                                            s.getCount(),
-                                            s.getCount(),
+                                            s.stackSize,
+                                            s.stackSize,
                                             false
                                         )
                                     );
@@ -158,7 +158,7 @@ public class ItemSchematicSingle extends ItemBC_Neptune {
                                     new TextComponentString(
                                         "Not enough items. Total needed: " +
                                             StackUtil.mergeSameItems(requiredItems).stream()
-                                                .map(s -> s.getTextComponent().getFormattedText() + " x " + s.getCount())
+                                                .map(s -> s.getTextComponent().getFormattedText() + " x " + s.stackSize)
                                                 .collect(Collectors.joining(", "))
                                     )
                                 );
