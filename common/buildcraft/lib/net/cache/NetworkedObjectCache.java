@@ -33,9 +33,12 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 /** Provides a way of defining a cache of *some object* that will be sent from server to every client (when they are
  * needed). Each object has a specific integer ID.
- * 
+ * <p>
  * This class is NOT thread safe -- the client view may ONLY be used on the client thread, and the server view may ONLY
- * be used the server thread. */
+ * be used the server thread.
+ * <p>
+ * Note that all custom instances should be added to {@link BuildCraftObjectCaches#registerCache(NetworkedObjectCache)},
+ * in order to work properly */
 public abstract class NetworkedObjectCache<T> {
 
     static final boolean DEBUG_LOG = BCDebugging.shouldDebugLog("lib.net.cache");
@@ -157,7 +160,7 @@ public abstract class NetworkedObjectCache<T> {
     /** Takes a specific object and turns it into its most basic form. For example for {@link ItemStack}'s this will
      * should set the stack size to 1, and remove all non-rendered NBT tag components.
      * 
-     * @param obj The object to canonicalised.
+     * @param obj The object to canonicalized.
      * @return A canonical version of the input */
     protected abstract T getCanonical(T obj);
 
@@ -168,7 +171,7 @@ public abstract class NetworkedObjectCache<T> {
     protected abstract void writeObject(T obj, PacketBufferBC buffer);
 
     /** Reads the specified object from the buffer. Note that the returned object should be identity equal to itself
-     * passed into {@link #getCanonical(Object)} (so {@code  value.equals(getCononical(value)) } should return true.)
+     * passed into {@link #getCanonical(Object)} (so {@code  value.equals(getCanonical(value)) } should return true.)
      * 
      * @param buffer The buffer to read from
      * @return */
@@ -243,13 +246,13 @@ public abstract class NetworkedObjectCache<T> {
         return current;
     }
 
-    /** Used by {@link MessageObjectCacheReq#HANDLER} to write the actual object out. */
+    /** Used by {@link MessageObjectCacheRequest#HANDLER} to write the actual object out. */
     void writeObjectServer(int id, PacketBufferBC buffer) {
         T obj = serverIdToObject.get(id);
         writeObject(obj, buffer);
     }
 
-    /** Used by {@link MessageObjectCacheReply#HANDLER} to read an object in.
+    /** Used by {@link MessageObjectCacheResponse#HANDLER} to read an object in.
      * 
      * @param id
      * @param buffer
@@ -283,7 +286,12 @@ public abstract class NetworkedObjectCache<T> {
             if (DEBUG_CPLX) {
                 BCLog.logger.info("[lib.net.cache] The cache " + getNameAndId() + " requests ID's " + Arrays.toString(ids));
             }
-            MessageManager.sendToServer(new MessageObjectCacheReq(this, ids));
+            MessageManager.sendToServer(new MessageObjectCacheRequest(this, ids));
         }
+    }
+
+    void onClientJoinServer() {
+        clientObjects.clear();
+        clientUnknowns.clear();
     }
 }

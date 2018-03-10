@@ -25,14 +25,11 @@ import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.Entity;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-
-import buildcraft.api.schematics.ISchematicEntity;
 
 import buildcraft.lib.net.MessageManager;
 
@@ -40,21 +37,21 @@ public enum ClientSnapshots {
     INSTANCE;
 
     private final List<Snapshot> snapshots = new ArrayList<>();
-    private final List<Snapshot.Header> pending = new ArrayList<>();
-    private final Map<Snapshot.Header, FakeWorld> worlds = new HashMap<>();
-    private final Map<Snapshot.Header, VertexBuffer> buffers = new HashMap<>();
+    private final List<Snapshot.Key> pending = new ArrayList<>();
+    private final Map<Snapshot.Key, FakeWorld> worlds = new HashMap<>();
+    private final Map<Snapshot.Key, VertexBuffer> buffers = new HashMap<>();
 
-    public Snapshot getSnapshot(Snapshot.Header header) {
-        Snapshot found = snapshots.stream().filter(snapshot -> snapshot.header.equals(header)).findFirst().orElse(null);
-        if (found == null && !pending.contains(header)) {
-            pending.add(header);
-            MessageManager.sendToServer(new MessageSnapshotRequest(header));
+    public Snapshot getSnapshot(Snapshot.Key key) {
+        Snapshot found = snapshots.stream().filter(snapshot -> snapshot.key.equals(key)).findFirst().orElse(null);
+        if (found == null && !pending.contains(key)) {
+            pending.add(key);
+            MessageManager.sendToServer(new MessageSnapshotRequest(key));
         }
         return found;
     }
 
     public void onSnapshotReceived(Snapshot snapshot) {
-        pending.remove(snapshot.header);
+        pending.remove(snapshot.key);
         snapshots.add(snapshot);
     }
 
@@ -63,7 +60,7 @@ public enum ClientSnapshots {
         if (header == null) {
             return;
         }
-        Snapshot snapshot = getSnapshot(header);
+        Snapshot snapshot = getSnapshot(header.key);
         if (snapshot == null) {
             return;
         }
@@ -72,31 +69,12 @@ public enum ClientSnapshots {
 
     @SideOnly(Side.CLIENT)
     public void renderSnapshot(Snapshot snapshot, int offsetX, int offsetY, int sizeX, int sizeY) {
-        FakeWorld world = worlds.computeIfAbsent(snapshot.header, localHeader -> {
+        FakeWorld world = worlds.computeIfAbsent(snapshot.key, key -> {
             FakeWorld localWorld = new FakeWorld();
-            if (snapshot instanceof Blueprint) {
-                localWorld.uploadBlueprint((Blueprint) snapshot, false);
-                for (ISchematicEntity<?> schematicEntity : ((Blueprint) snapshot).entities) {
-                    schematicEntity.build(localWorld, FakeWorld.BLUEPRINT_OFFSET);
-                }
-            }
-            if (snapshot instanceof Template) {
-                for (int z = 0; z < snapshot.size.getZ(); z++) {
-                    for (int y = 0; y < snapshot.size.getY(); y++) {
-                        for (int x = 0; x < snapshot.size.getX(); x++) {
-                            if (((Template) snapshot).data[x][y][z]) {
-                                localWorld.setBlockState(
-                                    new BlockPos(x, y, z).add(FakeWorld.BLUEPRINT_OFFSET),
-                                    Blocks.QUARTZ_BLOCK.getDefaultState()
-                                );
-                            }
-                        }
-                    }
-                }
-            }
+            localWorld.uploadSnapshot(snapshot);
             return localWorld;
         });
-        VertexBuffer vertexBuffer = buffers.computeIfAbsent(snapshot.header, localHeader -> {
+        VertexBuffer vertexBuffer = buffers.computeIfAbsent(snapshot.key, key -> {
             VertexBuffer localBuffer = new VertexBuffer(1024) {
                 @Override
                 public void reset() {
@@ -128,17 +106,29 @@ public enum ClientSnapshots {
         GlStateManager.pushAttrib();
         GlStateManager.enableDepth();
         GlStateManager.enableBlend();
-        GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT); // TODO: save depth buffer?
         GlStateManager.pushMatrix();
         GlStateManager.matrixMode(GL11.GL_PROJECTION);
         GlStateManager.pushMatrix();
         GlStateManager.loadIdentity();
         ScaledResolution scaledResolution = new ScaledResolution(Minecraft.getMinecraft());
+        int viewportX = offsetX * scaledResolution.getScaleFactor();
+        int viewportY = Minecraft.getMinecraft().displayHeight - (sizeY + offsetY) * scaledResolution.getScaleFactor();
+        int viewportWidth = sizeX * scaledResolution.getScaleFactor();
+        int viewportHeight = sizeY * scaledResolution.getScaleFactor();
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glScissor(
+            viewportX,
+            viewportY,
+            viewportWidth,
+            viewportHeight
+        );
+        GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
         GlStateManager.viewport(
-            offsetX * scaledResolution.getScaleFactor(),
-            Minecraft.getMinecraft().displayHeight - (sizeY + offsetY) * scaledResolution.getScaleFactor(),
-            sizeX * scaledResolution.getScaleFactor(),
-            sizeY * scaledResolution.getScaleFactor()
+            viewportX,
+            viewportY,
+            viewportWidth,
+            viewportHeight
         );
         GlStateManager.scale(scaledResolution.getScaleFactor(), scaledResolution.getScaleFactor(), 1);
         GLU.gluPerspective(70.0F, (float) sizeX / sizeY, 0.1F, 1000.0F);
@@ -178,36 +168,6 @@ public enum ClientSnapshots {
         // noinspection Guava
         for (Entity entity : world.getEntities(Entity.class, Predicates.alwaysTrue())) {
             Vec3d pos = entity.getPositionVector();
-            switch (snapshot.facing) {
-                case NORTH:
-                    pos = new Vec3d(
-                        pos.xCoord + snapshot.size.getX() - 1,
-                        pos.yCoord,
-                        pos.zCoord
-                    );
-                    break;
-                case SOUTH:
-                    pos = new Vec3d(
-                        pos.xCoord + snapshot.size.getX() - 1,
-                        pos.yCoord,
-                        pos.zCoord + snapshot.size.getZ() - 1
-                    );
-                    break;
-                case WEST:
-                    pos = new Vec3d(
-                        pos.xCoord,
-                        pos.yCoord,
-                        pos.zCoord + snapshot.size.getZ() - 1
-                    );
-                    break;
-                case EAST:
-                    pos = new Vec3d(
-                        pos.xCoord + snapshot.size.getX() - 1,
-                        pos.yCoord,
-                        pos.zCoord + snapshot.size.getZ() - 1
-                    );
-                    break;
-            }
             GlStateManager.pushAttrib();
             Minecraft.getMinecraft().getRenderManager().doRenderEntity(
                 entity,

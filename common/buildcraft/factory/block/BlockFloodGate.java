@@ -27,6 +27,7 @@ import buildcraft.api.tools.IToolWrench;
 
 import buildcraft.lib.block.BlockBCTile_Neptune;
 import buildcraft.lib.misc.BlockUtil;
+import buildcraft.lib.tile.TileBC_Neptune;
 
 import buildcraft.factory.tile.TileFloodGate;
 
@@ -49,7 +50,7 @@ public class BlockFloodGate extends BlockBCTile_Neptune {
     }
 
     @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta) {
+    public TileEntity createNewTileEntity(World world, int meta) {
         return new TileFloodGate();
     }
 
@@ -57,9 +58,8 @@ public class BlockFloodGate extends BlockBCTile_Neptune {
     public IBlockState getActualState(IBlockState state, IBlockAccess world, BlockPos pos) {
         TileEntity tile = BlockUtil.getTileEntityForGetActualState(world, pos);
         if (tile instanceof TileFloodGate) {
-            TileFloodGate gate = (TileFloodGate) tile;
             for (EnumFacing side : CONNECTED_MAP.keySet()) {
-                state = state.withProperty(CONNECTED_MAP.get(side), !gate.isSideBlocked(side));
+                state = state.withProperty(CONNECTED_MAP.get(side), ((TileFloodGate) tile).openSides.contains(side));
             }
         }
         return state;
@@ -68,12 +68,20 @@ public class BlockFloodGate extends BlockBCTile_Neptune {
     @Override
     public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, ItemStack heldItem, EnumFacing side, float hitX, float hitY, float hitZ) {
         if (heldItem.getItem() instanceof IToolWrench) {
-            TileEntity tile = world.getTileEntity(pos);
-            if (tile instanceof TileFloodGate) {
-                TileFloodGate gate = (TileFloodGate) tile;
-                if (CONNECTED_MAP.containsKey(side)) {
-                    gate.setSideBlocked(side, !gate.isSideBlocked(side));
-                    return true;
+            if (!world.isRemote) {
+                if (side != EnumFacing.UP) {
+                    TileEntity tile = world.getTileEntity(pos);
+                    if (tile instanceof TileFloodGate) {
+                        if (CONNECTED_MAP.containsKey(side)) {
+                            TileFloodGate floodGate = (TileFloodGate) tile;
+                            if (!floodGate.openSides.remove(side)) {
+                                floodGate.openSides.add(side);
+                            }
+                            floodGate.queue.clear();
+                            floodGate.sendNetworkUpdate(TileBC_Neptune.NET_RENDER_DATA);
+                            return true;
+                        }
+                    }
                 }
             }
             return false;

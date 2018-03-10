@@ -18,7 +18,6 @@ import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.MathHelper;
 
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidUtil;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
@@ -27,7 +26,6 @@ import buildcraft.api.core.EnumPipePart;
 import buildcraft.api.core.IFluidFilter;
 import buildcraft.api.core.IFluidHandlerAdv;
 import buildcraft.api.fuels.BuildcraftFuelRegistry;
-import buildcraft.api.fuels.ICoolant;
 import buildcraft.api.fuels.IFuel;
 import buildcraft.api.fuels.IFuelManager.IDirtyFuel;
 import buildcraft.api.fuels.ISolidCoolant;
@@ -38,7 +36,6 @@ import buildcraft.api.transport.pipe.IItemPipe;
 import buildcraft.lib.engine.EngineConnector;
 import buildcraft.lib.engine.TileEngineBase_BC8;
 import buildcraft.lib.fluid.Tank;
-import buildcraft.lib.fluid.TankManager;
 import buildcraft.lib.fluid.TankProperties;
 import buildcraft.lib.gui.help.ElementHelpInfo;
 import buildcraft.lib.misc.CapUtil;
@@ -54,8 +51,8 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
     public static final double COOLDOWN_RATE = 0.05;
     public static final int MAX_COOLANT_PER_TICK = 40;
 
-    public final Tank tankFuel = new Tank("tankFuel", MAX_FLUID, this, this::isValidFuel);
-    public final Tank tankCoolant = new Tank("tankCoolant", MAX_FLUID, this, this::isValidCoolant) {
+    public final Tank tankFuel = new Tank("fuel", MAX_FLUID, this, this::isValidFuel);
+    public final Tank tankCoolant = new Tank("coolant", MAX_FLUID, this, this::isValidCoolant) {
         @Override
         protected FluidGetResult map(ItemStack stack, int space) {
             ISolidCoolant coolant = BuildcraftFuelRegistry.coolant.getSolidCoolant(stack);
@@ -69,8 +66,7 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
             return new FluidGetResult(StackUtil.EMPTY, fluidCoolant);
         }
     };
-    public final Tank tankResidue = new Tank("tankResidue", MAX_FLUID, this, this::isResidue);
-    private final TankManager<Tank> tankManager = new TankManager<>(tankFuel, tankCoolant, tankResidue);
+    public final Tank tankResidue = new Tank("residue", MAX_FLUID, this, this::isResidue);
     private final IFluidHandlerAdv fluidHandler = new InternalFluidHandler();
 
     private int penaltyCooling = 0;
@@ -80,13 +76,18 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
     private IFuel currentFuel;
 
     public TileEngineIron_BC8() {
+        tankManager.addAll(tankFuel, tankCoolant, tankResidue);
+
         // TODO: Auto list of example fuels!
-        tankFuel.helpInfo = new ElementHelpInfo(tankFuel.helpInfo.title, 0xFF_FF_33_33, Tank.DEFAULT_HELP_KEY, null, "buildcraft.help.tank.fuel");
+        tankFuel.helpInfo = new ElementHelpInfo(tankFuel.helpInfo.title, 0xFF_FF_33_33, Tank.DEFAULT_HELP_KEY, null,
+            "buildcraft.help.tank.fuel");
 
         // TODO: Auto list of example coolants!
-        tankCoolant.helpInfo = new ElementHelpInfo(tankCoolant.helpInfo.title, 0xFF_55_55_FF, Tank.DEFAULT_HELP_KEY, null, "buildcraft.help.tank.coolant");
+        tankCoolant.helpInfo = new ElementHelpInfo(tankCoolant.helpInfo.title, 0xFF_55_55_FF, Tank.DEFAULT_HELP_KEY,
+            null, "buildcraft.help.tank.coolant");
 
-        tankResidue.helpInfo = new ElementHelpInfo(tankResidue.helpInfo.title, 0xFF_AA_33_AA, Tank.DEFAULT_HELP_KEY, null, "buildcraft.help.tank.residue");
+        tankResidue.helpInfo = new ElementHelpInfo(tankResidue.helpInfo.title, 0xFF_AA_33_AA, Tank.DEFAULT_HELP_KEY,
+            null, "buildcraft.help.tank.residue");
 
         caps.addCapabilityInstance(CapUtil.CAP_FLUIDS, fluidHandler, EnumPipePart.VALUES);
     }
@@ -96,7 +97,6 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
         super.writeToNBT(nbt);
-        nbt.setTag("tanks", tankManager.serializeNBT());
         nbt.setInteger("penaltyCooling", penaltyCooling);
         nbt.setDouble("burnTime", burnTime);
         return nbt;
@@ -105,7 +105,6 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
-        tankManager.deserializeNBT(nbt.getCompoundTag("tanks"));
         penaltyCooling = nbt.getInteger("penaltyCooling");
         burnTime = nbt.getDouble("burnTime");
     }
@@ -130,22 +129,22 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
         }
     }
 
-    // TileEngineBase overrrides
+    // TileEngineBase overrides
 
     @Override
     public boolean onActivated(EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
-        ItemStack current = player.getHeldItem(hand);
-        if (!(current == null)) {
+        ItemStack current = player.getHeldItem(hand).copy();
+        if (super.onActivated(player, hand, side, hitX, hitY, hitZ)) {
+            if (!ItemStack.areItemStacksEqual(current, player.getHeldItem(hand))) {
+                return true;
+            }
+        }
+        if (current != null) {
             if (EntityUtil.getWrenchHand(player) != null) {
                 return false;
             }
             if (current.getItem() instanceof IItemPipe) {
                 return false;
-            }
-            if (!worldObj.isRemote) {
-                if (FluidUtil.interactWithFluidHandler(current, FluidUtil.getFluidHandler(worldObj, pos, side), player)) {
-                    return true;
-                }
             }
         }
         if (!worldObj.isRemote) {
@@ -184,16 +183,12 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
 
     @Override
     protected void burn() {
-        FluidStack fuel = this.tankFuel.getFluid();
-        if (currentFuel == null) {
-            if (fuel == null) {
-                currentFuel = null;
-            } else {
-                currentFuel = BuildcraftFuelRegistry.fuel.getFuel(fuel.getFluid());
-            }
+        final FluidStack fuel = this.tankFuel.getFluid();
+        if (currentFuel == null || !currentFuel.getFluid().isFluidEqual(fuel)) {
+            currentFuel = BuildcraftFuelRegistry.fuel.getFuel(fuel);
         }
 
-        if (currentFuel == null) {
+        if (fuel == null || currentFuel == null) {
             return;
         }
 
@@ -201,37 +196,41 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
             if (isRedstonePowered) {
                 lastPowered = true;
 
-                if (burnTime > 0 || (fuel != null && fuel.amount > 0)) {
+                if (burnTime > 0 || fuel.amount > 0) {
                     if (burnTime > 0) {
                         burnTime--;
                     }
                     if (burnTime <= 0) {
-                        if (fuel != null) {
-                            if (--fuel.amount <= 0) {
-                                tankFuel.setFluid(null);
-                            }
+                        if (fuel.amount > 0) {
+                            fuel.amount--;
                             burnTime += currentFuel.getTotalBurningTime() / 1000.0;
 
                             // If we also produce residue then put it out too
                             if (currentFuel instanceof IDirtyFuel) {
                                 IDirtyFuel dirtyFuel = (IDirtyFuel) currentFuel;
-                                residueAmount += dirtyFuel.getResidue().amount / 1000.0;
+                                FluidStack residueFluid = dirtyFuel.getResidue().copy();
+                                residueAmount += residueFluid.amount / 1000.0;
                                 if (residueAmount >= 1) {
-                                    int residue = MathHelper.floor_double(residueAmount);
-                                    FluidStack residueFluid = dirtyFuel.getResidue().copy();
-                                    residueFluid.amount = residue;
+                                    residueFluid.amount = MathHelper.floor_double(residueAmount);
                                     residueAmount -= tankResidue.fill(residueFluid, true);
+                                } else if (tankResidue.getFluid() == null) {
+                                    residueFluid.amount = 0;
+                                    tankResidue.setFluid(residueFluid);
                                 }
                             }
                         } else {
+                            tankFuel.setFluid(null);
                             currentFuel = null;
-                            residueAmount = 0;
+                            currentOutput = 0;
                             return;
                         }
                     }
                     currentOutput = currentFuel.getPowerPerCycle(); // Comment out for constant power
                     addPower(currentFuel.getPowerPerCycle());
                     heat += currentFuel.getPowerPerCycle() * HEAT_PER_MJ / MjAPI.MJ;// * getBiomeTempScalar();
+                } else {
+                    // Burn time == 0 AND fuel.amount == 0
+                    tankFuel.setFluid(null);
                 }
             } else if (lastPowered) {
                 lastPowered = false;
@@ -263,10 +262,9 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
                     // fillCoolingBuffer();
                     {
                         if (tankCoolant.getFluidAmount() > 0) {
-                            ICoolant coolant = BuildcraftFuelRegistry.coolant.getCoolant(tankCoolant.getFluidType());
-                            if (coolant != null) {
-                                float coolPerMb = coolant.getDegreesCoolingPerMB((float) heat);
-
+                            float coolPerMb =
+                                BuildcraftFuelRegistry.coolant.getDegreesPerMb(tankCoolant.getFluid(), (float) heat);
+                            if (coolPerMb > 0) {
                                 int coolantAmount = Math.min(MAX_COOLANT_PER_TICK, tankCoolant.getFluidAmount());
                                 float cooling = coolPerMb;
                                 // cooling /= getBiomeTempScalar();
@@ -337,11 +335,11 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
     // Fluid related
 
     private boolean isValidFuel(FluidStack fluid) {
-        return BuildcraftFuelRegistry.fuel.getFuel(fluid.getFluid()) != null;
+        return BuildcraftFuelRegistry.fuel.getFuel(fluid) != null;
     }
 
     private boolean isValidCoolant(FluidStack fluid) {
-        return BuildcraftFuelRegistry.coolant.getCoolant(fluid.getFluid()) != null;
+        return BuildcraftFuelRegistry.coolant.getCoolant(fluid) != null;
     }
 
     private boolean isResidue(FluidStack fluid) {
@@ -356,9 +354,9 @@ public class TileEngineIron_BC8 extends TileEngineBase_BC8 {
     }
 
     private class InternalFluidHandler implements IFluidHandlerAdv {
-        private final IFluidTankProperties[] properties = {//
-            new TankProperties(tankFuel, true, false),//
-            new TankProperties(tankCoolant, true, false),//
+        private final IFluidTankProperties[] properties = { //
+            new TankProperties(tankFuel, true, false), //
+            new TankProperties(tankCoolant, true, false), //
             new TankProperties(tankResidue, false, true),//
         };
 

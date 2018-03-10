@@ -48,7 +48,11 @@ public class PipeEventBus {
     private static List<Handler> getHandlers(Class<?> cls) {
         if (!allHandlers.containsKey(cls)) {
             List<Handler> list = new ArrayList<>();
-            for (Method m : cls.getMethods()) {
+            Class<?> superCls = cls.getSuperclass();
+            if (superCls != null) {
+                list.addAll(getHandlers(superCls));
+            }
+            for (Method m : cls.getDeclaredMethods()) {
                 PipeEventHandler annot = m.getAnnotation(PipeEventHandler.class);
                 if (annot == null) {
                     continue;
@@ -74,10 +78,6 @@ public class PipeEventBus {
                 list.add(new Handler(annot.priority(), annot.receiveCancelled(), isStatic, methodName, mh, p.getType()));
             }
 
-            Class<?> superCls = cls.getSuperclass();
-            if (superCls != null) {
-                list.addAll(getHandlers(superCls));
-            }
             allHandlers.put(cls, list);
             return list;
         }
@@ -108,7 +108,7 @@ public class PipeEventBus {
         if (DEBUG) {
             String error = event.checkStateForErrors();
             if (error != null) {
-                throw new IllegalArgumentException("The event " + event.getClass() + " was in an invalid state when firing! This is DEFINATLY a bug!\n"//
+                throw new IllegalArgumentException("The event " + event.getClass() + " was in an invalid state when firing! This is DEFINITELY a bug!\n"//
                     + "(error = " + error + ")");
             }
         }

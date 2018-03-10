@@ -18,15 +18,17 @@ import javax.vecmath.Vector3f;
 import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.renderer.vertex.VertexFormat;
 import net.minecraft.client.renderer.vertex.VertexFormatElement;
 import net.minecraft.client.renderer.vertex.VertexFormatElement.EnumUsage;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.Vec3i;
 
-import buildcraft.lib.client.sprite.ISprite;
+import buildcraft.api.core.render.ISprite;
 
-/** Holds all of the information necessary to make one of the verticies in a {@link BakedQuad}. This provides a variety
+/** Holds all of the information necessary to make one of the vertices in a {@link BakedQuad}. This provides a variety
  * of methods to quickly set or get different elements. This should be used with {@link MutableQuad} to make a face, or
  * by itself if you only need to define a single vertex. <br>
  * This currently holds the 3D position, normal, colour, 2D texture, skylight and blocklight. Note that you don't have
@@ -117,7 +119,7 @@ public class MutableVertex {
         // TEX_2F
         data[offset + 4] = Float.floatToRawIntBits(tex_u);
         data[offset + 5] = Float.floatToRawIntBits(tex_v);
-        // NROMAL_3B
+        // NORMAL_3B
         data[offset + 6] = normalToPackedInt();
     }
 
@@ -146,24 +148,40 @@ public class MutableVertex {
         // TEX_2F
         tex_u = Float.intBitsToFloat(data[offset + 4]);
         tex_v = Float.intBitsToFloat(data[offset + 5]);
-        // NROMAL_3B
+        // NORMAL_3B
         normali(data[offset + 6]);
-        lightf(1,1);
+        lightf(1, 1);
     }
 
     // Rendering
 
     public void render(VertexBuffer vb) {
         VertexFormat vf = vb.getVertexFormat();
-        for (VertexFormatElement vfe : vf.getElements()) {
-            if (vfe.getUsage() == EnumUsage.POSITION) renderPosition(vb);
-            else if (vfe.getUsage() == EnumUsage.NORMAL) renderNormal(vb);
-            else if (vfe.getUsage() == EnumUsage.COLOR) renderColour(vb);
-            else if (vfe.getUsage() == EnumUsage.UV) {
-                if (vfe.getIndex() == 0) renderTex(vb);
-                else if (vfe.getIndex() == 1) renderLightMap(vb);
+        if (vf == DefaultVertexFormats.BLOCK) {
+            renderAsBlock(vb);
+        } else {
+            for (VertexFormatElement vfe : vf.getElements()) {
+                if (vfe.getUsage() == EnumUsage.POSITION) renderPosition(vb);
+                else if (vfe.getUsage() == EnumUsage.NORMAL) renderNormal(vb);
+                else if (vfe.getUsage() == EnumUsage.COLOR) renderColour(vb);
+                else if (vfe.getUsage() == EnumUsage.UV) {
+                    if (vfe.getIndex() == 0) renderTex(vb);
+                    else if (vfe.getIndex() == 1) renderLightMap(vb);
+                }
             }
+            vb.endVertex();
         }
+    }
+
+    /** Renders this vertex into the given {@link VertexBuffer}, assuming that the {@link VertexFormat} is
+     * {@link DefaultVertexFormats#BLOCK}.
+     * <p>
+     * Slight performance increase over {@link #render(VertexBuffer)}. */
+    public void renderAsBlock(VertexBuffer vb) {
+        renderPosition(vb);
+        renderColour(vb);
+        renderTex(vb);
+        renderLightMap(vb);
         vb.endVertex();
     }
 
@@ -441,6 +459,48 @@ public class MutableVertex {
 
     public MutableVertex scaled(double x, double y, double z) {
         return scalef((float) x, (float) y, (float) z);
+    }
+
+    /** Rotates around the X axis by angle. */
+    public void rotateX(float angle) {
+        float cos = MathHelper.cos(angle);
+        float sin = MathHelper.sin(angle);
+        rotateDirectlyX(cos, sin);
+    }
+
+    /** Rotates around the Y axis by angle. */
+    public void rotateY(float angle) {
+        float cos = MathHelper.cos(angle);
+        float sin = MathHelper.sin(angle);
+        rotateDirectlyY(cos, sin);
+    }
+
+    /** Rotates around the Z axis by angle. */
+    public void rotateZ(float angle) {
+        float cos = MathHelper.cos(angle);
+        float sin = MathHelper.sin(angle);
+        rotateDirectlyZ(cos, sin);
+    }
+
+    public void rotateDirectlyX(float cos, float sin) {
+        float y = position_y;
+        float z = position_z;
+        position_y = y * cos - z * sin;
+        position_z = y * sin + z * cos;
+    }
+
+    public void rotateDirectlyY(float cos, float sin) {
+        float x = position_x;
+        float z = position_z;
+        position_x = x * cos - z * sin;
+        position_z = x * sin + z * cos;
+    }
+
+    public void rotateDirectlyZ(float cos, float sin) {
+        float x = position_x;
+        float y = position_y;
+        position_x = x * cos + y * sin;
+        position_y = x * -sin + y * cos;
     }
 
     /** Rotates this vertex around the X axis 90 degrees.

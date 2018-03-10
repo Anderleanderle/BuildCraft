@@ -3,6 +3,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
+
 package buildcraft.transport.statements;
 
 import net.minecraftforge.fml.relauncher.Side;
@@ -49,7 +50,7 @@ public class ActionExtractionPreset extends BCStatement implements IActionIntern
 
     @Override
     @SideOnly(Side.CLIENT)
-    public SpriteHolder getSpriteHolder() {
+    public SpriteHolder getSprite() {
         return BCTransportSprites.ACTION_EXTRACTION_PRESET.get(index);
     }
 }

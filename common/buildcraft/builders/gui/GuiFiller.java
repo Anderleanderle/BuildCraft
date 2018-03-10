@@ -1,56 +1,67 @@
-/* Copyright (c) 2016 SpaceToad and the BuildCraft team
- * 
- * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 package buildcraft.builders.gui;
 
 import net.minecraft.util.ResourceLocation;
 
-import buildcraft.lib.gui.GuiBC8;
-import buildcraft.lib.gui.GuiIcon;
-import buildcraft.lib.gui.button.GuiButtonSmall;
+import buildcraft.api.filler.IFillerPattern;
+import buildcraft.api.tiles.IControllable.Mode;
+
 import buildcraft.lib.gui.button.IButtonBehaviour;
-import buildcraft.lib.gui.elem.ToolTip;
+import buildcraft.lib.gui.button.IButtonClickEventListener;
+import buildcraft.lib.gui.json.GuiJson;
+import buildcraft.lib.gui.json.InventorySlotHolder;
+import buildcraft.lib.gui.json.SpriteDelegate;
 
 import buildcraft.builders.container.ContainerFiller;
+import buildcraft.builders.filler.FillerStatementContext;
+import buildcraft.core.BCCoreSprites;
 
-public class GuiFiller extends GuiBC8<ContainerFiller> {
-    private static final ResourceLocation TEXTURE_BASE =
-            new ResourceLocation("buildcraftbuilders:textures/gui/filler.png");
-    private static final int SIZE_X = 176, SIZE_Y = 241;
-    private static final GuiIcon ICON_GUI = new GuiIcon(TEXTURE_BASE, 0, 0, SIZE_X, SIZE_Y);
+public class GuiFiller extends GuiJson<ContainerFiller> {
+    private static final ResourceLocation LOCATION = new ResourceLocation("buildcraftbuilders:gui/filler.json");
+    private static final SpriteDelegate SPRITE_PATTERN = new SpriteDelegate();
+    private static final SpriteDelegate SPRITE_CONTROL_MODE = new SpriteDelegate();
 
     public GuiFiller(ContainerFiller container) {
-        super(container);
-        xSize = SIZE_X;
-        ySize = SIZE_Y;
-
-        ledgersRight.ledgers.add(new LedgerCounters(ledgersRight, container.tile));
+        super(container, LOCATION);
     }
 
     @Override
-    public void initGui() {
-        super.initGui();
-        buttonList.add(
-                new GuiButtonSmall(
-                        this,
-                        0,
-                        rootElement.getX() + (xSize - 100) / 2,
-                        rootElement.getY() + 60,
-                        100,
-                        "Can Excavate"
-                )
-                        .setToolTip(ToolTip.createLocalized("gui.filler.canExcavate"))
-                        .setBehaviour(IButtonBehaviour.TOGGLE)
-                        .setActive(container.tile.canExcavate())
-                        .registerListener((button, buttonId, buttonKey) ->
-                                container.tile.sendCanExcavate(button.isButtonActive())
-                        )
+    protected void preLoad() {
+        super.preLoad();
+        properties.put("filler.inventory", new InventorySlotHolder(container, container.tile.invResources));
+        properties.put("statement.container", container.tile);
+        properties.put("controllable", container.tile);
+        properties.put("controllable.sprite", SPRITE_CONTROL_MODE);
+        context.put_o("controllable.mode", Mode.class, container.tile::getControlMode);
+        context.put_b("filler.is_finished", container.tile::isFinished);
+        context.put_b("filler.is_locked", container.tile::isLocked);
+        context.put_l("filler.to_break", container.tile::getCountToBreak);
+        context.put_l("filler.to_place", container.tile::getCountToPlace);
+        properties.put("filler.possible", FillerStatementContext.CONTEXT_ALL);
+        properties.put("filler.pattern", container.getPatternStatementClient());
+        properties.put("filler.pattern.sprite", SPRITE_PATTERN);
+
+        context.put_b("filler.invert", container::isInverted);
+        properties.put("filler.invert", IButtonBehaviour.TOGGLE);
+        properties.put("filler.invert", container.isInverted());
+        properties.put(
+            "filler.invert",
+            (IButtonClickEventListener) (b, k) -> container.sendInverted(b.isButtonActive())
+        );
+
+        context.put_b("filler.excavate", container.tile::canExcavate);
+        properties.put("filler.excavate", IButtonBehaviour.TOGGLE);
+        properties.put("filler.excavate", container.tile.canExcavate());
+        properties.put(
+            "filler.excavate",
+            (IButtonClickEventListener) (b, k) -> container.tile.sendCanExcavate(b.isButtonActive())
         );
     }
 
     @Override
-    protected void drawBackgroundLayer(float partialTicks) {
-        ICON_GUI.drawAt(rootElement);
+    public void updateScreen() {
+        super.updateScreen();
+        IFillerPattern pattern = container.getPatternStatementClient().get();
+        SPRITE_PATTERN.delegate = pattern == null ? null : pattern.getSprite();
+        SPRITE_CONTROL_MODE.delegate = BCCoreSprites.ACTION_MACHINE_CONTROL.get(container.tile.getControlMode());
     }
 }

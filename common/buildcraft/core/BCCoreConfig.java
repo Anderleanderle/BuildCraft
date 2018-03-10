@@ -7,7 +7,10 @@
 package buildcraft.core;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.config.Configuration;
@@ -27,14 +30,15 @@ import buildcraft.lib.misc.ConfigUtil;
 import buildcraft.lib.registry.RegistryHelper;
 
 public class BCCoreConfig {
+    private static final List<Consumer<EnumRestartRequirement>> reloadListeners = new ArrayList<>();
+    
     public static Configuration config;
     public static Configuration objConfig;
     public static FileConfigManager detailedConfigManager;
 
     public static boolean worldGen;
     public static boolean worldGenWaterSpring;
-    public static boolean useLocalServerOnClient;
-    public static boolean minePlayerProteted;
+    public static boolean minePlayerProtected;
     public static boolean hidePower;
     public static boolean hideFluid;
     public static int markerMaxDistance;
@@ -43,7 +47,6 @@ public class BCCoreConfig {
     private static Property propColourBlindMode;
     private static Property propWorldGen;
     private static Property propWorldGenWaterSpring;
-    private static Property propUseLocalServerOnClient;
     private static Property propMinePlayerProtected;
     private static Property propUseColouredLabels;
     private static Property propUseHighContrastColouredLabels;
@@ -60,9 +63,10 @@ public class BCCoreConfig {
     public static void preInit(File cfgFolder) {
         config = new Configuration(new File(cfgFolder, "main.cfg"));
         objConfig = RegistryHelper.setRegistryConfig(BCCore.MODID, new File(cfgFolder, "objects.cfg"));
+        BCLibConfig.guiConfigFile = new File(cfgFolder, "gui.json");
 
         detailedConfigManager = new FileConfigManager(
-            " The buildcraft detailed configuration file. This contains a lot of miscelaneous options that have no "
+            " The buildcraft detailed configuration file. This contains a lot of miscellaneous options that have no "
                 + "affect on gameplay.\n You should refer to the BC source code for a detailed description of what these do. (https://github.com/BuildCraft/BuildCraft)\n"
                 + " This file will be overwritten every time that buildcraft starts, so don't change anything other than the values.");
         detailedConfigManager.setConfigFile(new File(cfgFolder, "detailed.properties"));
@@ -86,11 +90,6 @@ public class BCCoreConfig {
         propWorldGenWaterSpring = config.get(worldgen, "generateWaterSprings", true);
         propWorldGenWaterSpring.setComment("Should BuildCraft generate water springs?");
         game.setTo(propWorldGenWaterSpring);
-
-        propUseLocalServerOnClient = config.get(general, "useServerDataOnClient", true);
-        propUseLocalServerOnClient.setComment(
-            "Allows BuildCraft to use the integrated server's data on the client on singleplayer worlds. Disable if you're getting the odd crash caused by it.");
-        none.setTo(propUseLocalServerOnClient);
 
         propMinePlayerProtected = config.get(general, "miningBreaksPlayerProtectedBlocks", false);
         propMinePlayerProtected.setComment(
@@ -152,8 +151,13 @@ public class BCCoreConfig {
         none.setTo(propNetworkUpdateRate);
 
         reloadConfig(game);
+        addReloadListener(BCCoreConfig::reloadConfig);
 
         MinecraftForge.EVENT_BUS.register(BCCoreConfig.class);
+    }
+
+    public static void addReloadListener(Consumer<EnumRestartRequirement> listener) {
+        reloadListeners.add(listener);
     }
 
     @SubscribeEvent
@@ -164,7 +168,9 @@ public class BCCoreConfig {
                 // The loaders state will be LoaderState.SERVER_STARTED when we are in a world
                 req = EnumRestartRequirement.WORLD;
             }
-            reloadConfig(req);
+            for (Consumer<EnumRestartRequirement> listener : reloadListeners) {
+                listener.accept(req);
+            }
         }
     }
 
@@ -179,8 +185,7 @@ public class BCCoreConfig {
     }
 
     public static void reloadConfig(EnumRestartRequirement restarted) {
-        useLocalServerOnClient = propUseLocalServerOnClient.getBoolean();
-        minePlayerProteted = propMinePlayerProtected.getBoolean();
+        minePlayerProtected = propMinePlayerProtected.getBoolean();
         BCLibConfig.useColouredLabels = propUseColouredLabels.getBoolean();
         BCLibConfig.useHighContrastLabelColours = propUseHighContrastColouredLabels.getBoolean();
         hidePower = propHidePower.getBoolean();

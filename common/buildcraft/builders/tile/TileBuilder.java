@@ -1,7 +1,9 @@
-/* Copyright (c) 2016 SpaceToad and the BuildCraft team
+/*
+ * Copyright (c) 2016 SpaceToad and the BuildCraft team
  * 
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
- * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+ * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
+ */
 package buildcraft.builders.tile;
 
 import java.io.IOException;
@@ -27,7 +29,6 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 import net.minecraftforge.fml.relauncher.Side;
@@ -54,7 +55,7 @@ import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.PositionUtil;
 import buildcraft.lib.misc.data.Box;
 import buildcraft.lib.misc.data.IdAllocator;
-import buildcraft.lib.mj.MjBatteryReciver;
+import buildcraft.lib.mj.MjBatteryReceiver;
 import buildcraft.lib.net.MessageManager;
 import buildcraft.lib.net.PacketBufferBC;
 import buildcraft.lib.tile.TileBC_Neptune;
@@ -73,38 +74,65 @@ import buildcraft.builders.snapshot.SnapshotBuilder;
 import buildcraft.builders.snapshot.Template;
 import buildcraft.builders.snapshot.TemplateBuilder;
 
-public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggable, ITileForTemplateBuilder, ITileForBlueprintBuilder {
+public class TileBuilder extends TileBC_Neptune
+    implements ITickable, IDebuggable, ITileForTemplateBuilder, ITileForBlueprintBuilder {
     public static final IdAllocator IDS = TileBC_Neptune.IDS.makeChild("builder");
     public static final int NET_CAN_EXCAVATE = IDS.allocId("CAN_EXCAVATE");
     public static final int NET_SNAPSHOT_TYPE = IDS.allocId("SNAPSHOT_TYPE");
 
-    public final ItemHandlerSimple invSnapshot = itemManager.addInvHandler("snapshot", 1, EnumAccess.BOTH, EnumPipePart.VALUES);
-    public final ItemHandlerSimple invResources = itemManager.addInvHandler("resources", 27, EnumAccess.BOTH, EnumPipePart.VALUES);
-    private final TankManager<Tank> tankManager = new TankManager<>();
+    public final ItemHandlerSimple invSnapshot = itemManager.addInvHandler(
+        "snapshot",
+        1,
+        (slot, stack) ->
+            stack.getItem() instanceof ItemSnapshot && ItemSnapshot.EnumItemSnapshotType.getFromStack(stack).used,
+        EnumAccess.BOTH,
+        EnumPipePart.VALUES
+    );
+    public final ItemHandlerSimple invResources = itemManager.addInvHandler(
+        "resources",
+        27,
+        EnumAccess.BOTH,
+        EnumPipePart.VALUES
+    );
 
     private final MjBattery battery = new MjBattery(1000 * MjAPI.MJ);
     private boolean canExcavate = true;
 
-    /** Stores the real path - just a few block positions. */
+    /**
+     * Stores the real path - just a few block positions.
+     */
     public List<BlockPos> path = null;
-    /** Stores the real path plus all possible block positions inbetween. */
+    /**
+     * Stores the real path plus all possible block positions inbetween.
+     */
     private List<BlockPos> basePoses = new ArrayList<>();
     private int currentBasePosIndex = 0;
     private Snapshot snapshot = null;
     public EnumSnapshotType snapshotType = null;
     private Template.BuildingInfo templateBuildingInfo = null;
     private Blueprint.BuildingInfo blueprintBuildingInfo = null;
+    @SuppressWarnings("WeakerAccess")
     public TemplateBuilder templateBuilder = new TemplateBuilder(this);
+    @SuppressWarnings("WeakerAccess")
     public BlueprintBuilder blueprintBuilder = new BlueprintBuilder(this);
     private Box currentBox = new Box();
+    private Rotation rotation = null;
 
     private boolean isDone = false;
 
     public TileBuilder() {
         for (int i = 1; i <= 4; i++) {
-            tankManager.add(new Tank("fluid" + i, Fluid.BUCKET_VOLUME * 8, this));
+            tankManager.add(
+                new Tank("tank" + i, Fluid.BUCKET_VOLUME * 8, this) {
+                    @Override
+                    protected void onContentsChanged() {
+                        super.onContentsChanged();
+                        Optional.ofNullable(getBuilder()).ifPresent(SnapshotBuilder::resourcesChanged);
+                    }
+                }
+            );
         }
-        caps.addProvider(new MjCapabilityHelper(new MjBatteryReciver(battery)));
+        caps.addProvider(new MjCapabilityHelper(new MjBatteryReceiver(battery)));
         caps.addCapabilityInstance(CapUtil.CAP_FLUIDS, tankManager, EnumPipePart.VALUES);
     }
 
@@ -114,25 +142,31 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
     }
 
     @Override
-    protected void onSlotChange(IItemHandlerModifiable itemHandler, int slot, @Nullable ItemStack before, @Nullable ItemStack after) {
-        if (itemHandler == invSnapshot) {
-            currentBasePosIndex = 0;
-            snapshot = null;
-            if (after.getItem() instanceof ItemSnapshot) {
-                Snapshot.Header header = BCBuildersItems.snapshot.getHeader(after);
-                if (header != null) {
-                    Snapshot newSnapshot = GlobalSavedDataSnapshots.get(worldObj).getSnapshotByHeader(header);
-                    if (newSnapshot != null) {
-                        snapshot = newSnapshot;
+    protected void onSlotChange(IItemHandlerModifiable handler,
+                                int slot,
+                                @Nullable ItemStack before,
+                                @Nullable ItemStack after) {
+        if (!worldObj.isRemote) {
+            if (handler == invSnapshot) {
+                currentBasePosIndex = 0;
+                snapshot = null;
+                if (after.getItem() instanceof ItemSnapshot) {
+                    Snapshot.Header header = BCBuildersItems.snapshot.getHeader(after);
+                    if (header != null) {
+                        Snapshot newSnapshot = GlobalSavedDataSnapshots.get(worldObj).getSnapshot(header.key);
+                        if (newSnapshot != null) {
+                            snapshot = newSnapshot;
+                        }
                     }
                 }
-            }
-            updateSnapshot();
-            if (!worldObj.isRemote) {
+                updateSnapshot(true);
                 sendNetworkUpdate(NET_SNAPSHOT_TYPE);
             }
+            if (handler == invResources) {
+                Optional.ofNullable(getBuilder()).ifPresent(SnapshotBuilder::resourcesChanged);
+            }
         }
-        super.onSlotChange(itemHandler, slot, before, after);
+        super.onSlotChange(handler, slot, before, after);
     }
 
     @Override
@@ -149,22 +183,31 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
         blueprintBuilder.invalidate();
     }
 
-    private void updateSnapshot() {
+    private void updateSnapshot(boolean canGetFacing) {
         Optional.ofNullable(getBuilder()).ifPresent(SnapshotBuilder::cancel);
         if (snapshot != null && getCurrentBasePos() != null) {
             snapshotType = snapshot.getType();
-            EnumFacing facing = worldObj.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING);
-            Rotation rotation = Arrays.stream(Rotation.values()).filter(r -> r.rotate(snapshot.facing) == facing).findFirst().orElse(null);
+            if (canGetFacing) {
+                rotation = Arrays.stream(Rotation.values())
+                    .filter(r ->
+                        r.rotate(snapshot.facing) == worldObj.getBlockState(pos).getValue(BlockBCBase_Neptune.PROP_FACING)
+                    )
+                    .findFirst()
+                    .orElse(null);
+            }
             if (snapshot.getType() == EnumSnapshotType.TEMPLATE) {
                 templateBuildingInfo = ((Template) snapshot).new BuildingInfo(getCurrentBasePos(), rotation);
             }
             if (snapshot.getType() == EnumSnapshotType.BLUEPRINT) {
                 blueprintBuildingInfo = ((Blueprint) snapshot).new BuildingInfo(getCurrentBasePos(), rotation);
             }
-            currentBox = Optional.ofNullable(getBuilder()).map(SnapshotBuilder::getBox).orElse(null);
+            currentBox = Optional.ofNullable(getBuildingInfo())
+                .map(buildingInfo -> buildingInfo.box)
+                .orElse(null);
             Optional.ofNullable(getBuilder()).ifPresent(SnapshotBuilder::updateSnapshot);
         } else {
             snapshotType = null;
+            rotation = null;
             templateBuildingInfo = null;
             blueprintBuildingInfo = null;
             currentBox = null;
@@ -210,20 +253,27 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
 
     @Override
     public void update() {
+        worldObj.theProfiler.startSection("main");
+        worldObj.theProfiler.startSection("power");
         battery.tick(getWorld(), getPos());
-        battery.addPowerChecking(64 * MjAPI.MJ, false);
-        if (getBuilder() != null) {
-            if (isDone = getBuilder().tick()) {
+        worldObj.theProfiler.endStartSection("builder");
+        SnapshotBuilder<?> builder = getBuilder();
+        if (builder != null) {
+            isDone = builder.tick();
+            if (isDone) {
                 if (currentBasePosIndex < basePoses.size() - 1) {
                     currentBasePosIndex++;
                     if (currentBasePosIndex >= basePoses.size()) {
                         currentBasePosIndex = basePoses.size() - 1;
                     }
-                    updateSnapshot();
+                    updateSnapshot(true);
                 }
             }
         }
+        worldObj.theProfiler.endStartSection("net_update");
         sendNetworkUpdate(NET_RENDER_DATA); // FIXME
+        worldObj.theProfiler.endSection();
+        worldObj.theProfiler.endSection();
     }
 
     // Networking
@@ -267,7 +317,7 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
                 path = new ArrayList<>();
                 int pathSize = buffer.readInt();
                 if (pathSize != 0) {
-                    for (int i =0; i < pathSize; i++) {
+                    for (int i = 0; i < pathSize; i++) {
                         path.add(MessageUtil.readBlockPos(buffer));
                     }
                 } else {
@@ -276,7 +326,6 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
                 updateBasePoses();
                 if (buffer.readBoolean()) {
                     snapshotType = buffer.readEnumValue(EnumSnapshotType.class);
-                    // noinspection ConstantConditions
                     getBuilder().readFromByteBuf(buffer);
                 } else {
                     snapshotType = null;
@@ -292,8 +341,11 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
                 canExcavate = buffer.readBoolean();
             }
             if (id == NET_SNAPSHOT_TYPE) {
+                EnumSnapshotType old = snapshotType;
                 snapshotType = buffer.readEnumValue(EnumOptionalSnapshotType.class).type;
-                worldObj.notifyBlockUpdate(pos, worldObj.getBlockState(pos), worldObj.getBlockState(pos), 0);
+                if (old != snapshotType) {
+                    redrawBlock();
+                }
             }
         }
         if (side == Side.SERVER) {
@@ -318,6 +370,8 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
         }
         nbt.setTag("basePoses", NBTUtilBC.writeCompoundList(basePoses.stream().map(NBTUtil::createPosTag)));
         nbt.setBoolean("canExcavate", canExcavate);
+        nbt.setTag("rotation", NBTUtilBC.writeEnum(rotation));
+        Optional.ofNullable(getBuilder()).ifPresent(builder -> nbt.setTag("builder", builder.serializeNBT()));
         return nbt;
     }
 
@@ -325,10 +379,19 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
         if (nbt.hasKey("path")) {
-            path = NBTUtilBC.readCompoundList(nbt.getTagList("path", Constants.NBT.TAG_COMPOUND)).map(NBTUtil::getPosFromTag).collect(Collectors.toList());
+            path = NBTUtilBC.readCompoundList(nbt.getTag("path"))
+                .map(NBTUtil::getPosFromTag)
+                .collect(Collectors.toList());
         }
-        basePoses = NBTUtilBC.readCompoundList(nbt.getTagList("basePoses", Constants.NBT.TAG_COMPOUND)).map(NBTUtil::getPosFromTag).collect(Collectors.toList());
+        basePoses = NBTUtilBC.readCompoundList(nbt.getTag("basePoses"))
+            .map(NBTUtil::getPosFromTag)
+            .collect(Collectors.toList());
         canExcavate = nbt.getBoolean("canExcavate");
+        rotation = NBTUtilBC.readEnum(nbt.getTag("rotation"), Rotation.class);
+        if (nbt.hasKey("builder")) {
+            updateSnapshot(false);
+            Optional.ofNullable(getBuilder()).ifPresent(builder -> builder.deserializeNBT(nbt.getCompoundTag("builder")));
+        }
     }
 
     // Rendering
@@ -344,6 +407,7 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
         return true;
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     @SideOnly(Side.CLIENT)
     public AxisAlignedBB getRenderBoundingBox() {
@@ -357,9 +421,7 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
     public void getDebugInfo(List<String> left, List<String> right, EnumFacing side) {
-        left.add("");
         left.add("battery = " + battery.getDebugString());
         left.add("basePoses = " + (basePoses == null ? "null" : basePoses.size()));
         left.add("currentBasePosIndex = " + currentBasePosIndex);
@@ -397,6 +459,16 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
         return null;
     }
 
+    private Snapshot.BuildingInfo getBuildingInfo() {
+        if (snapshotType == EnumSnapshotType.TEMPLATE) {
+            return templateBuildingInfo;
+        }
+        if (snapshotType == EnumSnapshotType.BLUEPRINT) {
+            return blueprintBuildingInfo;
+        }
+        return null;
+    }
+
     @Override
     public Template.BuildingInfo getTemplateBuildingInfo() {
         return templateBuildingInfo;
@@ -413,7 +485,7 @@ public class TileBuilder extends TileBC_Neptune implements ITickable, IDebuggabl
     }
 
     @Override
-    public TankManager<Tank> getTankManager() {
+    public TankManager getTankManager() {
         return tankManager;
     }
 }

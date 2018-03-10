@@ -22,22 +22,21 @@ import buildcraft.lib.recipe.IRecipeViewable;
 
 import buildcraft.transport.BCTransportItems;
 import buildcraft.transport.item.ItemPluggableFacade;
+import buildcraft.transport.plug.FacadeBlockStateInfo;
+import buildcraft.transport.plug.FacadeInstance;
 import buildcraft.transport.plug.FacadeStateManager;
-import buildcraft.transport.plug.FacadeStateManager.FacadeBlockStateInfo;
-import buildcraft.transport.plug.FacadeStateManager.FullFacadeInstance;
 
 public enum FacadeSwapRecipe implements IRecipe, IRecipeViewable.IViewableGrid {
     INSTANCE;
 
     private static final int TIME_GAP = 500;
 
-    private static final ChangingItemStack[] INPUTS;
-    private static final ChangingItemStack OUTPUTS;
+    private static final ChangingItemStack[] INPUTS = { null };
+    private static ChangingItemStack OUTPUTS;
 
-    static {
-        INPUTS = new ChangingItemStack[1];
-        List<ItemStack> list1 = new ArrayList<ItemStack>();
-        List<ItemStack> list2 = new ArrayList<ItemStack>();
+    public static void genRecipes() {
+    	List<ItemStack> list1 = new ArrayList<ItemStack>();
+    	List<ItemStack> list2 = new ArrayList<ItemStack>();
         for (FacadeBlockStateInfo info : FacadeStateManager.validFacadeStates.values()) {
             if (info.isVisible) {
                 ItemStack stack = createFacade(info, false);
@@ -79,7 +78,7 @@ public enum FacadeSwapRecipe implements IRecipe, IRecipeViewable.IViewableGrid {
         if (stackIn.getItem() != BCTransportItems.plugFacade) {
             return StackUtil.EMPTY;
         }
-        FullFacadeInstance states = ItemPluggableFacade.getStates(stackIn);
+        FacadeInstance states = ItemPluggableFacade.getStates(stackIn);
         states = states.withSwappedIsHollow();
         return BCTransportItems.plugFacade.createItemStack(states);
     }
@@ -101,16 +100,22 @@ public enum FacadeSwapRecipe implements IRecipe, IRecipeViewable.IViewableGrid {
 
     @Override
     public ChangingItemStack[] getRecipeInputs() {
+        if (INPUTS[0] == null) {
+            genRecipes();
+        }
         return INPUTS;
     }
 
     @Override
     public ChangingItemStack getRecipeOutputs() {
+        if (OUTPUTS == null) {
+            genRecipes();
+        }
         return OUTPUTS;
     }
 
     private static ItemStack createFacade(FacadeBlockStateInfo info, boolean isHollow) {
-        FullFacadeInstance state = FullFacadeInstance.createSingle(info, isHollow);
+        FacadeInstance state = FacadeInstance.createSingle(info, isHollow);
         return BCTransportItems.plugFacade.createItemStack(state);
     }
 

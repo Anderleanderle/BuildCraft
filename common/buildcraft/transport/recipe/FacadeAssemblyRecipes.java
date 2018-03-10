@@ -34,9 +34,9 @@ import buildcraft.lib.recipe.IRecipeViewable;
 
 import buildcraft.transport.BCTransport;
 import buildcraft.transport.BCTransportItems;
+import buildcraft.transport.plug.FacadeBlockStateInfo;
+import buildcraft.transport.plug.FacadeInstance;
 import buildcraft.transport.plug.FacadeStateManager;
-import buildcraft.transport.plug.FacadeStateManager.FacadeBlockStateInfo;
-import buildcraft.transport.plug.FacadeStateManager.FullFacadeInstance;
 
 public enum FacadeAssemblyRecipes implements IAssemblyRecipeProvider, IRecipeViewable.IRecipePowered {
     INSTANCE;
@@ -81,8 +81,8 @@ public enum FacadeAssemblyRecipes implements IAssemblyRecipeProvider, IRecipeVie
     }
 
     public static ItemStack createFacadeStack(FacadeBlockStateInfo info, boolean isHollow) {
-        ItemStack stack = BCTransportItems.plugFacade.createItemStack(FullFacadeInstance.createSingle(info, isHollow));
-        stack.stackSize = (6);
+        ItemStack stack = BCTransportItems.plugFacade.createItemStack(FacadeInstance.createSingle(info, isHollow));
+        stack.stackSize = 6;
         return stack;
     }
 

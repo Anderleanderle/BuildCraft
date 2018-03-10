@@ -12,13 +12,11 @@ import java.util.List;
 import javax.annotation.Nonnull;
 
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.ITickable;
 import net.minecraft.world.biome.Biome;
 
@@ -188,10 +186,6 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
         super.onPlacedBy(placer, stack);
         currentDirection = null;// Force rotateIfInvalid to always attempt to rotate
         rotateIfInvalid();
-    }
-
-    public boolean onActivated(EntityPlayer player, EnumHand hand, EnumFacing side, float hitX, float hitY, float hitZ) {
-        return false;
     }
 
     protected Biome getBiome() {
@@ -432,14 +426,14 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
     public void invalidate() {
         super.invalidate();
         // tileCache = null;
-        // checkOrienation = true;
+        // checkOrientation = true;
     }
 
     @Override
     public void validate() {
         super.validate();
         // tileCache = null;
-        // checkOrienation = true;
+        // checkOrientation = true;
     }
 
     /* STATE INFORMATION */
@@ -524,7 +518,7 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
     public IMjReceiver getReceiverToPower(TileEntity tile, EnumFacing side) {
         if (tile == null) return null;
         IMjReceiver rec = tile.getCapability(MjAPI.CAP_RECEIVER, side.getOpposite());
-        if (rec != null && rec.canConnect(mjConnector)) {
+        if (rec != null && rec.canConnect(mjConnector) && mjConnector.canConnect(rec)) {
             return rec;
         } else {
             return null;
@@ -579,19 +573,20 @@ public abstract class TileEngineBase_BC8 extends TileBC_Neptune implements ITick
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
     public void getDebugInfo(List<String> left, List<String> right, EnumFacing side) {
-        left.add("");
         left.add("facing = " + currentDirection);
         left.add("heat = " + LocaleUtil.localizeHeat(heat) + " -- " + String.format("%.2f %%", getHeatLevel()));
         left.add("power = " + LocaleUtil.localizeMj(power));
         left.add("stage = " + powerStage);
         left.add("progress = " + progress);
         left.add("last = " + LocaleUtil.localizeMjFlow(lastPower));
-        if (worldObj.isRemote) {
-            left.add("Current Model Variables:");
-            clientModelData.addDebugInfo(left);
-        }
+    }
+
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void getClientDebugInfo(List<String> left, List<String> right, EnumFacing side) {
+        left.add("Current Model Variables:");
+        clientModelData.addDebugInfo(left);
     }
 
     @Override

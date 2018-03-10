@@ -3,6 +3,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
+
 package buildcraft.transport.statements;
 
 import java.util.Locale;
@@ -45,7 +46,7 @@ public class ActionPipeSignal extends BCStatement implements IActionInternal {
 
     @Override
     public IStatementParameter createParameter(int index) {
-        return new ActionParameterSignal();
+        return ActionParameterSignal.EMPTY;
     }
 
     @Override
@@ -68,7 +69,7 @@ public class ActionPipeSignal extends BCStatement implements IActionInternal {
     }
 
     @Override
-    public SpriteHolder getSpriteHolder() {
+    public SpriteHolder getSprite() {
         return BCTransportSprites.getPipeSignal(true, colour);
     }
 

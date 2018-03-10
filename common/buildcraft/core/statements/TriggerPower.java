@@ -3,6 +3,7 @@
  * This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of the MPL was not
  * distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/
  */
+
 package buildcraft.core.statements;
 
 import net.minecraft.tileentity.TileEntity;
@@ -26,16 +27,6 @@ import buildcraft.core.BCCoreSprites;
 import buildcraft.core.BCCoreStatements;
 
 public class TriggerPower extends BCStatement implements ITriggerInternal, ITriggerExternal {
-    public static class Neighbor {
-        public TileEntity tile;
-        public EnumPipePart side;
-
-        public Neighbor(TileEntity tile, EnumPipePart side) {
-            this.tile = tile;
-            this.side = side;
-        }
-    }
-
     private final boolean high;
 
     public TriggerPower(boolean high) {
@@ -44,7 +35,7 @@ public class TriggerPower extends BCStatement implements ITriggerInternal, ITrig
     }
 
     @Override
-    public SpriteHolder getSpriteHolder() {
+    public SpriteHolder getSprite() {
         return high ? BCCoreSprites.TRIGGER_POWER_HIGH : BCCoreSprites.TRIGGER_POWER_LOW;
     }
 

@@ -37,7 +37,8 @@ public class ItemHandlerManager implements ICapabilityProvider, INBTSerializable
     public enum EnumAccess {
         /** An {@link IItemHandler} that shouldn't be accessible by external sources. */
         NONE,
-        /** Same as {@link #NONE}, but the contents of this inventory won't be dropped when the block is removed. */
+        /** Same as {@link #NONE}, but the contents of this inventory won't be dropped when the block is removed.
+         * Additionally the items will be considered "free", and so items can be duplicated into these slots */
         PHANTOM,
         INSERT,
         EXTRACT,
@@ -93,6 +94,26 @@ public class ItemHandlerManager implements ICapabilityProvider, INBTSerializable
 
     public ItemHandlerSimple addInvHandler(String key, int size, EnumAccess access, EnumPipePart... parts) {
         ItemHandlerSimple handler = new ItemHandlerSimple(size, callback);
+        return addInvHandler(key, handler, access, parts);
+    }
+
+    public ItemHandlerSimple addInvHandler(String key, int size, StackInsertionChecker checker, EnumAccess access,
+        EnumPipePart... parts) {
+        ItemHandlerSimple handler = new ItemHandlerSimple(size, callback);
+        handler.setChecker(checker);
+        return addInvHandler(key, handler, access, parts);
+    }
+
+    public ItemHandlerSimple addInvHandler(String key, int size, StackInsertionFunction insertionFunction,
+        EnumAccess access, EnumPipePart... parts) {
+        ItemHandlerSimple handler = new ItemHandlerSimple(size, callback);
+        handler.setInsertor(insertionFunction);
+        return addInvHandler(key, handler, access, parts);
+    }
+
+    public ItemHandlerSimple addInvHandler(String key, int size, StackInsertionChecker checker,
+        StackInsertionFunction insertionFunction, EnumAccess access, EnumPipePart... parts) {
+        ItemHandlerSimple handler = new ItemHandlerSimple(size, checker, insertionFunction, callback);
         return addInvHandler(key, handler, access, parts);
     }
 

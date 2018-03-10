@@ -123,7 +123,7 @@ public class AdvModelCache {
                     // Uh-oh! incorrect creation of this cache!
                     BCLog.logger.warn("[lib.model.adv_cache] Cache miss for indexed cache - this should be impossible! (index = " + index + ", length = " + values.length + ")");
                     for (VariableInfo<?> var : variables) {
-                        BCLog.logger.warn("            - " + var.node.getName() + " = " + var.node.valueToString());
+                        BCLog.logger.warn("            - " + var);
                     }
                 }
                 return computeFullModel();
@@ -161,9 +161,9 @@ public class AdvModelCache {
     static class CacheValue {
         final MutableQuad[] cutout, translucent;
 
-        CacheValue(MutableQuad[] cutout, MutableQuad[] translucnt) {
+        CacheValue(MutableQuad[] cutout, MutableQuad[] translucent) {
             this.cutout = cutout;
-            this.translucent = translucnt;
+            this.translucent = translucent;
         }
     }
 }

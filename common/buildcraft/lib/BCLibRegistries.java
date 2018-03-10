@@ -34,6 +34,5 @@ public class BCLibRegistries {
     }
 
     public static void fmlInit() {
-
     }
 }

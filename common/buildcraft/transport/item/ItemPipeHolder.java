@@ -10,6 +10,7 @@ import java.util.List;
 
 import gnu.trove.map.hash.TIntObjectHashMap;
 
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
@@ -27,6 +28,7 @@ import buildcraft.api.transport.pipe.IItemPipe;
 import buildcraft.api.transport.pipe.PipeApi;
 import buildcraft.api.transport.pipe.PipeDefinition;
 
+import buildcraft.lib.client.render.font.SpecialColourFontRenderer;
 import buildcraft.lib.item.IItemBuildCraft;
 import buildcraft.lib.misc.ColourUtil;
 import buildcraft.lib.misc.LocaleUtil;
@@ -36,7 +38,7 @@ import buildcraft.transport.BCTransportBlocks;
 public class ItemPipeHolder extends ItemBlock implements IItemBuildCraft, IItemPipe {
     public final PipeDefinition definition;
     private final String id;
-    private String unlocalisedName;
+    private String unlocalizedName;
     private CreativeTabs creativeTab;
 
     public ItemPipeHolder(PipeDefinition definition) {
@@ -59,7 +61,7 @@ public class ItemPipeHolder extends ItemBlock implements IItemBuildCraft, IItemP
     }
 
     @Override
-    public PipeDefinition getDefiniton() {
+    public PipeDefinition getDefinition() {
         return definition;
     }
 
@@ -77,27 +79,33 @@ public class ItemPipeHolder extends ItemBlock implements IItemBuildCraft, IItemP
         int meta = stack.getMetadata();
         if (meta > 0 && meta <= 16) {
             EnumDyeColor colour = EnumDyeColor.byMetadata(meta - 1);
-            colourComponent = ColourUtil.getTextFullTooltip(colour) + " ";
+            colourComponent = ColourUtil.getTextFullTooltipSpecial(colour) + " ";
         }
         return colourComponent + super.getItemStackDisplayName(stack);
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public FontRenderer getFontRenderer(ItemStack stack) {
+        return SpecialColourFontRenderer.INSTANCE;
     }
 
     // ItemBlock overrides these to point to the block
 
     @Override
     public ItemBlock setUnlocalizedName(String unlocalizedName) {
-        this.unlocalisedName = "item." + unlocalizedName;
+        this.unlocalizedName = "item." + unlocalizedName;
         return this;
     }
 
     @Override
     public String getUnlocalizedName() {
-        return unlocalisedName;
+        return unlocalizedName;
     }
 
     @Override
     public String getUnlocalizedName(ItemStack stack) {
-        return unlocalisedName;
+        return unlocalizedName;
     }
 
     @Override
@@ -116,7 +124,7 @@ public class ItemPipeHolder extends ItemBlock implements IItemBuildCraft, IItemP
     @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> tooltip, boolean advanced) {
-        String tipName = "tip." + unlocalisedName.replace(".name", "").replace("item.", "");
+        String tipName = "tip." + unlocalizedName.replace(".name", "").replace("item.", "");
         String localised = I18n.format(tipName);
         if (!localised.equals(tipName)) {
             tooltip.add(TextFormatting.GRAY + localised);
@@ -127,6 +135,8 @@ public class ItemPipeHolder extends ItemBlock implements IItemBuildCraft, IItemP
         } else if (definition.flowType == PipeApi.flowPower) {
             PipeApi.PowerTransferInfo pti = PipeApi.getPowerTransferInfo(definition);
             tooltip.add(LocaleUtil.localizeMjFlow(pti.transferPerTick));
+            // TODO: remove this! (Not localised b/c localisations happen AFTER this is removed)
+            tooltip.add("Work in progress - the above limit isn't enforced!");
         }
     }
 }

@@ -13,7 +13,10 @@ import net.minecraft.client.renderer.VertexBuffer;
 
 import net.minecraftforge.client.model.animation.FastTESR;
 
+import buildcraft.lib.client.render.laser.RenderLaserBox;
+
 import buildcraft.builders.tile.TileFiller;
+import buildcraft.core.client.BuildCraftLaserManager;
 
 public class RenderFiller extends FastTESR<TileFiller> {
     @Override
@@ -21,7 +24,19 @@ public class RenderFiller extends FastTESR<TileFiller> {
         Minecraft.getMinecraft().mcProfiler.startSection("bc");
         Minecraft.getMinecraft().mcProfiler.startSection("filler");
 
-        RenderSnapshotBuilder.render(tile.builder, tile.getWorld(), tile.getPos(), x, y, z, partialTicks, vb);
+        Minecraft.getMinecraft().mcProfiler.startSection("main");
+        if (tile.getBuilder() != null) {
+            RenderSnapshotBuilder.render(tile.getBuilder(), tile.getWorld(), tile.getPos(), x, y, z, partialTicks, vb);
+        }
+        Minecraft.getMinecraft().mcProfiler.endSection();
+
+        Minecraft.getMinecraft().mcProfiler.startSection("box");
+        if (tile.markerBox) {
+            vb.setTranslation(x - tile.getPos().getX(), y - tile.getPos().getY(), z - tile.getPos().getZ());
+            RenderLaserBox.renderDynamic(tile.box, BuildCraftLaserManager.STRIPES_WRITE, vb, false);
+            vb.setTranslation(0, 0, 0);
+        }
+        Minecraft.getMinecraft().mcProfiler.endSection();
 
         Minecraft.getMinecraft().mcProfiler.endSection();
         Minecraft.getMinecraft().mcProfiler.endSection();

@@ -6,13 +6,13 @@
 
 package buildcraft.builders.snapshot;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
@@ -23,6 +23,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
 import net.minecraft.entity.EntityList;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTUtil;
 import net.minecraft.util.EnumFacing;
@@ -43,7 +44,8 @@ import buildcraft.lib.misc.NBTUtilBC;
 import buildcraft.lib.misc.RotationUtil;
 
 //TODO Check if this works
-public class SchematicEntityDefault implements ISchematicEntity<SchematicEntityDefault> {
+public class SchematicEntityDefault implements ISchematicEntity {
+	private Entity entity;
     private NBTTagCompound entityNbt;
     private Vec3d pos;
     private BlockPos hangingPos;
@@ -54,11 +56,21 @@ public class SchematicEntityDefault implements ISchematicEntity<SchematicEntityD
         String registryName = context.entity.getName();
         return registryName != null &&
             RulesLoader.READ_DOMAINS.contains(registryName) &&
+            RulesLoader.getRules(
+                context.entity /* EntityList.getKey(context.entity) */,
+                context.entity.serializeNBT()
+            )
+                .stream()
+                .anyMatch(rule -> rule.capture);
+        /*
+            RulesLoader.READ_DOMAINS.contains(registryName) &&
             RulesLoader.getRules(context.entity).stream().anyMatch(rule -> rule.capture);
+        */
     }
 
     @Override
     public void init(SchematicEntityContext context) {
+    	entity = context.entity;
         entityNbt = context.entity.serializeNBT();
         pos = context.entity.getPositionVector().subtract(new Vec3d(context.basePos));
         if (context.entity instanceof EntityHanging) {
@@ -78,34 +90,42 @@ public class SchematicEntityDefault implements ISchematicEntity<SchematicEntityD
 
     @Nonnull
     @Override
-    public List<ItemStack> computeRequiredItems(SchematicEntityContext context) {
-        Set<JsonRule> rules = RulesLoader.getRules(context.entity);
-        List<ItemStack> requiredItems = new ArrayList<>();
-        if (rules.stream().noneMatch(rule -> rule.doNotCopyRequiredItemsFromBreakBlockDrops)) {
-            if (context.world instanceof FakeWorld) {
-                requiredItems.addAll(((FakeWorld) context.world).killEntityAndGetDrops(context.entity));
-            }
+    public List<ItemStack> computeRequiredItems() {
+        Set<JsonRule> rules = RulesLoader.getRules(
+            entity /* new ResourceLocation(entityNbt.getString("id")) */,
+            entityNbt
+        );
+        if (rules.isEmpty()) {
+            throw new IllegalArgumentException("Rules are empty");
         }
-        if (rules.stream().map(rule -> rule.requiredItems).anyMatch(Objects::nonNull)) {
-            requiredItems.clear();
-            rules.stream()
-                .map(rule -> rule.requiredItems)
-                .filter(Objects::nonNull)
-                .flatMap(Collection::stream)
-                .forEach(requiredItems::add);
-        }
-        return requiredItems;
+        return rules.stream()
+            .map(rule -> rule.requiredExtractors)
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .flatMap(requiredExtractor -> requiredExtractor.extractItemsFromEntity(entityNbt).stream())
+            .filter(((Predicate<ItemStack>) stack -> stack == null).negate())
+            .collect(Collectors.toList());
     }
 
     @Nonnull
     @Override
-    public List<FluidStack> computeRequiredFluids(SchematicEntityContext context) {
-        return Collections.emptyList();
+    public List<FluidStack> computeRequiredFluids() {
+        Set<JsonRule> rules = RulesLoader.getRules(
+        	entity /* new ResourceLocation(entityNbt.getString("id")) */,
+            entityNbt
+        );
+        return rules.stream()
+            .map(rule -> rule.requiredExtractors)
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .flatMap(requiredExtractor -> requiredExtractor.extractFluidsFromEntity(entityNbt).stream())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
     }
 
     @Override
     public SchematicEntityDefault getRotated(Rotation rotation) {
-        SchematicEntityDefault schematicEntity = new SchematicEntityDefault();
+        SchematicEntityDefault schematicEntity = SchematicEntityManager.createCleanCopy(this);
         schematicEntity.entityNbt = entityNbt;
         schematicEntity.pos = RotationUtil.rotateVec3d(pos, rotation);
         schematicEntity.hangingPos = BlockPosRotator.rotate(hangingPos, rotation);
@@ -116,6 +136,17 @@ public class SchematicEntityDefault implements ISchematicEntity<SchematicEntityD
 
     @Override
     public Entity build(World world, BlockPos basePos) {
+        Set<JsonRule> rules = RulesLoader.getRules(
+        	entity /* new ResourceLocation(entityNbt.getString("id")) */,
+            entityNbt
+        );
+        NBTTagCompound replaceNbt = rules.stream()
+            .map(rule -> rule.replaceNbt)
+            .filter(Objects::nonNull)
+            .map(NBTBase.class::cast)
+            .reduce(NBTUtilBC::merge)
+            .map(NBTTagCompound.class::cast)
+            .orElse(null);
         Vec3d placePos = new Vec3d(basePos).add(pos);
         BlockPos placeHangingPos = basePos.add(hangingPos);
         NBTTagCompound newEntityNbt = new NBTTagCompound();
@@ -133,7 +164,12 @@ public class SchematicEntityDefault implements ISchematicEntity<SchematicEntityD
         } else {
             rotate = true;
         }
-        Entity entity = EntityList.createEntityFromNBT(newEntityNbt, world);
+        Entity entity = EntityList.createEntityFromNBT(
+            replaceNbt != null
+                ? (NBTTagCompound) NBTUtilBC.merge(newEntityNbt, replaceNbt)
+                : newEntityNbt,
+            world
+        );
         if (entity != null) {
             if (rotate) {
                 entity.setLocationAndAngles(

@@ -15,8 +15,6 @@ import net.minecraft.world.gen.layer.GenLayer;
 
 import net.minecraftforge.common.BiomeDictionary;
 
-import buildcraft.api.core.BCLog;
-
 public class GenLayerAddOilOcean extends GenLayerBiomeReplacer {
     private static final double NOISE_FIELD_SCALE = 0.0005;
     private static final double NOISE_FIELD_THRESHOLD = 0.9;
@@ -34,7 +32,6 @@ public class GenLayerAddOilOcean extends GenLayerBiomeReplacer {
     protected boolean canReplaceBiome(int biomeId) {
         Biome biome = Biome.getBiomeForId(biomeId);
         if (biome == null) {
-            BCLog.logger.warn("Couldn't find a biome with an ID of " + biomeId);
             return false;
         }
         return new ArrayList<BiomeDictionary.Type>(Arrays.asList(BiomeDictionary.getTypesForBiome(biome))).containsAll(REQUIRED_TYPES);
