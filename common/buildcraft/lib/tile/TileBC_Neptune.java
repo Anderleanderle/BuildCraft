@@ -192,7 +192,7 @@ public abstract class TileBC_Neptune extends TileEntity implements IPayloadRecei
 
     /** @param pos The <i>absolute</i> position of the {@link TileEntity} . */
     public final TileEntity getLocalTile(BlockPos pos) {
-        return BlockUtil.getTileEntity(worldObj, pos, true);
+        return BlockUtil.getTileEntity(worldObj, pos, /*true*/ false);
     }
 
     // ##################
