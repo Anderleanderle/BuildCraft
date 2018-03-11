@@ -140,6 +140,8 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
         }
     };
 
+	private boolean firstTick = true;
+
     public TileQuarry() {
         caps.addProvider(new MjCapabilityHelper(new MjBatteryReceiver(battery)));
         caps.addCapabilityInstance(CapUtil.CAP_ITEM_TRANSACTOR, AutomaticProvidingTransactor.INSTANCE,
@@ -319,13 +321,6 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
     }
 
     @Override
-    public void onLoad() {
-        if (!worldObj.isRemote) {
-            updatePoses();
-        }
-    }
-
-    @Override
     public void validate() {
         super.validate();
         BCBuildersEventDist.INSTANCE.validateQuarry(this);
@@ -389,6 +384,11 @@ public class TileQuarry extends TileBC_Neptune implements ITickable, IDebuggable
 
     @Override
     public void update() {
+        if (firstTick && !worldObj.isRemote) {
+            updatePoses();
+            firstTick  = false;
+        }
+    	
         if (worldObj.isRemote) {
             prevClientDrillPos = clientDrillPos;
             clientDrillPos = drillPos;

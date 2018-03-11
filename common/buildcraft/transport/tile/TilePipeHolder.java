@@ -106,6 +106,8 @@ public class TilePipeHolder extends TileBC_Neptune implements IPipeHolder, ITick
     private final Map<EnumFacing, WeakReference<TileEntity>> neighbourTiles = new EnumMap<>(EnumFacing.class);
     private NBTTagCompound unknownData;
 
+	private boolean firstTick = false;
+
     public TilePipeHolder() {
         for (EnumFacing side : EnumFacing.VALUES) {
             pluggables.put(side, new PluggableHolder(this, side));
@@ -218,15 +220,18 @@ public class TilePipeHolder extends TileBC_Neptune implements IPipeHolder, ITick
     @Override
     public void onLoad() {
         super.onLoad();
-        if (pipe != null) {
-            pipe.onLoad();
-        }
     }
 
     // ITickable
 
     @Override
     public void update() {
+    	
+        if (firstTick  && pipe != null) {
+            pipe.onLoad();
+            firstTick = false;
+        }
+    	
         redstoneValues = new int[6];
         // Tick objects
         if (pipe != null) {
