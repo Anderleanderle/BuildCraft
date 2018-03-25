@@ -90,7 +90,9 @@ public class ItemHandlerSimple extends AbstractInvItemTransactor
         NBTTagList list = new NBTTagList();
         for (ItemStack stack : stacks) {
             NBTTagCompound itemNbt = new NBTTagCompound();
-            stack.writeToNBT(itemNbt);
+            if (stack != null) {
+            	stack.writeToNBT(itemNbt);
+            }
             list.appendTag(itemNbt);
         }
         nbt.setTag("items", list);
@@ -210,14 +212,22 @@ public class ItemHandlerSimple extends AbstractInvItemTransactor
         if (min <= 0) min = 1;
         if (max < min) return StackUtil.EMPTY;
         ItemStack current = stacks.get(slot);
-        ItemStack before = current.copy();
-        if (current.stackSize < min) return StackUtil.EMPTY;
+        ItemStack before = current != null ? current.copy() : null;
+        if (current != null) if (current.stackSize < min) return StackUtil.EMPTY;
         if (filter.matches(asValid(current))) {
             if (simulate) {
-                ItemStack copy = current.copy();
-                return copy.splitStack(max);
+            	if (current != null) {
+                    ItemStack copy = current.copy();
+                    return copy.splitStack(max);
+            	}
+            	else {
+            		return null;
+            	}
             }
-            ItemStack split = current.splitStack(max);
+            ItemStack split = current != null ? current.splitStack(max) : null;
+            if (current == null) {
+            	stacks.set(slot, StackUtil.EMPTY);
+            }
             if (current.stackSize <= 0) {
                 stacks.set(slot, StackUtil.EMPTY);
             }

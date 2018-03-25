@@ -30,7 +30,7 @@ public class SlotDisplay extends Slot {
 
     @Override
     public ItemStack getStack() {
-        return getter.apply(getSlotIndex()).copy();
+        return getter.apply(getSlotIndex()) != null ? getter.apply(getSlotIndex()).copy() : null;
     }
 
     @Override

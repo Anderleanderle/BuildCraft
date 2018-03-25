@@ -149,9 +149,9 @@ public abstract class AbstractInvItemTransactor implements IItemTransactor {
         ItemStack total = StackUtil.EMPTY;
         if (min <= totalSize) {
             for (int slot : valids.toArray()) {
-                ItemStack extracted = extract(slot, filter, 1, total == null ? 0 : max - total.stackSize, simulate);
+                ItemStack extracted = extract(slot, filter, 1, total == null ? max : max - total.stackSize, simulate);
                 if (total == null) {
-                    total = extracted.copy();
+                    total = extracted != null ? extracted.copy() : null;
                 } else {
                     total.stackSize += extracted.stackSize;
                 }

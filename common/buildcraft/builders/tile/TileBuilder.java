@@ -150,15 +150,17 @@ public class TileBuilder extends TileBC_Neptune
             if (handler == invSnapshot) {
                 currentBasePosIndex = 0;
                 snapshot = null;
-                if (after.getItem() instanceof ItemSnapshot) {
-                    Snapshot.Header header = BCBuildersItems.snapshot.getHeader(after);
-                    if (header != null) {
-                        Snapshot newSnapshot = GlobalSavedDataSnapshots.get(worldObj).getSnapshot(header.key);
-                        if (newSnapshot != null) {
-                            snapshot = newSnapshot;
-                        }
-                    }
-                }
+                if (after != null) {
+	                if (after.getItem() instanceof ItemSnapshot) {
+	                    Snapshot.Header header = BCBuildersItems.snapshot.getHeader(after);
+	                    if (header != null) {
+	                        Snapshot newSnapshot = GlobalSavedDataSnapshots.get(worldObj).getSnapshot(header.key);
+	                        if (newSnapshot != null) {
+	                            snapshot = newSnapshot;
+	                        }
+	                    }
+	                }
+            	}
                 updateSnapshot(true);
                 sendNetworkUpdate(NET_SNAPSHOT_TYPE);
             }
