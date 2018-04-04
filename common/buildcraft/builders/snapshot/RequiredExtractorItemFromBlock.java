@@ -22,11 +22,12 @@ public class RequiredExtractorItemFromBlock extends RequiredExtractor {
     @Override
     public List<ItemStack> extractItemsFromBlock(@Nonnull IBlockState blockState, @Nullable NBTTagCompound tileNbt) {
         return Collections.singletonList(
+        	Item.getItemFromBlock(blockState.getBlock()) != null ?
             new ItemStack(
                 Item.getItemFromBlock(blockState.getBlock()),
                 1,
                 blockState.getBlock().damageDropped(blockState)
-            )
+            ) : null
         );
     }
 }
