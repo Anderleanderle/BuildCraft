@@ -77,10 +77,6 @@ public class StackUtil {
     /** Checks to see if the given required stack is contained fully in a single stack in a list. */
     public static boolean contains(ItemStack required, Collection<ItemStack> containers) {
         for (ItemStack possible : containers) {
-            if (possible == null) {
-                // Use an explicit null check here as the collection doesn't have @Nonnull applied to its type
-                throw new NullPointerException("Found a null itemstack in " + containers);
-            }
             if (contains(required, possible)) {
                 return true;
             }

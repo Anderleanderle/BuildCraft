@@ -119,8 +119,8 @@ public class TileChute extends TileBC_Neptune implements ITickable, IDebuggable 
             .forEach(transactor -> {
                 ItemStack item = inv.extract(
                     stack -> {
-                        ItemStack leftOver = transactor.insert(stack.copy(), false, true);
-                        return leftOver == null || leftOver.stackSize < stack.stackSize;
+                        ItemStack leftOver = transactor.insert(stack != null ? stack.copy() : null, false, true);
+                        return leftOver == null || (leftOver != null ? leftOver.stackSize : 0) < (stack != null ? stack.stackSize : 0);
                     },
                     1,
                     1,

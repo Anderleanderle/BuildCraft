@@ -98,7 +98,7 @@ public class WidgetPhantomSlot extends Widget_Neptune<ContainerBC_Neptune> {
     }
 
     protected int getMaxStackSize(ItemStack stack) {
-        return stack.getMaxStackSize();
+        return stack != null ? stack.getMaxStackSize() : 0;
     }
 
     @Nonnull
@@ -109,9 +109,11 @@ public class WidgetPhantomSlot extends Widget_Neptune<ContainerBC_Neptune> {
     public final void setStack(@Nullable ItemStack stack, boolean tellClient) {
         this.stack = (stack);
         int max = getMaxStackSize(stack);
-        if (stack.stackSize > max) {
-            this.stack.stackSize = max;
-        }
+        if (stack != null) {
+	        if (stack.stackSize > max) {
+	            this.stack.stackSize = max;
+	        }
+    	}
         if (tellClient && !container.player.worldObj.isRemote) {
             sendWidgetData(buffer -> {
                 buffer.writeByte(NET_SERVER_TO_CLIENT_ITEM);
